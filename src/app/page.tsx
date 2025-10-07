@@ -15,12 +15,12 @@ export default function Home() {
           </p>
           
           <div className="flex gap-4 justify-center">
-            <Link href="/(client)/hotels">
+            <Link href="/client/hotels">
               <Button size="lg" className="mr-4">
                 Explore Hotels
               </Button>
             </Link>
-            <Link href="/(client)/cars">
+            <Link href="/client/cars">
               <Button size="lg" variant="outline">
                 Rent Cars
               </Button>

@@ -125,7 +125,7 @@ export default function CarsPage() {
           ))
         ) : cars && cars.length > 0 ? (
           cars.map((car) => (
-            <Link key={car.id} href={`/(client)/cars/${car.id}`}>
+            <Link key={car.id} href={`/client/cars/${car.id}`}>
               <CarCard car={car} />
             </Link>
           ))

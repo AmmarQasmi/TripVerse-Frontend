@@ -10,7 +10,7 @@ export default function AdminDriversPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'PENDING' | 'VERIFIED' | 'REJECTED'>('all')
   
-  const { data: drivers, isLoading, verifyDriver, rejectDriver } = useDriversAdmin()
+  const { drivers, isLoading, verifyDriver, rejectDriver } = useDriversAdmin()
 
   const filteredDrivers = drivers?.filter(driver => {
     const matchesSearch = driver.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

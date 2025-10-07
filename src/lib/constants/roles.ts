@@ -57,19 +57,19 @@ export function hasPermission(role: UserRole, permission: string): boolean {
 
 export function canAccessRoute(role: UserRole, route: string): boolean {
   const routePermissions: Record<string, string[]> = {
-    '/(client)/hotels': ['hotel:read'],
-    '/(client)/cars': ['car:read'],
-    '/(client)/bookings': ['booking:read:own'],
-    '/(client)/monuments': ['monument:read', 'monument:recognize'],
-    '/(client)/weather': ['weather:read'],
-    '/(driver)/dashboard': ['car:read'],
-    '/(driver)/cars': ['car:create', 'car:update:own', 'car:delete:own'],
-    '/(driver)/bookings': ['booking:read:own', 'booking:update:own'],
-    '/(driver)/payouts': ['payout:read:own'],
-    '/(admin)/dashboard': ['user:read'],
-    '/(admin)/drivers': ['driver:verify'],
-    '/(admin)/payments': ['payment:read'],
-    '/(admin)/disputes': ['dispute:read', 'dispute:resolve'],
+    '/client/hotels': ['hotel:read'],
+    '/client/cars': ['car:read'],
+    '/client/bookings': ['booking:read:own'],
+    '/client/monuments': ['monument:read', 'monument:recognize'],
+    '/client/weather': ['weather:read'],
+    '/driver/dashboard': ['car:read'],
+    '/driver/cars': ['car:create', 'car:update:own', 'car:delete:own'],
+    '/driver/bookings': ['booking:read:own', 'booking:update:own'],
+    '/driver/payouts': ['payout:read:own'],
+    '/admin/dashboard': ['user:read'],
+    '/admin/drivers': ['driver:verify'],
+    '/admin/payments': ['payment:read'],
+    '/admin/disputes': ['dispute:read', 'dispute:resolve'],
   }
 
   const requiredPermissions = routePermissions[route] || []

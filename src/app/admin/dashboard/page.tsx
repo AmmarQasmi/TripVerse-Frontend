@@ -149,7 +149,7 @@ export default function AdminDashboard() {
                   <p className="text-yellow-700">{stats.pendingVerifications} drivers need verification</p>
                 </div>
               </div>
-              <Link href="/(admin)/drivers">
+              <Link href="/admin/drivers">
                 <Button variant="outline" size="sm" className="border-yellow-300 text-yellow-800">
                   Review
                 </Button>
@@ -168,7 +168,7 @@ export default function AdminDashboard() {
                   <p className="text-red-700">{stats.activeDisputes} disputes require attention</p>
                 </div>
               </div>
-              <Link href="/(admin)/disputes">
+              <Link href="/admin/disputes">
                 <Button variant="outline" size="sm" className="border-red-300 text-red-800">
                   Resolve
                 </Button>
@@ -180,7 +180,7 @@ export default function AdminDashboard() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Link href="/(admin)/drivers">
+        <Link href="/admin/drivers">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">
               <div className="text-4xl mb-3">👤</div>
@@ -190,7 +190,7 @@ export default function AdminDashboard() {
           </Card>
         </Link>
 
-        <Link href="/(admin)/payments">
+        <Link href="/admin/payments">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">
               <div className="text-4xl mb-3">💳</div>
@@ -200,7 +200,7 @@ export default function AdminDashboard() {
           </Card>
         </Link>
 
-        <Link href="/(admin)/disputes">
+        <Link href="/admin/disputes">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">
               <div className="text-4xl mb-3">⚠️</div>
