@@ -14,7 +14,7 @@ export default function AdminPaymentsPage() {
     endDate: '',
   })
   
-  const { data: payments, isLoading, processRefund } = usePaymentsAdmin()
+  const { payments, isLoading, processRefund } = usePaymentsAdmin()
 
   const filteredPayments = payments?.filter(payment => {
     const matchesSearch = payment.id.toLowerCase().includes(searchQuery.toLowerCase()) ||

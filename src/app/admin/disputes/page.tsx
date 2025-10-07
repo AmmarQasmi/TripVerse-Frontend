@@ -12,7 +12,7 @@ export default function AdminDisputesPage() {
   const [selectedDispute, setSelectedDispute] = useState<any>(null)
   const [resolution, setResolution] = useState('')
   
-  const { data: disputes, isLoading, resolveDispute } = useDisputesAdmin()
+  const { disputes, isLoading, resolveDispute } = useDisputesAdmin()
 
   const filteredDisputes = disputes?.filter(dispute => {
     const matchesSearch = dispute.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -29,7 +29,7 @@ export default function AdminDisputesPage() {
     }
     
     try {
-      await resolveDispute(disputeId, resolution)
+      await resolveDispute({ disputeId, resolution })
       setSelectedDispute(null)
       setResolution('')
     } catch (error) {

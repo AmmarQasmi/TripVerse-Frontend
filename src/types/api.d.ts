@@ -9,6 +9,7 @@ export interface User {
   phone?: string
   avatar?: string
   isVerified?: boolean
+  verificationStatus?: 'PENDING' | 'VERIFIED' | 'REJECTED'
   driverLicense?: string
   carDocuments?: string[]
 }

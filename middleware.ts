@@ -3,34 +3,34 @@ import type { NextRequest } from 'next/server'
 
 // Define protected routes and their required roles
 const protectedRoutes: Record<string, string[]> = {
-  '/(client)': ['CLIENT', 'ADMIN'],
-  '/(driver)': ['DRIVER', 'ADMIN'],
-  '/(admin)': ['ADMIN'],
+  '/client': ['CLIENT', 'ADMIN'],
+  '/driver': ['DRIVER', 'ADMIN'],
+  '/admin': ['ADMIN'],
 }
 
 // Routes that require authentication but no specific role
 const authRequiredRoutes = [
-  '/(client)/dashboard',
-  '/(client)/bookings',
-  '/(driver)/dashboard',
-  '/(driver)/cars',
-  '/(driver)/bookings',
-  '/(driver)/payouts',
-  '/(admin)/dashboard',
-  '/(admin)/drivers',
-  '/(admin)/payments',
-  '/(admin)/disputes',
+  '/client/dashboard',
+  '/client/bookings',
+  '/driver/dashboard',
+  '/driver/cars',
+  '/driver/bookings',
+  '/driver/payouts',
+  '/admin/dashboard',
+  '/admin/drivers',
+  '/admin/payments',
+  '/admin/disputes',
 ]
 
 // Public routes that don't require authentication
 const publicRoutes = [
   '/',
-  '/(auth)/login',
-  '/(auth)/signup',
-  '/(client)/hotels',
-  '/(client)/cars',
-  '/(client)/monuments',
-  '/(client)/weather',
+  '/auth/login',
+  '/auth/signup',
+  '/client/hotels',
+  '/client/cars',
+  '/client/monuments',
+  '/client/weather',
 ]
 
 export function middleware(request: NextRequest) {
@@ -49,7 +49,7 @@ export function middleware(request: NextRequest) {
 
   // If no token and route requires auth, redirect to login
   if (!token && authRequiredRoutes.some(route => pathname.startsWith(route))) {
-    const loginUrl = new URL('/(auth)/login', request.url)
+    const loginUrl = new URL('/auth/login', request.url)
     loginUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(loginUrl)
   }
@@ -73,7 +73,7 @@ export function middleware(request: NextRequest) {
       }
     } catch (error) {
       // Invalid token, redirect to login
-      const loginUrl = new URL('/(auth)/login', request.url)
+      const loginUrl = new URL('/auth/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)
       return NextResponse.redirect(loginUrl)
     }

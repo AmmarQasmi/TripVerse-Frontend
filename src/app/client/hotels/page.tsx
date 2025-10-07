@@ -74,7 +74,7 @@ export default function HotelsPage() {
           ))
         ) : (
           hotels?.map((hotel) => (
-            <Link key={hotel.id} href={`/(client)/hotels/${hotel.id}`}>
+            <Link key={hotel.id} href={`/client/hotels/${hotel.id}`}>
               <HotelCard hotel={hotel} />
             </Link>
           ))

@@ -124,7 +124,7 @@ export default function DriverDashboard() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Link href="/(driver)/cars">
+        <Link href="/driver/cars">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">
               <div className="text-4xl mb-3">🚗</div>
@@ -134,7 +134,7 @@ export default function DriverDashboard() {
           </Card>
         </Link>
 
-        <Link href="/(driver)/bookings">
+        <Link href="/driver/bookings">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">
               <div className="text-4xl mb-3">📋</div>
@@ -144,7 +144,7 @@ export default function DriverDashboard() {
           </Card>
         </Link>
 
-        <Link href="/(driver)/payouts">
+        <Link href="/driver/payouts">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">
               <div className="text-4xl mb-3">💳</div>
@@ -161,7 +161,7 @@ export default function DriverDashboard() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Recent Bookings</CardTitle>
-              <Link href="/(driver)/bookings">
+              <Link href="/driver/bookings">
                 <Button variant="outline" size="sm">
                   View All
                 </Button>

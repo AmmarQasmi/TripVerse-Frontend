@@ -53,7 +53,7 @@ export default function ClientDashboard() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Link href="/(client)/hotels">
+        <Link href="/client/hotels">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">
               <div className="text-4xl mb-3">🏨</div>
@@ -63,7 +63,7 @@ export default function ClientDashboard() {
           </Card>
         </Link>
 
-        <Link href="/(client)/cars">
+        <Link href="/client/cars">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">
               <div className="text-4xl mb-3">🚗</div>
@@ -73,7 +73,7 @@ export default function ClientDashboard() {
           </Card>
         </Link>
 
-        <Link href="/(client)/monuments">
+        <Link href="/client/monuments">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">
               <div className="text-4xl mb-3">🏛️</div>
@@ -83,7 +83,7 @@ export default function ClientDashboard() {
           </Card>
         </Link>
 
-        <Link href="/(client)/weather">
+        <Link href="/client/weather">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">
               <div className="text-4xl mb-3">🌤️</div>
@@ -100,7 +100,7 @@ export default function ClientDashboard() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Recent Bookings</CardTitle>
-              <Link href="/(client)/bookings">
+              <Link href="/client/bookings">
                 <Button variant="outline" size="sm">
                   View All
                 </Button>

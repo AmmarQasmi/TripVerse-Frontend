@@ -18,16 +18,16 @@ export function Header() {
           </Link>
 
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/(client)/hotels" className="text-gray-600 hover:text-gray-900">
+            <Link href="/client/hotels" className="text-gray-600 hover:text-gray-900">
               Hotels
             </Link>
-            <Link href="/(client)/cars" className="text-gray-600 hover:text-gray-900">
+            <Link href="/client/cars" className="text-gray-600 hover:text-gray-900">
               Cars
             </Link>
-            <Link href="/(client)/monuments" className="text-gray-600 hover:text-gray-900">
+            <Link href="/client/monuments" className="text-gray-600 hover:text-gray-900">
               Monuments
             </Link>
-            <Link href="/(client)/weather" className="text-gray-600 hover:text-gray-900">
+            <Link href="/client/weather" className="text-gray-600 hover:text-gray-900">
               Weather
             </Link>
           </nav>
@@ -39,14 +39,14 @@ export function Header() {
                   Welcome, {user.name}
                 </span>
                 {user.role === 'DRIVER' && (
-                  <Link href="/(driver)/dashboard">
+                  <Link href="/driver/dashboard">
                     <Button variant="outline" size="sm">
                       Driver Dashboard
                     </Button>
                   </Link>
                 )}
                 {user.role === 'ADMIN' && (
-                  <Link href="/(admin)/dashboard">
+                  <Link href="/admin/dashboard">
                     <Button variant="outline" size="sm">
                       Admin Dashboard
                     </Button>
@@ -58,12 +58,12 @@ export function Header() {
               </div>
             ) : (
               <div className="flex items-center space-x-2">
-                <Link href="/(auth)/login">
+                <Link href="/auth/login">
                   <Button variant="ghost" size="sm">
                     Login
                   </Button>
                 </Link>
-                <Link href="/(auth)/signup">
+                <Link href="/auth/signup">
                   <Button size="sm">
                     Sign Up
                   </Button>
