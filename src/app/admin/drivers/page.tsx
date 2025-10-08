@@ -1,249 +1,374 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { motion } from 'framer-motion'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { useDriversAdmin } from '@/features/admin/useDriversAdmin'
+import { Button } from '@/components/ui/Button'
+
+interface Driver {
+  id: string
+  name: string
+  email: string
+  phone: string
+  joinedDate: string
+  verificationStatus: 'PENDING' | 'VERIFIED' | 'REJECTED' | 'INCOMPLETE'
+  totalCars: number
+  totalTrips: number
+  totalEarnings: number
+  rating: number
+  documentsSubmitted: number
+  documentsTotal: number
+}
 
 export default function AdminDriversPage() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'PENDING' | 'VERIFIED' | 'REJECTED'>('all')
+  const [filter, setFilter] = useState<'all' | 'pending' | 'verified' | 'rejected'>('all')
   
-  const { drivers, isLoading, verifyDriver, rejectDriver } = useDriversAdmin()
+  // Mock data
+  const drivers: Driver[] = [
+    {
+      id: '1',
+      name: 'Ahmed Khan',
+      email: 'ahmed.khan@example.com',
+      phone: '+92 300 1234567',
+      joinedDate: '2024-01-10',
+      verificationStatus: 'PENDING',
+      totalCars: 2,
+      totalTrips: 0,
+      totalEarnings: 0,
+      rating: 0,
+      documentsSubmitted: 3,
+      documentsTotal: 4,
+    },
+    {
+      id: '2',
+      name: 'Sara Ahmed',
+      email: 'sara.ahmed@example.com',
+      phone: '+92 301 9876543',
+      joinedDate: '2023-12-15',
+      verificationStatus: 'VERIFIED',
+      totalCars: 3,
+      totalTrips: 45,
+      totalEarnings: 225000,
+      rating: 4.8,
+      documentsSubmitted: 4,
+      documentsTotal: 4,
+    },
+    {
+      id: '3',
+      name: 'Ali Hassan',
+      email: 'ali.hassan@example.com',
+      phone: '+92 333 4567890',
+      joinedDate: '2024-01-08',
+      verificationStatus: 'INCOMPLETE',
+      totalCars: 0,
+      totalTrips: 0,
+      totalEarnings: 0,
+      rating: 0,
+      documentsSubmitted: 1,
+      documentsTotal: 4,
+    },
+    {
+      id: '4',
+      name: 'Fatima Malik',
+      email: 'fatima.malik@example.com',
+      phone: '+92 345 2345678',
+      joinedDate: '2023-11-20',
+      verificationStatus: 'VERIFIED',
+      totalCars: 1,
+      totalTrips: 23,
+      totalEarnings: 115000,
+      rating: 4.9,
+      documentsSubmitted: 4,
+      documentsTotal: 4,
+    },
+    {
+      id: '5',
+      name: 'Usman Shah',
+      email: 'usman.shah@example.com',
+      phone: '+92 321 3456789',
+      joinedDate: '2024-01-12',
+      verificationStatus: 'REJECTED',
+      totalCars: 0,
+      totalTrips: 0,
+      totalEarnings: 0,
+      rating: 0,
+      documentsSubmitted: 4,
+      documentsTotal: 4,
+    },
+  ]
 
-  const filteredDrivers = drivers?.filter(driver => {
-    const matchesSearch = driver.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         driver.email.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || driver.verificationStatus === statusFilter
-    return matchesSearch && matchesStatus
-  }) || []
+  const filteredDrivers = drivers.filter(driver => {
+    if (filter === 'all') return true
+    if (filter === 'pending') return driver.verificationStatus === 'PENDING' || driver.verificationStatus === 'INCOMPLETE'
+    if (filter === 'verified') return driver.verificationStatus === 'VERIFIED'
+    if (filter === 'rejected') return driver.verificationStatus === 'REJECTED'
+    return true
+  })
 
-  const handleVerifyDriver = async (driverId: string) => {
-    try {
-      await verifyDriver(driverId)
-    } catch (error) {
-      console.error('Failed to verify driver:', error)
-    }
-  }
-
-  const handleRejectDriver = async (driverId: string) => {
-    if (confirm('Are you sure you want to reject this driver verification?')) {
-      try {
-        await rejectDriver(driverId)
-      } catch (error) {
-        console.error('Failed to reject driver:', error)
-      }
-    }
+  const stats = {
+    total: drivers.length,
+    pending: drivers.filter(d => d.verificationStatus === 'PENDING' || d.verificationStatus === 'INCOMPLETE').length,
+    verified: drivers.filter(d => d.verificationStatus === 'VERIFIED').length,
+    rejected: drivers.filter(d => d.verificationStatus === 'REJECTED').length,
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'VERIFIED':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 text-green-800 border-green-300'
       case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300'
       case 'REJECTED':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 text-red-800 border-red-300'
+      case 'INCOMPLETE':
+        return 'bg-gray-100 text-gray-800 border-gray-300'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800 border-gray-300'
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'VERIFIED':
+        return '✅'
+      case 'PENDING':
+        return '⏳'
+      case 'REJECTED':
+        return '❌'
+      case 'INCOMPLETE':
+        return '📄'
+      default:
+        return '📄'
+    }
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Driver Management
-        </h1>
-        <p className="text-lg text-gray-600">
-          Review and verify driver applications for the platform.
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="container mx-auto px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-white mb-2">
+              Driver Management
+            </h1>
+            <p className="text-lg text-gray-300">
+              Review and manage driver verifications
+            </p>
+          </div>
 
-      {/* Filters */}
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
-          <Input
-            label="Search Drivers"
-            placeholder="Search by name or email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="md:w-48">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Status Filter
-          </label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">All Status</option>
-            <option value="PENDING">Pending</option>
-            <option value="VERIFIED">Verified</option>
-            <option value="REJECTED">Rejected</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Drivers</p>
-                <p className="text-2xl font-bold text-gray-900">{drivers?.length || 0}</p>
-              </div>
-              <div className="text-2xl">👥</div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Pending Verification</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {drivers?.filter(d => d.verificationStatus === 'PENDING').length || 0}
-                </p>
-              </div>
-              <div className="text-2xl">⏳</div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Verified Drivers</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {drivers?.filter(d => d.verificationStatus === 'VERIFIED').length || 0}
-                </p>
-              </div>
-              <div className="text-2xl">✅</div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Drivers List */}
-      <div className="space-y-4">
-        {isLoading ? (
-          Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              </CardContent>
-            </Card>
-          ))
-        ) : filteredDrivers.length > 0 ? (
-          filteredDrivers.map((driver) => (
-            <Card key={driver.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
-                        {driver.name.charAt(0)}
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold">{driver.name}</h3>
-                        <p className="text-sm text-gray-600">{driver.email}</p>
-                      </div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(driver.verificationStatus || 'PENDING')}`}>
-                        {driver.verificationStatus || 'PENDING'}
-                      </span>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Card 
+                className={`shadow-lg cursor-pointer transition-all duration-300 ${
+                  filter === 'all' 
+                    ? 'bg-blue-500/20 border-2 border-blue-500' 
+                    : 'bg-white/10 backdrop-blur-md border-white/20'
+                }`}
+                onClick={() => setFilter('all')}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-300">Total Drivers</p>
+                      <p className="text-3xl font-bold text-white">{stats.total}</p>
                     </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
-                      <div>
-                        <span className="font-medium">Phone:</span> {driver.phone || 'Not provided'}
-                      </div>
-                      <div>
-                        <span className="font-medium">Joined:</span> {formatDate(driver.createdAt)}
-                      </div>
-                      <div>
-                        <span className="font-medium">License:</span> {driver.driverLicense ? 'Provided' : 'Missing'}
-                      </div>
+                    <div className="text-4xl">👥</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Card 
+                className={`shadow-lg cursor-pointer transition-all duration-300 ${
+                  filter === 'pending' 
+                    ? 'bg-yellow-500/20 border-2 border-yellow-500' 
+                    : 'bg-white/10 backdrop-blur-md border-white/20'
+                }`}
+                onClick={() => setFilter('pending')}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-300">Pending Review</p>
+                      <p className="text-3xl font-bold text-white">{stats.pending}</p>
                     </div>
+                    <div className="text-4xl">⏳</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-                    {driver.driverLicense && (
-                      <div className="mb-4">
-                        <span className="text-sm font-medium text-gray-700">Driver License:</span>
-                        <p className="text-sm text-gray-600">{driver.driverLicense}</p>
-                      </div>
-                    )}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Card 
+                className={`shadow-lg cursor-pointer transition-all duration-300 ${
+                  filter === 'verified' 
+                    ? 'bg-green-500/20 border-2 border-green-500' 
+                    : 'bg-white/10 backdrop-blur-md border-white/20'
+                }`}
+                onClick={() => setFilter('verified')}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-300">Verified</p>
+                      <p className="text-3xl font-bold text-white">{stats.verified}</p>
+                    </div>
+                    <div className="text-4xl">✅</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-                    {driver.carDocuments && driver.carDocuments.length > 0 && (
-                      <div className="mb-4">
-                        <span className="text-sm font-medium text-gray-700">Car Documents:</span>
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {driver.carDocuments.map((doc, index) => (
-                            <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                              Document {index + 1}
-                            </span>
-                          ))}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Card 
+                className={`shadow-lg cursor-pointer transition-all duration-300 ${
+                  filter === 'rejected' 
+                    ? 'bg-red-500/20 border-2 border-red-500' 
+                    : 'bg-white/10 backdrop-blur-md border-white/20'
+                }`}
+                onClick={() => setFilter('rejected')}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-300">Rejected</p>
+                      <p className="text-3xl font-bold text-white">{stats.rejected}</p>
+                    </div>
+                    <div className="text-4xl">❌</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+
+          {/* Drivers List */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>
+                  {filter === 'all' && 'All Drivers'}
+                  {filter === 'pending' && 'Pending Verifications'}
+                  {filter === 'verified' && 'Verified Drivers'}
+                  {filter === 'rejected' && 'Rejected Applications'}
+                </CardTitle>
+                <span className="text-sm text-gray-500">
+                  {filteredDrivers.length} driver{filteredDrivers.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {filteredDrivers.map((driver, index) => (
+                  <motion.div
+                    key={driver.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <div className="p-6 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-start space-x-4">
+                          <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                            {driver.name.charAt(0)}
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">{driver.name}</h3>
+                            <div className="text-sm text-gray-600 space-y-1">
+                              <p>📧 {driver.email}</p>
+                              <p>📱 {driver.phone}</p>
+                              <p>📅 Joined {new Date(driver.joinedDate).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end space-y-2">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(driver.verificationStatus)}`}>
+                            {getStatusIcon(driver.verificationStatus)} {driver.verificationStatus}
+                          </span>
+                          <span className="text-xs text-gray-600">
+                            Documents: {driver.documentsSubmitted}/{driver.documentsTotal}
+                          </span>
                         </div>
                       </div>
-                    )}
-                  </div>
-                  
-                  <div className="ml-6 flex flex-col space-y-2">
-                    {driver.verificationStatus === 'PENDING' && (
-                      <>
-                        <Button 
-                          size="sm" 
-                          onClick={() => handleVerifyDriver(driver.id)}
-                        >
-                          Verify Driver
+
+                      {/* Stats */}
+                      <div className="grid grid-cols-4 gap-4 mb-4">
+                        <div className="text-center p-3 bg-gray-50 rounded-lg">
+                          <p className="text-sm text-gray-600">Cars</p>
+                          <p className="text-lg font-bold text-gray-900">{driver.totalCars}</p>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 rounded-lg">
+                          <p className="text-sm text-gray-600">Trips</p>
+                          <p className="text-lg font-bold text-gray-900">{driver.totalTrips}</p>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 rounded-lg">
+                          <p className="text-sm text-gray-600">Earnings</p>
+                          <p className="text-lg font-bold text-gray-900">
+                            {driver.totalEarnings > 0 ? `${(driver.totalEarnings / 1000).toFixed(0)}k` : '0'}
+                          </p>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 rounded-lg">
+                          <p className="text-sm text-gray-600">Rating</p>
+                          <p className="text-lg font-bold text-gray-900">
+                            {driver.rating > 0 ? `⭐ ${driver.rating}` : 'New'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex space-x-2">
+                        <Link href={`/admin/drivers/${driver.id}`} className="flex-1">
+                          <Button className="w-full bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white">
+                            {driver.verificationStatus === 'PENDING' || driver.verificationStatus === 'INCOMPLETE' 
+                              ? '📄 Review Documents'
+                              : '👁️ View Profile'
+                            }
+                          </Button>
+                        </Link>
+                        <Button variant="outline" className="px-6">
+                          💬 Contact
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleRejectDriver(driver.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          Reject
-                        </Button>
-                      </>
-                    )}
-                    <Button variant="outline" size="sm">
-                      View Details
-                    </Button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+
+                {filteredDrivers.length === 0 && (
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">🚗</div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      No drivers found
+                    </h3>
+                    <p className="text-gray-600">
+                      No drivers match the selected filter
+                    </p>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <div className="text-gray-500 text-lg mb-4">
-                👥 No drivers found
+                )}
               </div>
-              <p className="text-gray-400">
-                {searchQuery || statusFilter !== 'all' 
-                  ? "No drivers match your search criteria."
-                  : "No drivers have registered yet."
-                }
-              </p>
             </CardContent>
           </Card>
-        )}
+        </motion.div>
       </div>
     </div>
   )

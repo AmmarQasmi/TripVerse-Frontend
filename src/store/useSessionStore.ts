@@ -34,6 +34,7 @@ export const useSessionStore = create<SessionState>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated 
       }),
+      skipHydration: true,
     }
   )
 )

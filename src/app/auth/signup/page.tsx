@@ -72,7 +72,7 @@ export default function SignupPage() {
           transform: 'scale(1.1)'
         }}
       />
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-accent/40 z-0"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 z-0"></div>
 
       {/* Signup Card */}
       <div className="relative z-10 w-full max-w-lg mx-4">
@@ -80,7 +80,7 @@ export default function SignupPage() {
           {/* Logo */}
           <div className="text-center mb-8">
             <Link href="/">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 bg-clip-text text-transparent mb-2">
                 TripVerse
               </h1>
             </Link>
@@ -182,7 +182,7 @@ export default function SignupPage() {
               <select
                 value={formData.travelerType}
                 onChange={(e) => handleInputChange('travelerType', e.target.value)}
-                className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-900 focus:border-transparent transition-colors"
               >
                 <option value="">Select your travel style</option>
                 <option value="solo">Solo Traveler</option>
@@ -197,15 +197,15 @@ export default function SignupPage() {
                 type="checkbox"
                 id="terms"
                 required
-                className="w-4 h-4 mt-0.5 text-primary border-gray-300 rounded focus:ring-primary"
+                className="w-4 h-4 mt-0.5 text-cyan-900 border-gray-300 rounded focus:ring-cyan-900"
               />
               <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
                 I agree to the{' '}
-                <Link href="/terms" className="text-primary hover:text-accent transition-colors">
+                <Link href="/terms" className="text-cyan-900 hover:text-teal-900 transition-colors">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link href="/privacy" className="text-primary hover:text-accent transition-colors">
+                <Link href="/privacy" className="text-cyan-900 hover:text-teal-900 transition-colors">
                   Privacy Policy
                 </Link>
               </label>
@@ -213,7 +213,7 @@ export default function SignupPage() {
 
             <Button
               type="submit"
-              className="w-full bg-accent hover:bg-accent/90 text-white py-3 rounded-xl font-semibold text-lg"
+              className="w-full bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 hover:from-blue-900 hover:via-cyan-950 hover:to-teal-950 text-white py-3 rounded-xl font-semibold text-lg"
               disabled={isLoading}
             >
               {isLoading ? 'Creating account...' : 'Create Account'}
@@ -226,7 +226,7 @@ export default function SignupPage() {
               Already have an account?{' '}
               <Link 
                 href="/auth/login" 
-                className="text-primary font-semibold hover:text-accent transition-colors"
+                className="text-cyan-900 font-semibold hover:text-teal-900 transition-colors"
               >
                 Login
               </Link>
@@ -266,7 +266,7 @@ export default function SignupPage() {
 
         {/* Decorative Element - Traveler Illustration */}
         <div className="absolute -left-10 -top-10 w-32 h-32 opacity-20">
-          <svg viewBox="0 0 200 200" className="text-primary">
+          <svg viewBox="0 0 200 200" className="text-blue-800">
             <path fill="currentColor" d="M39.5,-65.5C54.5,-58.1,72.3,-53.5,81.2,-42.8C90.1,-32.1,90.1,-15.4,87.5,-0.3C84.9,14.8,79.7,28.3,70.8,38.9C61.9,49.5,49.3,57.2,36.2,63.4C23.1,69.6,9.5,74.3,-4.7,73.9C-18.9,73.5,-33.4,68,-45.8,59.5C-58.2,51,-68.5,39.5,-74.9,26.1C-81.3,12.7,-83.8,-2.6,-79.8,-15.3C-75.8,-28,-65.3,-38.1,-53.3,-47.1C-41.3,-56.1,-27.8,-64,-14.5,-68.5C-1.2,-73,11.9,-74.1,24.5,-72.9C37.1,-71.7,49.2,-68.2,39.5,-65.5Z" transform="translate(100 100)" />
           </svg>
         </div>

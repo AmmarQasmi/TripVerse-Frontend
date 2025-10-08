@@ -20,16 +20,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check for existing session on mount
     const checkSession = async () => {
       try {
-        const token = localStorage.getItem('auth_token')
-        if (token) {
-          // Validate token and get user data
-          // This would typically make an API call to verify the token
-          // For now, we'll just clear it if it exists
-          localStorage.removeItem('auth_token')
+        if (typeof window !== 'undefined') {
+          const token = localStorage.getItem('auth_token')
+          if (token) {
+            // Validate token and get user data
+            // This would typically make an API call to verify the token
+            // For now, we'll just clear it if it exists
+            localStorage.removeItem('auth_token')
+          }
         }
       } catch (error) {
         console.error('Session check failed:', error)
-        localStorage.removeItem('auth_token')
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth_token')
+        }
       } finally {
         setIsLoading(false)
       }
@@ -52,7 +56,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       setUser(mockUser)
-      localStorage.setItem('auth_token', 'mock_token')
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('auth_token', 'mock_token')
+      }
     } catch (error) {
       console.error('Login failed:', error)
       throw error
@@ -61,7 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem('auth_token')
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token')
+    }
   }
 
   return (
