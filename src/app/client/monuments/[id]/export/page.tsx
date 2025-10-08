@@ -18,7 +18,7 @@ export default function MonumentExportPage() {
   const handleExport = async () => {
     setIsExporting(true)
     try {
-      await exportMonument(monumentId, exportFormat)
+      await exportMonument({ monumentId, format: exportFormat })
       // The export function should handle the download
     } catch (error) {
       console.error('Export failed:', error)

@@ -58,7 +58,7 @@ export default function CarsPage() {
   // Auto-load user's region cars on first visit
   useEffect(() => {
     if (user?.region && isInitialLoad) {
-      setSearchParams(prev => ({ ...prev, pickupLocation: user.region }))
+      setSearchParams(prev => ({ ...prev, pickupLocation: user.region || '' }))
       setIsInitialLoad(false)
     } else if (!user?.region && isInitialLoad) {
       setShowRegionModal(true)
@@ -97,7 +97,11 @@ export default function CarsPage() {
     ...car,
     driver: {
       id: '1',
+      email: 'ahmed.khan@example.com',
       name: 'Ahmed Khan',
+      role: 'DRIVER' as const,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       isVerified: true,
       rating: 4.8,
       totalTrips: 45,

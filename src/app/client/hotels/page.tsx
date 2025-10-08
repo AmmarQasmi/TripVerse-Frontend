@@ -22,7 +22,7 @@ export default function HotelsPage() {
     rooms: 1,
   })
   const [filters, setFilters] = useState({
-    priceRange: [0, 1000],
+    priceRange: [0, 1000] as [number, number],
     starRating: [] as number[],
     amenities: [] as string[],
     propertyType: [] as string[],
@@ -41,7 +41,7 @@ export default function HotelsPage() {
   // Auto-load user's region hotels on first visit
   useEffect(() => {
     if (user?.region && isInitialLoad) {
-      setSearchParams(prev => ({ ...prev, location: user.region }))
+      setSearchParams(prev => ({ ...prev, location: user.region || '' }))
       setIsInitialLoad(false)
     } else if (!user?.region && isInitialLoad) {
       setShowRegionModal(true)
@@ -204,7 +204,7 @@ export default function HotelsPage() {
                   </p>
                   <button 
                     onClick={() => setFilters({
-                      priceRange: [0, 1000],
+                      priceRange: [0, 1000] as [number, number],
                       starRating: [],
                       amenities: [],
                       propertyType: [],

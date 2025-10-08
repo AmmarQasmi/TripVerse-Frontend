@@ -264,7 +264,6 @@ export default function DriverVerificationPage() {
                             />
                             <label htmlFor={`upload-${doc.type}`}>
                               <Button
-                                as="span"
                                 disabled={uploadingDoc === doc.type}
                                 className="cursor-pointer"
                               >

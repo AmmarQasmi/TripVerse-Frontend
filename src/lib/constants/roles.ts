@@ -52,7 +52,7 @@ export const ROLE_PERMISSIONS = {
 export function hasPermission(role: UserRole, permission: string): boolean {
   const permissions = ROLE_PERMISSIONS[role]
   if (!permissions) return false
-  return (permissions as string[]).includes(permission)
+  return permissions.includes(permission as any)
 }
 
 export function canAccessRoute(role: UserRole, route: string): boolean {

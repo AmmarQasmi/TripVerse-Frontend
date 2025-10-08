@@ -8,15 +8,15 @@ import { useDriverCarBookings } from '@/features/drivers/useDriverBookings'
 export default function DriverBookingsPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'>('all')
   
-  const { data: bookings, isLoading, updateBookingStatus } = useDriverCarBookings()
+  const { bookings, isLoading, updateBookingStatus } = useDriverCarBookings()
 
   const filteredBookings = bookings?.filter(booking => 
     statusFilter === 'all' || booking.status === statusFilter
   ) || []
 
-  const handleStatusUpdate = async (bookingId: string, newStatus: string) => {
+  const handleStatusUpdate = async (bookingId: string, newStatus: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'REFUNDED') => {
     try {
-      await updateBookingStatus(bookingId, newStatus)
+      await updateBookingStatus({ bookingId, status: newStatus })
     } catch (error) {
       console.error('Failed to update booking status:', error)
     }
