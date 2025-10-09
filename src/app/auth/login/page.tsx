@@ -43,7 +43,7 @@ export default function LoginPage() {
           transform: 'scale(1.1)'
         }}
       />
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/30 z-0"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 z-0"></div>
 
       {/* Login Card */}
       <div className="relative z-10 w-full max-w-md mx-4">
@@ -51,7 +51,7 @@ export default function LoginPage() {
           {/* Logo */}
           <div className="text-center mb-8">
             <Link href="/">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 bg-clip-text text-transparent mb-2">
                 TripVerse
               </h1>
             </Link>
@@ -105,13 +105,13 @@ export default function LoginPage() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  className="w-4 h-4 text-cyan-900 border-gray-300 rounded focus:ring-cyan-900"
                 />
                 <span className="ml-2 text-sm text-gray-600">Remember me</span>
               </label>
               <Link 
                 href="/auth/forgot-password" 
-                className="text-sm text-primary hover:text-accent transition-colors"
+                className="text-sm text-cyan-900 hover:text-teal-900 transition-colors"
               >
                 Forgot Password?
               </Link>
@@ -119,7 +119,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full bg-accent hover:bg-accent/90 text-white py-3 rounded-xl font-semibold text-lg"
+              className="w-full bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 hover:from-blue-900 hover:via-cyan-950 hover:to-teal-950 text-white py-3 rounded-xl font-semibold text-lg"
               disabled={isLoading}
             >
               {isLoading ? 'Signing in...' : 'Login'}
@@ -132,7 +132,7 @@ export default function LoginPage() {
               Don't have an account?{' '}
               <Link 
                 href="/auth/signup" 
-                className="text-primary font-semibold hover:text-accent transition-colors"
+                className="text-cyan-900 font-semibold hover:text-teal-900 transition-colors"
               >
                 Sign Up
               </Link>
@@ -172,7 +172,7 @@ export default function LoginPage() {
 
         {/* Decorative Element */}
         <div className="absolute -right-10 -bottom-10 w-32 h-32 opacity-20">
-          <svg viewBox="0 0 200 200" className="text-accent">
+          <svg viewBox="0 0 200 200" className="text-teal-900">
             <path fill="currentColor" d="M44.7,-76.4C58.8,-69.2,71.8,-59.1,79.6,-45.8C87.4,-32.6,90,-16.3,88.5,-0.9C87,14.6,81.4,29.2,73.1,42.3C64.7,55.4,53.6,67,40.1,73.9C26.6,80.8,11.7,83,-3.1,88.1C-17.9,93.2,-32.7,101.2,-45.2,94.6C-57.7,88,-67.9,66.8,-74.5,47.1C-81.1,27.4,-84.1,9.2,-83.6,-9.4C-83.1,-28,-79.1,-47,-69.8,-61.4C-60.5,-75.8,-46,-85.6,-30.7,-92.1C-15.4,-98.6,0.7,-101.8,15.4,-98.7C30.1,-95.6,44.7,-86.2,44.7,-76.4Z" transform="translate(100 100)" />
           </svg>
         </div>

@@ -8,6 +8,7 @@ export interface User {
   updatedAt: string
   phone?: string
   avatar?: string
+  region?: string
   isVerified?: boolean
   verificationStatus?: 'PENDING' | 'VERIFIED' | 'REJECTED'
   driverLicense?: string

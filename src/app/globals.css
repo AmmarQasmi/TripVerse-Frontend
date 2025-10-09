@@ -57,3 +57,65 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Date picker styling for dark theme - fixes double calendar icon issue */
+@layer components {
+  /* Global date input styling */
+  input[type="date"] {
+    color-scheme: dark;
+    background-color: #111827; /* gray-900 */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+  
+  /* Style the date text to be white on dark backgrounds */
+  input[type="date"]::-webkit-datetime-edit-text {
+    color: white;
+    padding: 0 2px;
+  }
+  
+  input[type="date"]::-webkit-datetime-edit-month-field,
+  input[type="date"]::-webkit-datetime-edit-day-field,
+  input[type="date"]::-webkit-datetime-edit-year-field {
+    color: white;
+    padding: 2px;
+  }
+  
+  /* Style the calendar picker indicator - single clean white icon */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+    opacity: 0.9;
+    width: 18px;
+    height: 18px;
+    background: none;
+    border: none;
+    margin-right: 4px;
+    transition: opacity 0.2s;
+  }
+  
+  input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }
+  
+  /* Hide any duplicate calendar icons or spin buttons */
+  input[type="date"]::-webkit-inner-spin-button,
+  input[type="date"]::-webkit-outer-spin-button {
+    display: none;
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  
+  /* Remove default appearance on Firefox */
+  input[type="date"]::-moz-calendar-picker-indicator {
+    cursor: pointer;
+    filter: invert(1);
+  }
+  
+  /* Ensure placeholder text is visible */
+  input[type="date"]::placeholder {
+    color: rgb(156 163 175);
+    opacity: 1;
+  }
+}

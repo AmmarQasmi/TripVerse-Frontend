@@ -4,24 +4,24 @@ import { useState, useEffect } from 'react'
 
 const carouselImages = [
   {
-    url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80',
-    alt: 'Tropical beach paradise'
+    url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80&fit=crop&crop=entropy&auto=format&ixlib=rb-4.0.3',
+    alt: 'Mountain landscape with blue and teal tones'
   },
   {
-    url: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1920&q=80',
-    alt: 'City skyline at night'
+    url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80&fit=crop&crop=entropy&auto=format&ixlib=rb-4.0.3',
+    alt: 'Tropical beach with cyan and blue ocean waters'
   },
   {
-    url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80',
-    alt: 'Mountain landscape'
+    url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1920&q=80&fit=crop&crop=entropy&auto=format&ixlib=rb-4.0.3',
+    alt: 'Forest landscape with deep blue and teal hues'
   },
   {
-    url: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=1920&q=80',
-    alt: 'Historical monuments'
+    url: 'https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=1920&q=80&fit=crop&crop=entropy&auto=format&ixlib=rb-4.0.3',
+    alt: 'Desert landscape with cool blue and cyan tones'
   },
   {
-    url: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1920&q=80',
-    alt: 'Travel destinations'
+    url: 'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=1920&q=80&fit=crop&crop=entropy&auto=format&ixlib=rb-4.0.3',
+    alt: 'Canyon landscape with blue and teal rock formations'
   }
 ]
 
@@ -49,8 +49,9 @@ export function HeroCarousel() {
             src={image.url}
             alt={image.alt}
             className="w-full h-full object-cover"
+            data-carousel-image={index === currentIndex}
           />
-          <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/30 via-cyan-800/20 to-teal-900/40"></div>
         </div>
       ))}
 
@@ -62,7 +63,7 @@ export function HeroCarousel() {
             onClick={() => setCurrentIndex(index)}
             className={`w-2 h-2 rounded-full transition-all ${
               index === currentIndex
-                ? 'bg-white w-8'
+                ? 'bg-gradient-to-r from-cyan-400 to-teal-400 w-8'
                 : 'bg-white bg-opacity-50 hover:bg-opacity-75'
             }`}
             aria-label={`Go to slide ${index + 1}`}
