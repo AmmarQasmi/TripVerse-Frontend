@@ -83,7 +83,7 @@ export function HotelFilters({ filters, onFiltersChange }: HotelFiltersProps) {
 
   const clearAllFilters = () => {
     onFiltersChange({
-      priceRange: [0, 1000],
+      priceRange: [5000, 25000],
       starRating: [],
       amenities: [],
       propertyType: []
@@ -93,8 +93,8 @@ export function HotelFilters({ filters, onFiltersChange }: HotelFiltersProps) {
   const hasActiveFilters = filters.starRating.length > 0 || 
                           filters.amenities.length > 0 || 
                           filters.propertyType.length > 0 ||
-                          filters.priceRange[0] > 0 || 
-                          filters.priceRange[1] < 1000
+                          filters.priceRange[0] > 5000 || 
+                          filters.priceRange[1] < 50000
 
   return (
     <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
@@ -103,7 +103,7 @@ export function HotelFilters({ filters, onFiltersChange }: HotelFiltersProps) {
         {hasActiveFilters && (
           <button
             onClick={clearAllFilters}
-            className="text-[#38bdf8] hover:text-[#34d399] text-sm font-medium transition-colors"
+            className="text-[#2563eb] hover:text-[#06b6d4] text-sm font-medium transition-colors"
           >
             Clear All
           </button>
@@ -130,28 +130,54 @@ export function HotelFilters({ filters, onFiltersChange }: HotelFiltersProps) {
               exit={{ opacity: 0, height: 0 }}
               className="mt-4 space-y-4"
             >
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <div className="flex justify-between text-sm text-gray-300">
-                  <span>PKR {filters.priceRange[0].toLocaleString()}</span>
-                  <span>PKR {filters.priceRange[1].toLocaleString()}</span>
+                  <span className="text-[#2563eb] font-medium">PKR {filters.priceRange[0].toLocaleString()}</span>
+                  <span className="text-[#06b6d4] font-medium">PKR {filters.priceRange[1].toLocaleString()}</span>
                 </div>
-                <div className="relative">
+                
+                {/* Custom Range Slider */}
+                <div className="relative h-2 bg-gray-700 rounded-lg">
+                  <div 
+                    className="absolute h-2 bg-gradient-to-r from-[#2563eb] to-[#06b6d4] rounded-lg"
+                    style={{
+                      left: `${(filters.priceRange[0] / 50000) * 100}%`,
+                      width: `${((filters.priceRange[1] - filters.priceRange[0]) / 50000) * 100}%`
+                    }}
+                  />
+                  
+                  {/* Min thumb */}
                   <input
                     type="range"
-                    min="0"
-                    max="1000"
+                    min="5000"
+                    max="50000"
                     value={filters.priceRange[0]}
                     onChange={(e) => updatePriceRange(0, parseInt(e.target.value))}
-                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    className="absolute top-0 w-full h-2 bg-transparent appearance-none cursor-pointer opacity-0"
                   />
+                  <div 
+                    className="absolute top-1/2 transform -translate-y-1/2 w-5 h-5 bg-[#2563eb] rounded-full border-2 border-white shadow-lg cursor-pointer hover:bg-[#1d4ed8] transition-colors"
+                    style={{ left: `calc(${(filters.priceRange[0] / 50000) * 100}% - 10px)` }}
+                  />
+                  
+                  {/* Max thumb */}
                   <input
                     type="range"
-                    min="0"
-                    max="1000"
+                    min="5000"
+                    max="50000"
                     value={filters.priceRange[1]}
                     onChange={(e) => updatePriceRange(1, parseInt(e.target.value))}
-                    className="absolute top-0 w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    className="absolute top-0 w-full h-2 bg-transparent appearance-none cursor-pointer opacity-0"
                   />
+                  <div 
+                    className="absolute top-1/2 transform -translate-y-1/2 w-5 h-5 bg-[#06b6d4] rounded-full border-2 border-white shadow-lg cursor-pointer hover:bg-[#0891b2] transition-colors"
+                    style={{ left: `calc(${(filters.priceRange[1] / 50000) * 100}% - 10px)` }}
+                  />
+                </div>
+                
+                <div className="flex justify-between text-xs text-gray-400">
+                  <span>PKR 5,000</span>
+                  <span>PKR 50,000</span>
                 </div>
               </div>
             </motion.div>
@@ -183,7 +209,7 @@ export function HotelFilters({ filters, onFiltersChange }: HotelFiltersProps) {
                     type="checkbox"
                     checked={filters.starRating.includes(rating)}
                     onChange={() => toggleStarRating(rating)}
-                    className="w-4 h-4 text-[#38bdf8] bg-gray-700 border-gray-600 rounded focus:ring-[#38bdf8] focus:ring-2"
+                    className="w-4 h-4 text-[#2563eb] bg-gray-700 border-gray-600 rounded focus:ring-[#2563eb] focus:ring-2"
                   />
                   <span className="text-white">
                     {'★'.repeat(rating)}
@@ -220,7 +246,7 @@ export function HotelFilters({ filters, onFiltersChange }: HotelFiltersProps) {
                     type="checkbox"
                     checked={filters.propertyType.includes(type.id)}
                     onChange={() => togglePropertyType(type.id)}
-                    className="w-4 h-4 text-[#38bdf8] bg-gray-700 border-gray-600 rounded focus:ring-[#38bdf8] focus:ring-2"
+                    className="w-4 h-4 text-[#2563eb] bg-gray-700 border-gray-600 rounded focus:ring-[#2563eb] focus:ring-2"
                   />
                   <span className="text-white flex items-center space-x-2">
                     <span>{type.icon}</span>
@@ -257,7 +283,7 @@ export function HotelFilters({ filters, onFiltersChange }: HotelFiltersProps) {
                     type="checkbox"
                     checked={filters.amenities.includes(amenity.id)}
                     onChange={() => toggleAmenity(amenity.id)}
-                    className="w-4 h-4 text-[#38bdf8] bg-gray-700 border-gray-600 rounded focus:ring-[#38bdf8] focus:ring-2"
+                    className="w-4 h-4 text-[#2563eb] bg-gray-700 border-gray-600 rounded focus:ring-[#2563eb] focus:ring-2"
                   />
                   <span className="text-white flex items-center space-x-2">
                     <span>{amenity.icon}</span>
@@ -276,12 +302,12 @@ export function HotelFilters({ filters, onFiltersChange }: HotelFiltersProps) {
           <p className="text-sm text-gray-300 mb-2">Active filters:</p>
           <div className="flex flex-wrap gap-2">
             {filters.starRating.map((rating) => (
-              <span key={rating} className="bg-[#38bdf8]/20 text-[#38bdf8] px-2 py-1 rounded text-xs">
+              <span key={rating} className="bg-[#2563eb]/20 text-[#2563eb] px-2 py-1 rounded text-xs">
                 {rating}★
               </span>
             ))}
             {filters.amenities.slice(0, 2).map((amenity) => (
-              <span key={amenity} className="bg-[#34d399]/20 text-[#34d399] px-2 py-1 rounded text-xs">
+              <span key={amenity} className="bg-[#06b6d4]/20 text-[#06b6d4] px-2 py-1 rounded text-xs">
                 {amenities.find(a => a.id === amenity)?.icon} {amenities.find(a => a.id === amenity)?.label}
               </span>
             ))}

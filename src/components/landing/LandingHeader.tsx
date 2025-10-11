@@ -31,7 +31,7 @@ export function LandingHeader() {
                 {isMenuOpen && (
                   <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border">
                     <Link 
-                      href="/client/hotels" 
+                      href="/client/flights" 
                       className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >

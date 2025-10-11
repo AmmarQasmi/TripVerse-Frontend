@@ -10,6 +10,7 @@ import { HotelFilters } from '@/components/hotels/HotelFilters'
 import { PopularDestinationsCarousel } from '@/components/hotels/PopularDestinationsCarousel'
 import { useHotelSearch } from '@/features/hotels/useHotelSearch'
 import { useAuth } from '@/features/auth/useAuth'
+import { TransparentHeader } from '@/components/shared/TransparentHeader'
 
 export default function HotelsPage() {
   const { user } = useAuth()
@@ -22,7 +23,7 @@ export default function HotelsPage() {
     rooms: 1,
   })
   const [filters, setFilters] = useState({
-    priceRange: [0, 1000] as [number, number],
+    priceRange: [5000, 25000] as [number, number],
     starRating: [] as number[],
     amenities: [] as string[],
     propertyType: [] as string[],
@@ -60,8 +61,11 @@ export default function HotelsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      {/* Transparent Header */}
+      <TransparentHeader />
+      
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative h-screen flex items-center justify-center overflow-hidden pt-16">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -204,7 +208,7 @@ export default function HotelsPage() {
                   </p>
                   <button 
                     onClick={() => setFilters({
-                      priceRange: [0, 1000] as [number, number],
+                      priceRange: [5000, 25000] as [number, number],
                       starRating: [],
                       amenities: [],
                       propertyType: [],
