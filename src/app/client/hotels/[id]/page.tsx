@@ -216,7 +216,7 @@ export default function HotelDetailPage() {
               {activeTab === 'rooms' && (
                 <div className="space-y-6">
                   <h3 className="text-2xl font-bold text-white mb-6">Available Rooms</h3>
-                  {hotel.roomTypes?.map((room, index) => (
+                  {hotel.roomTypes?.map((room: any, index: number) => (
                     <motion.div
                       key={room.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -312,7 +312,7 @@ export default function HotelDetailPage() {
       {showBookingModal && selectedRoom && (
         <BookingSummary
           hotel={hotel}
-          roomType={hotel.roomTypes?.find(r => r.id === selectedRoom)}
+          roomType={hotel.roomTypes?.find((r: any) => r.id === selectedRoom)}
           onClose={() => setShowBookingModal(false)}
           onBooking={(data) => {
             console.log('Booking data:', data)

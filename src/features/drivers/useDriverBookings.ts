@@ -10,7 +10,7 @@ export function useDriverCarBookings() {
   })
 
   const updateBookingStatus = useMutation({
-    mutationFn: ({ bookingId, status }: { bookingId: string; status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'REFUNDED' }) =>
+    mutationFn: ({ bookingId, status }: { bookingId: string; status: 'pending' | 'confirmed' | 'cancelled' | 'completed' }) =>
       carBookingsApi.update(bookingId, { status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['driver-car-bookings'] })

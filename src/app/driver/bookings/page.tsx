@@ -6,15 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { useDriverCarBookings } from '@/features/drivers/useDriverBookings'
 
 export default function DriverBookingsPage() {
-  const [statusFilter, setStatusFilter] = useState<'all' | 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled'>('all')
   
   const { bookings, isLoading, updateBookingStatus } = useDriverCarBookings()
 
   const filteredBookings = bookings?.filter(booking => 
-    statusFilter === 'all' || booking.status === statusFilter
+    statusFilter === 'all' || booking.status.toLowerCase() === statusFilter.toLowerCase()
   ) || []
 
-  const handleStatusUpdate = async (bookingId: string, newStatus: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'REFUNDED') => {
+  const handleStatusUpdate = async (bookingId: string, newStatus: 'pending' | 'confirmed' | 'cancelled' | 'completed') => {
     try {
       await updateBookingStatus({ bookingId, status: newStatus })
     } catch (error) {
@@ -32,13 +32,13 @@ export default function DriverBookingsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'CONFIRMED':
+      case 'confirmed':
         return 'bg-green-100 text-green-800'
-      case 'PENDING':
+      case 'pending':
         return 'bg-yellow-100 text-yellow-800'
-      case 'COMPLETED':
+      case 'completed':
         return 'bg-blue-100 text-blue-800'
-      case 'CANCELLED':
+      case 'cancelled':
         return 'bg-red-100 text-red-800'
       default:
         return 'bg-gray-100 text-gray-800'
@@ -47,30 +47,30 @@ export default function DriverBookingsPage() {
 
   const getStatusActions = (booking: any) => {
     switch (booking.status) {
-      case 'PENDING':
+      case 'pending':
         return (
           <div className="flex space-x-2">
             <Button 
               size="sm" 
-              onClick={() => handleStatusUpdate(booking.id, 'CONFIRMED')}
+              onClick={() => handleStatusUpdate(booking.id, 'confirmed')}
             >
               Confirm
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => handleStatusUpdate(booking.id, 'CANCELLED')}
+              onClick={() => handleStatusUpdate(booking.id, 'cancelled')}
             >
               Reject
             </Button>
           </div>
         )
-      case 'CONFIRMED':
+      case 'confirmed':
         return (
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => handleStatusUpdate(booking.id, 'COMPLETED')}
+            onClick={() => handleStatusUpdate(booking.id, 'completed')}
           >
             Mark Completed
           </Button>
@@ -96,10 +96,10 @@ export default function DriverBookingsPage() {
         <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
           {[
             { value: 'all', label: 'All' },
-            { value: 'PENDING', label: 'Pending' },
-            { value: 'CONFIRMED', label: 'Confirmed' },
-            { value: 'COMPLETED', label: 'Completed' },
-            { value: 'CANCELLED', label: 'Cancelled' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'confirmed', label: 'Confirmed' },
+            { value: 'completed', label: 'Completed' },
+            { value: 'cancelled', label: 'Cancelled' },
           ].map((filter) => (
             <button
               key={filter.value}
@@ -216,14 +216,14 @@ export default function DriverBookingsPage() {
               
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <div className="text-2xl font-bold text-green-600">
-                  {bookings.filter(b => b.status === 'COMPLETED').length}
+                  {bookings.filter(b => b.status === 'completed').length}
                 </div>
                 <div className="text-sm text-green-800">Completed</div>
               </div>
               
               <div className="text-center p-4 bg-yellow-50 rounded-lg">
                 <div className="text-2xl font-bold text-yellow-600">
-                  {bookings.filter(b => b.status === 'PENDING' || b.status === 'CONFIRMED').length}
+                  {bookings.filter(b => b.status === 'pending' || b.status === 'confirmed').length}
                 </div>
                 <div className="text-sm text-yellow-800">Active</div>
               </div>

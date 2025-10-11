@@ -191,7 +191,7 @@ export default function WeatherPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
-                {weatherData.forecast.map((day, index) => (
+                {weatherData.forecast.map((day: any, index: number) => (
                   <div key={index} className="text-center p-4 border rounded-lg hover:bg-gray-50">
                     <div className="text-sm font-medium text-gray-600 mb-2">
                       {index === 0 ? 'Today' : new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
