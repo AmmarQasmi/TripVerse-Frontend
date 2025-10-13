@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button'
 
 interface Driver {
   id: string
-  name: string
+  full_name: string
   email: string
   phone: string
   joinedDate: string
@@ -28,7 +28,7 @@ export default function AdminDriversPage() {
   const drivers: Driver[] = [
     {
       id: '1',
-      name: 'Ahmed Khan',
+      full_name: 'Ahmed Khan',
       email: 'ahmed.khan@example.com',
       phone: '+92 300 1234567',
       joinedDate: '2024-01-10',
@@ -42,7 +42,7 @@ export default function AdminDriversPage() {
     },
     {
       id: '2',
-      name: 'Sara Ahmed',
+      full_name: 'Sara Ahmed',
       email: 'sara.ahmed@example.com',
       phone: '+92 301 9876543',
       joinedDate: '2023-12-15',
@@ -56,7 +56,7 @@ export default function AdminDriversPage() {
     },
     {
       id: '3',
-      name: 'Ali Hassan',
+      full_name: 'Ali Hassan',
       email: 'ali.hassan@example.com',
       phone: '+92 333 4567890',
       joinedDate: '2024-01-08',
@@ -70,7 +70,7 @@ export default function AdminDriversPage() {
     },
     {
       id: '4',
-      name: 'Fatima Malik',
+      full_name: 'Fatima Malik',
       email: 'fatima.malik@example.com',
       phone: '+92 345 2345678',
       joinedDate: '2023-11-20',
@@ -84,7 +84,7 @@ export default function AdminDriversPage() {
     },
     {
       id: '5',
-      name: 'Usman Shah',
+      full_name: 'Usman Shah',
       email: 'usman.shah@example.com',
       phone: '+92 321 3456789',
       joinedDate: '2024-01-12',
@@ -291,10 +291,10 @@ export default function AdminDriversPage() {
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-start space-x-4">
                           <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                            {driver.name.charAt(0)}
+                            {driver.full_name.charAt(0)}
                           </div>
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-900">{driver.name}</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">{driver.full_name}</h3>
                             <div className="text-sm text-gray-600 space-y-1">
                               <p>📧 {driver.email}</p>
                               <p>📱 {driver.phone}</p>

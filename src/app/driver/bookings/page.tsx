@@ -144,7 +144,7 @@ export default function DriverBookingsPage() {
                     
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
                       <div>
-                        <span className="font-medium">Customer:</span> {booking.user?.name}
+                        <span className="font-medium">Customer:</span> {booking.user?.full_name}
                       </div>
                       <div>
                         <span className="font-medium">Email:</span> {booking.user?.email}

@@ -2,10 +2,24 @@ export const API_ENDPOINTS = {
   // Auth endpoints
   AUTH: {
     LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
+    SIGNUP: '/auth/signup',
+    REGISTER: '/auth/signup', // Alias
+    ME: '/auth/me', // Get current user
+    PROFILE: '/auth/me', // Alias for compatibility
     REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
-    PROFILE: '/auth/profile',
+  },
+
+  // City endpoints
+  CITIES: {
+    BASE: '/cities',
+    REGIONS: '/cities/regions',
+    BY_ID: (id: number) => `/cities/${id}`,
+  },
+
+  // Driver endpoints
+  DRIVERS: {
+    PROFILE: '/drivers/profile',
   },
 
   // User endpoints

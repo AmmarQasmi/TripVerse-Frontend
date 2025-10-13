@@ -48,7 +48,7 @@ export function DashboardHeader() {
               animate={{ opacity: 1, x: 0 }}
               className="text-lg md:text-xl font-semibold text-white"
             >
-              Welcome back, {user?.name || 'Traveler'} 👋
+              Welcome back, {user?.full_name || 'Traveler'} 👋
             </motion.h1>
             <motion.p
               initial={{ opacity: 0 }}
@@ -67,14 +67,14 @@ export function DashboardHeader() {
               className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors"
             >
               <div className="hidden md:flex flex-col items-end">
-                <span className="text-sm font-medium text-white">{user?.name || 'User'}</span>
+                <span className="text-sm font-medium text-white">{user?.full_name || 'User'}</span>
                 <span className="text-xs text-gray-200">{user?.email || ''}</span>
               </div>
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center text-white font-semibold shadow-lg">
                 {user?.avatar ? (
                   <img src={user.avatar} alt="Profile" className="w-full h-full rounded-full object-cover" />
                 ) : (
-                  <span>{user?.name ? getInitials(user.name) : 'U'}</span>
+                  <span>{user?.full_name ? getInitials(user.full_name) : 'U'}</span>
                 )}
               </div>
               <svg 
@@ -98,7 +98,7 @@ export function DashboardHeader() {
                   className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden"
                 >
                   <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-gray-200">
-                    <p className="text-sm font-semibold text-gray-900">{user?.name || 'User'}</p>
+                    <p className="text-sm font-semibold text-gray-900">{user?.full_name || 'User'}</p>
                     <p className="text-xs text-gray-600">{user?.email || ''}</p>
                   </div>
                   
