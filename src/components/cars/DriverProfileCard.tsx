@@ -34,14 +34,14 @@ export function DriverProfileCard({ driver, carCount = 1 }: DriverProfileCardPro
         {/* Driver Avatar */}
         <div className="mx-auto mb-4">
           <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-            {driver.name?.charAt(0) || 'D'}
+            {driver.full_name?.charAt(0) || 'D'}
           </div>
         </div>
 
         {/* Driver Name & Verification */}
         <div className="space-y-2">
           <CardTitle className="text-xl font-bold text-gray-900">
-            {driver.name || 'Driver'}
+            {driver.full_name || 'Driver'}
           </CardTitle>
           
           {driver.isVerified && (

@@ -113,10 +113,16 @@ export default function CarDetailPage() {
 
   // Mock driver data
   const mockDriver = {
-    id: '1',
-    name: 'Ahmed Khan',
+    id: 1,
+    full_name: 'Ahmed Khan',
     email: 'ahmed.khan@example.com',
-    role: 'DRIVER' as const,
+    role: 'driver' as const,
+    status: 'active',
+    city: {
+      id: 1,
+      name: 'Karachi',
+      region: 'Sindh'
+    },
     createdAt: '2023-06-15T00:00:00Z',
     updatedAt: '2024-01-15T00:00:00Z',
     isVerified: true,

@@ -79,12 +79,12 @@ export function CarCard({ car, isAvailable = true }: CarCardProps) {
             <div className="flex items-center space-x-3 pt-2">
               <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
                 <span className="text-sm font-medium text-gray-600">
-                  {car.driver.name?.charAt(0) || 'D'}
+                  {car.driver.full_name?.charAt(0) || 'D'}
                 </span>
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900">
-                  {car.driver.name || 'Driver'}
+                  {car.driver.full_name || 'Driver'}
                 </p>
                 <div className="flex items-center space-x-2">
                   <div className="flex items-center">

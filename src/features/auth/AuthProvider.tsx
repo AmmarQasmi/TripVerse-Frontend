@@ -47,10 +47,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // This would make an API call to authenticate
       // For now, we'll simulate a successful login
       const mockUser: User = {
-        id: '1',
+        id: 1,
         email: credentials.email,
-        name: 'John Doe',
-        role: 'CLIENT',
+        full_name: 'John Doe',
+        role: 'client',
+        status: 'active',
+        city: {
+          id: 1,
+          name: 'Karachi',
+          region: 'Sindh'
+        },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }

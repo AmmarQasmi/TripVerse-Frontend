@@ -26,7 +26,7 @@ export default function AdminDriverReviewPage() {
   // Mock driver data
   const driver = {
     id: driverId,
-    name: 'Ahmed Khan',
+    full_name: 'Ahmed Khan',
     email: 'ahmed.khan@example.com',
     phone: '+92 300 1234567',
     joinedDate: '2024-01-10',
@@ -169,10 +169,10 @@ export default function AdminDriverReviewPage() {
               <div className="flex items-start justify-between">
                 <div className="flex items-start space-x-4">
                   <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                    {driver.name.charAt(0)}
+                    {driver.full_name.charAt(0)}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white mb-2">{driver.name}</h2>
+                    <h2 className="text-2xl font-bold text-white mb-2">{driver.full_name}</h2>
                     <div className="text-sm text-gray-300 space-y-1">
                       <p>📧 {driver.email}</p>
                       <p>📱 {driver.phone}</p>
@@ -267,7 +267,7 @@ export default function AdminDriverReviewPage() {
                         </div>
                         <div>
                           <p className="text-gray-600">Driver:</p>
-                          <p className="font-medium">{driver.name}</p>
+                          <p className="font-medium">{driver.full_name}</p>
                         </div>
                       </div>
                     </div>

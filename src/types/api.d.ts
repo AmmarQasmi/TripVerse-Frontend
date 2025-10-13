@@ -1,14 +1,19 @@
 // User types
 export interface User {
-  id: string
+  id: number
   email: string
-  name: string
-  role: 'CLIENT' | 'DRIVER' | 'ADMIN'
-  createdAt: string
-  updatedAt: string
+  full_name: string
+  role: 'client' | 'driver' | 'admin'
+  status: string
+  city: {
+    id: number
+    name: string
+    region: string
+  }
+  createdAt?: string
+  updatedAt?: string
   phone?: string
   avatar?: string
-  region?: string
   isVerified?: boolean
   verificationStatus?: 'PENDING' | 'VERIFIED' | 'REJECTED'
   driverLicense?: string
@@ -23,9 +28,22 @@ export interface LoginCredentials {
 export interface RegisterData {
   email: string
   password: string
+  full_name: string
+  role: 'client' | 'driver'
+  city_id: number
+}
+
+// City types
+export interface City {
+  id: number
   name: string
-  role: 'CLIENT' | 'DRIVER'
-  phone?: string
+  region: string
+}
+
+// Auth Response types
+export interface AuthResponse {
+  access_token: string
+  user: User
 }
 
 // Hotel types

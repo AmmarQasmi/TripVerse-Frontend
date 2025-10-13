@@ -5,7 +5,7 @@ class HttpClient {
 
   constructor() {
     this.instance = axios.create({
-      baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+      baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
@@ -20,7 +20,7 @@ class HttpClient {
     this.instance.interceptors.request.use(
       (config) => {
         if (typeof window !== 'undefined') {
-          const token = localStorage.getItem('auth_token')
+          const token = localStorage.getItem('access_token')
           if (token) {
             config.headers.Authorization = `Bearer ${token}`
           }
@@ -39,7 +39,8 @@ class HttpClient {
         if (error.response?.status === 401) {
           // Handle unauthorized access
           if (typeof window !== 'undefined') {
-            localStorage.removeItem('auth_token')
+            localStorage.removeItem('access_token')
+            localStorage.removeItem('user')
             window.location.href = '/auth/login'
           }
         }

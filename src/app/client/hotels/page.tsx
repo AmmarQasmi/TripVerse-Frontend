@@ -15,7 +15,7 @@ export default function HotelsPage() {
   const { user } = useAuth()
   const [searchParams, setSearchParams] = useState({
     query: '',
-    location: user?.region || '',
+    location: user?.city?.region || '',
     checkIn: '',
     checkOut: '',
     guests: 1,
@@ -40,14 +40,14 @@ export default function HotelsPage() {
 
   // Auto-load user's region hotels on first visit
   useEffect(() => {
-    if (user?.region && isInitialLoad) {
-      setSearchParams(prev => ({ ...prev, location: user.region || '' }))
+    if (user?.city?.region && isInitialLoad) {
+      setSearchParams(prev => ({ ...prev, location: user.city.region || '' }))
       setIsInitialLoad(false)
-    } else if (!user?.region && isInitialLoad) {
+    } else if (!user?.city?.region && isInitialLoad) {
       setShowRegionModal(true)
       setIsInitialLoad(false)
     }
-  }, [user?.region, isInitialLoad])
+  }, [user?.city?.region, isInitialLoad])
 
   const handleSearch = (newParams: typeof searchParams) => {
     setSearchParams(newParams)
@@ -135,7 +135,7 @@ export default function HotelsPage() {
       <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Auto-Region Message */}
-          {user?.region && searchParams.location === user.region && (
+          {user?.city?.region && searchParams.location === user.city.region && (
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -143,7 +143,7 @@ export default function HotelsPage() {
               className="mb-8"
             >
               <h3 className="text-2xl font-semibold text-white mb-2">
-                Recommended for you — Top hotels in {user.region}
+                Recommended for you — Top hotels in {user.city.region}
               </h3>
               <p className="text-gray-300">
                 Personalized recommendations based on your location
