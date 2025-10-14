@@ -281,7 +281,7 @@ export default function AdminCarsPage() {
                         </p>
 
                         <div className="flex items-center space-x-2 mb-3 text-sm text-gray-600">
-                          <span>📍 {car.location}</span>
+                          <span>🧭 {car.location}</span>
                         </div>
 
                         <div className="flex items-center justify-between mb-3">

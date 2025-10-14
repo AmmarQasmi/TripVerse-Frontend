@@ -129,7 +129,7 @@ export default function HotelDetailPage() {
               
               <div className="flex items-center space-x-4 text-gray-400 mb-4">
                 <span className="flex items-center">
-                  <span className="mr-1">📍</span>
+                  <span className="mr-1">🧭</span>
                   {hotel.location}
                 </span>
                 <span className="flex items-center">
@@ -181,7 +181,7 @@ export default function HotelDetailPage() {
                   { id: 'overview', label: 'Overview', icon: '📋' },
                   { id: 'rooms', label: 'Rooms', icon: '🛏️' },
                   { id: 'reviews', label: 'Reviews', icon: '⭐' },
-                  { id: 'location', label: 'Location', icon: '📍' }
+                  { id: 'location', label: 'Location', icon: '🧭' }
                 ].map((tab) => (
                   <button
                     key={tab.id}

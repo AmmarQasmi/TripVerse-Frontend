@@ -40,7 +40,7 @@ export function HotelMap({ location, address }: HotelMapProps) {
           {/* Map marker */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <div className="bg-[#38bdf8] text-white p-3 rounded-full shadow-lg">
-              📍
+              🧭
             </div>
           </div>
         </div>
@@ -52,7 +52,7 @@ export function HotelMap({ location, address }: HotelMapProps) {
             {address || `Located in the heart of ${location}, this hotel offers convenient access to major attractions and business districts.`}
           </p>
           <div className="flex items-center space-x-4 text-sm text-gray-400">
-            <span>📍 {location}</span>
+            <span>🧭 {location}</span>
             <span>🚗 Valet parking available</span>
             <span>🚌 Public transport nearby</span>
           </div>

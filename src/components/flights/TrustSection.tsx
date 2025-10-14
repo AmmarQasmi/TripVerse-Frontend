@@ -71,7 +71,7 @@ export function TrustSection() {
         </motion.div>
 
         {/* Trust Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 items-stretch">
           {trustFeatures.map((feature, index) => (
             <motion.div
               key={feature.title}
@@ -79,9 +79,9 @@ export function TrustSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="relative"
+              className="relative h-full"
             >
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 hover:border-white/40 transition-all group">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 hover:border-white/40 transition-all group h-full flex flex-col min-h-[260px]">
                 {/* Icon */}
                 <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl ${feature.iconBg} mb-6 group-hover:scale-110 transition-transform`}>
                   <feature.icon className={`w-8 h-8 ${feature.iconColor}`} />

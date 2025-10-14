@@ -61,7 +61,6 @@ function generateMockHotels(location: string): Hotel[] {
           name: 'Deluxe King Room',
           description: 'Spacious room with king bed and city view',
           capacity: 2,
-          price: 12500,
           pricePerNight: 12500,
           amenities: ['wifi', 'breakfast'],
           images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80']
@@ -72,7 +71,6 @@ function generateMockHotels(location: string): Hotel[] {
           name: 'Executive Suite',
           description: 'Luxury suite with separate living area',
           capacity: 4,
-          price: 25000,
           pricePerNight: 25000,
           amenities: ['wifi', 'breakfast', 'spa'],
           images: ['https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80']
@@ -98,7 +96,6 @@ function generateMockHotels(location: string): Hotel[] {
           name: 'Standard Room',
           description: 'Comfortable room with modern amenities',
           capacity: 2,
-          price: 8500,
           pricePerNight: 8500,
           amenities: ['wifi', 'breakfast'],
           images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80']
@@ -124,7 +121,6 @@ function generateMockHotels(location: string): Hotel[] {
           name: 'Ocean View Suite',
           description: 'Spacious suite with panoramic ocean views',
           capacity: 3,
-          price: 18000,
           pricePerNight: 18000,
           amenities: ['wifi', 'breakfast', 'spa'],
           images: ['https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80']
@@ -150,7 +146,6 @@ function generateMockHotels(location: string): Hotel[] {
           name: 'Business Room',
           description: 'Room designed for business travelers',
           capacity: 2,
-          price: 7500,
           pricePerNight: 7500,
           amenities: ['wifi', 'breakfast'],
           images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80']
@@ -176,7 +171,6 @@ function generateMockHotels(location: string): Hotel[] {
           name: 'Heritage Room',
           description: 'Authentic room with historic charm',
           capacity: 2,
-          price: 11000,
           pricePerNight: 11000,
           amenities: ['wifi', 'breakfast'],
           images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80']
@@ -202,7 +196,6 @@ function generateMockHotels(location: string): Hotel[] {
           name: 'Studio Apartment',
           description: 'Modern studio with kitchenette',
           capacity: 2,
-          price: 9500,
           pricePerNight: 9500,
           amenities: ['wifi', 'kitchen'],
           images: ['https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80']

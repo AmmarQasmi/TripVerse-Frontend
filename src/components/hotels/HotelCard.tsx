@@ -56,11 +56,10 @@ export function HotelCard({ hotel }: HotelCardProps) {
       {/* Image Section */}
       <div className="relative aspect-video overflow-hidden">
         {hotel.images?.[0] ? (
-          <Image
+          <img
             src={hotel.images[0]}
             alt={hotel.name}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
@@ -89,7 +88,7 @@ export function HotelCard({ hotel }: HotelCardProps) {
             {hotel.name}
           </h3>
           <p className="text-gray-400 flex items-center">
-            <span className="mr-1">📍</span>
+            <span className="mr-1">🧭</span>
             {hotel.location}
           </p>
         </div>
@@ -103,7 +102,7 @@ export function HotelCard({ hotel }: HotelCardProps) {
             </span>
           </div>
           <span className="text-gray-400 text-sm">
-            {Math.floor(Math.random() * 500) + 50} reviews
+            {Math.floor((hotel.id?.charCodeAt(0) || 0) * 7 + (hotel.name?.length || 0) * 3) % 500 + 50} reviews
           </span>
         </div>
         

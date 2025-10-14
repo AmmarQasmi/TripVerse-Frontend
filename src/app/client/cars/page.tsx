@@ -160,16 +160,7 @@ export default function CarsPage() {
           </motion.div>
         </div>
 
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center"
-          >
-            <div className="w-1 h-3 bg-white/50 rounded-full mt-2"></div>
-          </motion.div>
-        </div>
+        {/* Scroll Indicator removed per design request */}
       </section>
 
       {/* Popular Destinations */}
@@ -274,40 +265,7 @@ export default function CarsPage() {
         </div>
       </section>
 
-      {/* Region Selection Modal */}
-      {showRegionModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-gray-800 rounded-2xl p-8 max-w-md w-full border border-gray-700/50"
-          >
-            <h3 className="text-2xl font-bold text-white mb-4">
-              Set Your Location
-            </h3>
-            <p className="text-gray-300 mb-6">
-              Help us show you personalized car rental recommendations
-            </p>
-            <div className="space-y-3">
-              {['Lahore', 'Karachi', 'Islamabad', 'Dubai', 'Abu Dhabi', 'Riyadh'].map((city) => (
-                <button
-                  key={city}
-                  onClick={() => handleRegionSelect(city)}
-                  className="w-full text-left p-3 rounded-lg bg-gray-700/50 hover:bg-gray-700 text-white transition-colors"
-                >
-                  {city}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setShowRegionModal(false)}
-              className="mt-4 text-gray-400 hover:text-white transition-colors"
-            >
-              Skip for now
-            </button>
-          </motion.div>
-        </div>
-      )}
+      {/* Region Selection Modal removed per design request */}
     </div>
   )
 }

@@ -19,6 +19,9 @@ export function FlightSearchForm({ onSearch }: FlightSearchFormProps) {
     passengers: { adults: 1, children: 0, infants: 0 },
     cabinClass: 'ECONOMY'
   })
+  const [multiLegs, setMultiLegs] = useState<Array<{ origin: string; destination: string; date: string }>>([
+    { origin: '', destination: '', date: '' },
+  ])
   const [flexibleDates, setFlexibleDates] = useState(false)
   const [showPassengerDropdown, setShowPassengerDropdown] = useState(false)
 
@@ -53,11 +56,15 @@ export function FlightSearchForm({ onSearch }: FlightSearchFormProps) {
   }
 
   const handleSearch = () => {
-    onSearch({
-      ...searchParams,
-      tripType,
-      flexibleDates
-    })
+    if (tripType === 'MULTI_CITY') {
+      onSearch({ tripType, flexibleDates, legs: multiLegs, passengers: searchParams.passengers, cabinClass: searchParams.cabinClass })
+    } else {
+      onSearch({
+        ...searchParams,
+        tripType,
+        flexibleDates
+      })
+    }
   }
 
   const getTomorrow = () => {
@@ -73,10 +80,10 @@ export function FlightSearchForm({ onSearch }: FlightSearchFormProps) {
   }
 
   return (
-    <div className="bg-gray-800/40 backdrop-blur-md rounded-2xl p-8 border border-gray-600/30 shadow-2xl">
+    <div className="bg-gray-900/60 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-cyan-600/30 shadow-2xl">
       {/* Trip Type Tabs */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex bg-gray-800/50 rounded-xl p-1">
+        <div className="flex rounded-full p-1 bg-gray-800/60 border border-gray-700/60">
           {[
             { key: 'ONE_WAY', label: 'One Way' },
             { key: 'ROUND_TRIP', label: 'Round Trip' },
@@ -85,7 +92,7 @@ export function FlightSearchForm({ onSearch }: FlightSearchFormProps) {
             <button
               key={key}
               onClick={() => setTripType(key as any)}
-              className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              className={`px-6 py-2.5 rounded-full font-medium transition-all ${
                 tripType === key
                   ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg'
                   : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
@@ -95,49 +102,55 @@ export function FlightSearchForm({ onSearch }: FlightSearchFormProps) {
             </button>
           ))}
         </div>
+        <div className="hidden md:block text-sm text-gray-300">
+          Express Booking · Quicker, Easier
+        </div>
       </div>
 
       {/* Search Form */}
       <div className="space-y-6">
         {/* Main Search Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-          {/* From */}
-          <div className="md:col-span-1">
-            <label className="block text-sm font-medium text-gray-300 mb-2">From</label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                value={searchParams.origin}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, origin: e.target.value }))}
-                placeholder="City or airport"
-                className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
-              />
-            </div>
-          </div>
-
-          {/* Swap Button */}
-          <div className="flex justify-center md:justify-start">
-            <button
-              onClick={handleSwapLocations}
-              className="p-3 bg-gray-800/80 border border-gray-600 rounded-xl text-gray-300 hover:text-white hover:bg-gray-700/80 hover:border-cyan-500 transition-all"
-            >
-              <RotateCcw className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* To */}
-          <div className="md:col-span-1">
-            <label className="block text-sm font-medium text-gray-300 mb-2">To</label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                value={searchParams.destination}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, destination: e.target.value }))}
-                placeholder="City or airport"
-                className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
-              />
+        {tripType !== 'MULTI_CITY' && (
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-end">
+          {/* Combined From/To pill */}
+          <div className="lg:col-span-2">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Route</label>
+            <div className="relative flex items-stretch bg-gray-800/80 border border-gray-600 rounded-full">
+              {/* From */}
+              <div className="relative flex-1">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchParams.origin}
+                  onChange={(e) => setSearchParams(prev => ({ ...prev, origin: e.target.value }))}
+                  placeholder="City or airport"
+                  className="w-full pl-12 pr-4 py-3 bg-transparent text-white placeholder-gray-400 focus:outline-none"
+                />
+              </div>
+              {/* Divider with swap button */}
+              <div className="relative flex items-center">
+                <div className="h-6 w-px bg-gray-600" />
+                <button
+                  type="button"
+                  onClick={handleSwapLocations}
+                  className="mx-2 p-2 rounded-full bg-gray-800/70 border border-gray-600 text-gray-300 hover:text-white hover:border-cyan-500 hover:bg-gray-700 transition-all"
+                  aria-label="Swap"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+                <div className="h-6 w-px bg-gray-600" />
+              </div>
+              {/* To */}
+              <div className="relative flex-1">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchParams.destination}
+                  onChange={(e) => setSearchParams(prev => ({ ...prev, destination: e.target.value }))}
+                  placeholder="City or airport"
+                  className="w-full pl-12 pr-4 py-3 bg-transparent text-white placeholder-gray-400 focus:outline-none"
+                />
+              </div>
             </div>
           </div>
 
@@ -151,29 +164,86 @@ export function FlightSearchForm({ onSearch }: FlightSearchFormProps) {
                 value={searchParams.departureDate || getTomorrow()}
                 onChange={(e) => setSearchParams(prev => ({ ...prev, departureDate: e.target.value }))}
                 min={getTomorrow()}
-                className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-xl text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors [color-scheme:dark]"
+                className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-full text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors [color-scheme:dark]"
               />
             </div>
           </div>
 
-          {/* Flexible Dates */}
-          <div className="md:col-span-1 flex items-end">
-            <label className="flex items-center space-x-2 text-white text-sm h-[52px]">
-              <input
-                type="checkbox"
-                checked={flexibleDates}
-                onChange={(e) => setFlexibleDates(e.target.checked)}
-                className="w-4 h-4 text-cyan-600 bg-gray-700 border-gray-600 rounded focus:ring-cyan-500"
-              />
-              <span>Flexible dates ± 3 days</span>
-            </label>
-          </div>
         </div>
+        )}
 
-        {/* Return Date Row */}
+        {tripType === 'MULTI_CITY' && (
+          <div className="space-y-4">
+            {multiLegs.map((leg, idx) => (
+              <div key={idx} className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-end">
+                <div className="lg:col-span-3">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Leg {idx + 1}</label>
+                  <div className="relative flex items-stretch bg-gray-800/80 border border-gray-600 rounded-full">
+                    <div className="relative flex-1">
+                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type="text"
+                        value={leg.origin}
+                        onChange={(e) => setMultiLegs((legs) => legs.map((l, i) => i===idx ? { ...l, origin: e.target.value } : l))}
+                        placeholder="City or airport"
+                        className="w-full pl-12 pr-4 py-3 bg-transparent text-white placeholder-gray-400 focus:outline-none"
+                      />
+                    </div>
+                    <div className="relative flex items-center">
+                      <div className="h-6 w-px bg-gray-600" />
+                    </div>
+                    <div className="relative flex-1">
+                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type="text"
+                        value={leg.destination}
+                        onChange={(e) => setMultiLegs((legs) => legs.map((l, i) => i===idx ? { ...l, destination: e.target.value } : l))}
+                        placeholder="City or airport"
+                        className="w-full pl-12 pr-4 py-3 bg-transparent text-white placeholder-gray-400 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="md:col-span-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Departure</label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="date"
+                      value={leg.date || getTomorrow()}
+                      onChange={(e) => setMultiLegs((legs) => legs.map((l, i) => i===idx ? { ...l, date: e.target.value } : l))}
+                      min={getTomorrow()}
+                      className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-full text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors [color-scheme:dark]"
+                    />
+                  </div>
+                </div>
+                <div className="md:col-span-1 flex items-end">
+                  <button
+                    type="button"
+                    onClick={() => setMultiLegs((legs) => legs.filter((_, i) => i !== idx))}
+                    className="h-[52px] px-4 rounded-full bg-gray-800/70 border border-gray-600 text-gray-300 hover:text-white hover:border-red-400 hover:bg-gray-700 transition-all"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+            <div>
+              <button
+                type="button"
+                onClick={() => setMultiLegs((legs) => legs.length < 6 ? [...legs, { origin: '', destination: '', date: '' }] : legs)}
+                className="px-4 py-2 rounded-full bg-gray-800/70 border border-gray-600 text-gray-200 hover:border-cyan-500 hover:text-white"
+              >
+                + Add another leg
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Return Date Row for Round Trip */}
         {tripType === 'ROUND_TRIP' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-            <div className="md:col-span-3"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-end">
+            <div className="lg:col-span-2"></div>
             <div className="md:col-span-1">
               <label className="block text-sm font-medium text-gray-300 mb-2">Return</label>
               <div className="relative">
@@ -183,7 +253,7 @@ export function FlightSearchForm({ onSearch }: FlightSearchFormProps) {
                   value={searchParams.returnDate || getNextWeek()}
                   onChange={(e) => setSearchParams(prev => ({ ...prev, returnDate: e.target.value }))}
                   min={searchParams.departureDate || getTomorrow()}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-xl text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors [color-scheme:dark]"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-full text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors [color-scheme:dark]"
                 />
               </div>
             </div>
@@ -200,7 +270,7 @@ export function FlightSearchForm({ onSearch }: FlightSearchFormProps) {
               <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <button
                 onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
-                className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-xl text-white text-left hover:border-cyan-500 transition-colors"
+                className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-full text-white text-left hover:border-cyan-500 transition-colors"
               >
                 {searchParams.passengers.adults + searchParams.passengers.children + searchParams.passengers.infants} Traveller, {searchParams.cabinClass}
               </button>
@@ -307,7 +377,7 @@ export function FlightSearchForm({ onSearch }: FlightSearchFormProps) {
           <div className="w-full lg:w-auto">
             <Button
               onClick={handleSearch}
-              className="w-full lg:w-auto bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white py-3 px-8 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all h-[52px] flex items-center justify-center"
+              className="w-full lg:w-auto bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white py-3 px-8 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all h-[52px] flex items-center justify-center"
             >
               <Plane className="w-5 h-5 mr-2" />
               Search Flights

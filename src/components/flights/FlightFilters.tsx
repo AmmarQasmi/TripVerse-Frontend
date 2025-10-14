@@ -11,7 +11,7 @@ export function FlightFilters() {
       oneStop: true,
       twoPlusStops: false
     },
-    priceRange: [50000, 250000],
+    priceRange: [30000, 300000],
     airlines: {
       pia: true,
       emirates: true,
@@ -33,7 +33,7 @@ export function FlightFilters() {
       evening: true,
       night: false
     },
-    duration: [60, 720] // 1 hour to 12 hours
+    duration: [60, 720] // min=0 (~1h) to max (~12h) preselected full range
   })
 
   const handleStopsChange = (stopType: string) => {
@@ -83,7 +83,7 @@ export function FlightFilters() {
         oneStop: true,
         twoPlusStops: false
       },
-      priceRange: [50000, 250000],
+      priceRange: [30000, 300000],
       airlines: {
         pia: true,
         emirates: true,
@@ -126,7 +126,7 @@ export function FlightFilters() {
   ]
 
   return (
-    <div className="bg-gray-800/80 backdrop-blur-md rounded-2xl p-6 border border-cyan-700/40 sticky top-6">
+    <div className="rounded-2xl bg-gray-900/60 backdrop-blur-md border border-cyan-600/40 p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
@@ -183,31 +183,28 @@ export function FlightFilters() {
               <span>PKR {filters.priceRange[0].toLocaleString()}</span>
               <span>PKR {filters.priceRange[1].toLocaleString()}</span>
             </div>
-            <div className="relative">
-              <input
-                type="range"
-                min="30000"
-                max="300000"
-                step="10000"
-                value={filters.priceRange[0]}
-                onChange={(e) => setFilters(prev => ({
-                  ...prev,
-                  priceRange: [parseInt(e.target.value), prev.priceRange[1]]
-                }))}
-                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
-              />
-              <input
-                type="range"
-                min="30000"
-                max="300000"
-                step="10000"
-                value={filters.priceRange[1]}
-                onChange={(e) => setFilters(prev => ({
-                  ...prev,
-                  priceRange: [prev.priceRange[0], parseInt(e.target.value)]
-                }))}
-                className="absolute top-0 w-full h-2 bg-transparent rounded-lg appearance-none cursor-pointer"
-              />
+            <div className="relative pb-1">
+              <div className="h-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500" />
+              <div className="absolute inset-0 flex items-center gap-4">
+                <input
+                  type="range"
+                  min={30000}
+                  max={300000}
+                  step={10000}
+                  value={filters.priceRange[0]}
+                  onChange={(e)=> setFilters(f=>({ ...f, priceRange: [Number(e.target.value), Math.max(f.priceRange[1], Number(e.target.value))] }))}
+                  className="w-full appearance-none bg-transparent"
+                />
+                <input
+                  type="range"
+                  min={30000}
+                  max={300000}
+                  step={10000}
+                  value={filters.priceRange[1]}
+                  onChange={(e)=> setFilters(f=>({ ...f, priceRange: [Math.min(f.priceRange[0], Number(e.target.value)), Number(e.target.value)] }))}
+                  className="w-full appearance-none bg-transparent"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -317,12 +314,14 @@ export function FlightFilters() {
         </div>
 
         {/* Apply Button */}
-        <Button
-          onClick={() => console.log('Applying filters:', filters)}
-          className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white py-2 rounded-xl font-semibold"
-        >
-          Apply Filters
-        </Button>
+        <div className="flex justify-end mt-4">
+          <Button 
+            onClick={() => console.log('Applying filters:', filters)}
+            className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white px-5 py-2 rounded-xl font-semibold shadow-lg hover:shadow-cyan-500/20 transition-all"
+          >
+            Apply Filters
+          </Button>
+        </div>
       </div>
     </div>
   )

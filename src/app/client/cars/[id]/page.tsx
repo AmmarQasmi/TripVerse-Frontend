@@ -172,7 +172,7 @@ export default function CarDetailPage() {
               PKR {car.pricePerDay?.toLocaleString()}/day
             </div>
             <div className="flex items-center space-x-2 text-gray-300">
-              <span>📍</span>
+              <span>🧭</span>
               <span>{car.location}</span>
             </div>
           </div>
