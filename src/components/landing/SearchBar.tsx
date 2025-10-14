@@ -1,11 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 
 type SearchType = 'flight' | 'hotel' | 'rental'
 
 export function SearchBar() {
+  const router = useRouter()
   const [searchType, setSearchType] = useState<SearchType>('flight')
   const [departureDate, setDepartureDate] = useState('')
   const [returnDate, setReturnDate] = useState('')
@@ -16,8 +19,21 @@ export function SearchBar() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle search logic here
-    console.log('Searching for:', searchType)
+    
+    // Navigate to the appropriate page based on search type
+    switch (searchType) {
+      case 'flight':
+        router.push('/client/flights')
+        break
+      case 'hotel':
+        router.push('/client/hotels')
+        break
+      case 'rental':
+        router.push('/client/cars')
+        break
+      default:
+        break
+    }
   }
 
   // Get today's date for min date
@@ -29,7 +45,24 @@ export function SearchBar() {
 
   return (
     <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 w-full max-w-5xl px-4 z-20">
-      <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl p-6">
+      <motion.div 
+        className="relative bg-black/60 backdrop-blur-md rounded-2xl shadow-2xl p-6 overflow-hidden"
+        animate={{
+          boxShadow: [
+            '0 0 20px rgba(21, 94, 117, 0.3)',
+            '0 0 40px rgba(21, 94, 117, 0.6)',
+            '0 0 20px rgba(21, 94, 117, 0.3)'
+          ]
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+        style={{
+          border: '4px solid rgba(21, 94, 117, 0.6)'
+        }}
+      >
         {/* Tabs */}
         <div className="flex space-x-2 mb-6 border-b">
           {[
@@ -200,7 +233,7 @@ export function SearchBar() {
             </Button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   )
 }

@@ -53,7 +53,7 @@ export function CarSearchForm({ onSearch, initialParams }: CarSearchFormProps) {
           {/* Pickup Location */}
           <div className="space-y-2">
             <label className="text-sm font-medium leading-none text-white flex items-center">
-              <span className="mr-2">📍</span>
+              <span className="mr-2">🧭</span>
               Pickup Location
             </label>
             <input

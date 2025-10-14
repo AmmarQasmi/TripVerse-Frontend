@@ -126,7 +126,7 @@ export function CarCard({ car, isAvailable = true }: CarCardProps) {
           
           <div className="mt-3 flex items-center justify-between text-sm">
             <div className="flex items-center text-gray-600">
-              <span className="text-gray-500 mr-1">📍</span>
+              <span className="text-gray-500 mr-1">🧭</span>
               <span>{car.location}</span>
             </div>
             {car.rating && (

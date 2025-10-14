@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 
 const faqs = [
   {
@@ -31,11 +32,45 @@ export function FAQSection() {
   return (
     <section className="py-16 bg-gradient-to-b from-blue-50 to-white">
       <div className="container mx-auto px-4 max-w-4xl">
-        <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
-          Frequently Asked Questions
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-6">
+          <motion.span
+            animate={{ 
+              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
+            }}
+            transition={{ 
+              duration: 5, 
+              repeat: Infinity 
+            }}
+            style={{
+              background: 'linear-gradient(90deg, #000 40%, #0891b2 50%, #000 60%)',
+              backgroundSize: '200% auto',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}
+          >
+            Frequently Asked Questions
+          </motion.span>
         </h2>
-        <p className="text-center text-gray-600 mb-12">
-          Get answers to common questions about using TripVerse
+        <p className="text-base md:text-lg text-center mb-16 max-w-3xl mx-auto">
+          <motion.span
+            animate={{ 
+              backgroundPosition: ['100% 50%', '0% 50%', '100% 50%'] 
+            }}
+            transition={{ 
+              duration: 5, 
+              repeat: Infinity 
+            }}
+            style={{
+              background: 'linear-gradient(90deg, #000 40%, #0891b2 50%, #000 60%)',
+              backgroundSize: '200% auto',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}
+          >
+            Get answers to common questions about using TripVerse
+          </motion.span>
         </p>
 
         <div className="space-y-4">

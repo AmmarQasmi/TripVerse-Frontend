@@ -35,7 +35,7 @@ export function HotelDetails({ hotel }: HotelDetailsProps) {
               </span>
             </div>
             <div className="flex items-center space-x-3">
-              <span className="text-2xl">📍</span>
+              <span className="text-2xl">🧭</span>
               <span className="text-gray-300">
                 Located in {hotel.location}
               </span>
@@ -53,7 +53,7 @@ export function HotelDetails({ hotel }: HotelDetailsProps) {
           <div>
             <h4 className="text-lg font-semibold text-white mb-3">Address</h4>
             <p className="text-gray-300 flex items-start space-x-2">
-              <span className="text-lg mt-0.5">📍</span>
+              <span className="text-lg mt-0.5">🧭</span>
               <span>{hotel.address}</span>
             </p>
           </div>

@@ -132,7 +132,7 @@ export function CarDetails({ car }: CarDetailsProps) {
             </div>
             
             <div className="flex items-start space-x-3">
-              <span className="text-blue-500 mt-1">📍</span>
+              <span className="text-blue-500 mt-1">🧭</span>
               <div>
                 <h4 className="font-semibold text-gray-900">Pickup/Drop-off</h4>
                 <p className="text-gray-600">Flexible pickup and drop-off locations. Contact driver for specific arrangements.</p>
@@ -146,14 +146,14 @@ export function CarDetails({ car }: CarDetailsProps) {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center">
-            <span className="mr-2">📍</span>
+            <span className="mr-2">🧭</span>
             Location & Pickup
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <span className="text-2xl">📍</span>
+              <span className="text-2xl">🧭</span>
               <div>
                 <p className="font-semibold text-gray-900">Available in {car.location}</p>
                 <p className="text-gray-600">Contact driver for exact pickup location</p>

@@ -31,7 +31,7 @@ export function LandingHeader() {
                 {isMenuOpen && (
                   <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border">
                     <Link 
-                      href="/client/hotels" 
+                      href="/client/flights" 
                       className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
@@ -62,8 +62,31 @@ export function LandingHeader() {
               </Link>
             </div>
 
-            {/* Right: Camera Icon, Login, Sign Up */}
-            <div className="flex items-center space-x-4">
+            {/* Right: Message, Chatbot, Camera Icon, Login, Sign Up */}
+            <div className="flex items-center space-x-4 ml-auto pr-4">
+              <button
+                className="p-2 hover:bg-white/10 rounded-lg transition-all duration-200 group relative"
+                aria-label="Messages"
+              >
+                <svg className="w-6 h-6 text-white group-hover:text-cyan-300 transition-colors" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="m22 6-10 7L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+
+              <button
+                className="p-2 hover:bg-white/10 rounded-lg transition-all duration-200 group relative"
+                aria-label="Chatbot"
+              >
+                <svg className="w-6 h-6 text-white group-hover:text-cyan-300 transition-colors" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="8.5" cy="9.5" r="1" fill="currentColor" className="opacity-80"/>
+                  <circle cx="15.5" cy="9.5" r="1" fill="currentColor" className="opacity-80"/>
+                  <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M12 2v2M12 20v2M22 12h-2M4 12H2" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="opacity-40"/>
+                </svg>
+              </button>
+
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="p-2 hover:bg-white/10 rounded-lg transition-colors"

@@ -129,7 +129,7 @@ export default function HotelDetailPage() {
               
               <div className="flex items-center space-x-4 text-gray-400 mb-4">
                 <span className="flex items-center">
-                  <span className="mr-1">📍</span>
+                  <span className="mr-1">🧭</span>
                   {hotel.location}
                 </span>
                 <span className="flex items-center">
@@ -181,7 +181,7 @@ export default function HotelDetailPage() {
                   { id: 'overview', label: 'Overview', icon: '📋' },
                   { id: 'rooms', label: 'Rooms', icon: '🛏️' },
                   { id: 'reviews', label: 'Reviews', icon: '⭐' },
-                  { id: 'location', label: 'Location', icon: '📍' }
+                  { id: 'location', label: 'Location', icon: '🧭' }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -216,7 +216,7 @@ export default function HotelDetailPage() {
               {activeTab === 'rooms' && (
                 <div className="space-y-6">
                   <h3 className="text-2xl font-bold text-white mb-6">Available Rooms</h3>
-                  {hotel.roomTypes?.map((room, index) => (
+                  {hotel.roomTypes?.map((room: any, index: number) => (
                     <motion.div
                       key={room.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -312,7 +312,7 @@ export default function HotelDetailPage() {
       {showBookingModal && selectedRoom && (
         <BookingSummary
           hotel={hotel}
-          roomType={hotel.roomTypes?.find(r => r.id === selectedRoom)}
+          roomType={hotel.roomTypes?.find((r: any) => r.id === selectedRoom)}
           onClose={() => setShowBookingModal(false)}
           onBooking={(data) => {
             console.log('Booking data:', data)

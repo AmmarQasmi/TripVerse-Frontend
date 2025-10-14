@@ -1,4 +1,4 @@
-// User types
+// API Types
 export interface User {
   id: number
   email: string
@@ -102,25 +102,61 @@ export interface Car {
   color: string
   type: string
   seats: number
-  transmission: 'MANUAL' | 'AUTOMATIC'
-  fuelType: 'GASOLINE' | 'DIESEL' | 'ELECTRIC' | 'HYBRID'
   pricePerDay: number
   location: string
-  rating?: number
-  images?: string[]
-  features?: string[]
+  images: string[]
+  description: string
+  features: string[]
   driverId: string
-  driver?: User
-  availability?: CarAvailability[]
+  rating?: number
+  isAvailable: boolean
+  createdAt: string
+  updatedAt: string
+  transmission: string
+  fuelType: string
+}
+
+export interface Monument {
+  id: string
+  name: string
+  description: string
+  location: string
+  historicalPeriod?: string
+  architecturalStyle?: string
+  images: string[]
   createdAt: string
   updatedAt: string
 }
 
-export interface CarAvailability {
+export interface CarBooking {
   id: string
   carId: string
-  date: string
-  isAvailable: boolean
+  userId: string
+  startDate: string
+  endDate: string
+  totalAmount: number
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
+  createdAt: string
+  updatedAt: string
+  car?: Car
+  user?: User
+}
+
+export interface HotelBooking {
+  id: string
+  hotelId: string
+  userId: string
+  roomTypeId: string
+  checkInDate: string
+  checkOutDate: string
+  guests: number
+  totalAmount: number
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
+  createdAt: string
+  updatedAt: string
+  hotel?: Hotel
+  roomType?: RoomType
+  user?: User
 }
 
 export interface CarSearchParams {
@@ -132,104 +168,20 @@ export interface CarSearchParams {
   seats?: number
   minPrice?: number
   maxPrice?: number
-  transmission?: string
-  fuelType?: string
 }
 
-// Booking types
-export interface HotelBooking {
-  id: string
-  userId: string
-  hotelId: string
-  roomTypeId: string
-  checkInDate: string
-  checkOutDate: string
-  guests: number
-  totalAmount: number
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'REFUNDED'
-  paymentId?: string
-  user?: User
-  hotel?: Hotel
-  roomType?: RoomType
-  payment?: Payment
-  createdAt: string
-  updatedAt: string
-}
-
-export interface CarBooking {
-  id: string
-  userId: string
-  carId: string
-  startDate: string
-  endDate: string
-  totalAmount: number
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'REFUNDED'
-  paymentId?: string
-  user?: User
-  car?: Car
-  payment?: Payment
-  createdAt: string
-  updatedAt: string
-}
-
-export interface CreateHotelBookingData {
-  hotelId: string
-  roomTypeId: string
-  checkInDate: string
-  checkOutDate: string
-  guests: number
-}
-
-export interface CreateCarBookingData {
-  carId: string
-  startDate: string
-  endDate: string
-}
-
-// Payment types
-export interface Payment {
-  id: string
-  bookingId: string
-  bookingType: 'HOTEL' | 'CAR'
-  amount: number
-  currency: string
-  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED' | 'PARTIALLY_REFUNDED'
-  method: string
-  transactionId?: string
-  stripePaymentIntentId?: string
-  refundAmount?: number
-  createdAt: string
-  updatedAt: string
-}
-
-export interface CreatePaymentData {
-  bookingId: string
-  bookingType: 'HOTEL' | 'CAR'
-  amount: number
-  currency: string
-  method: string
-}
-
-// Monument types
-export interface Monument {
-  id: string
-  name: string
-  description: string
-  location: string
-  coordinates?: {
-    latitude: number
-    longitude: number
-  }
-  historicalPeriod?: string
-  architecturalStyle?: string
-  images?: string[]
-  recognitionData?: {
-    confidence: number
-    algorithm: string
-    processedAt: string
-  }
-  createdAt: string
-  updatedAt: string
+export interface HotelSearchParams {
+  query?: string
+  location?: string
+  checkIn?: string
+  checkOut?: string
+  guests?: number
+  rooms?: number
+  minPrice?: number
+  maxPrice?: number
+  starRating?: number[]
+  amenities?: string[]
+  propertyType?: string[]
 }
 
 export interface MonumentSearchParams {
@@ -239,7 +191,193 @@ export interface MonumentSearchParams {
   architecturalStyle?: string
 }
 
+export interface CreateCarBookingData {
+  carId: string
+  startDate: string
+  endDate: string
+  pickupTime: string
+  dropoffTime: string
+  extras: {
+    gps: boolean
+    insurance: boolean
+    childSeat: boolean
+  }
+}
+
+export interface CreateHotelBookingData {
+  hotelId: string
+  roomTypeId: string
+  checkInDate: string
+  checkOutDate: string
+  guests: number
+  rooms: number
+}
+
+// Additional utility types
+export interface ApiResponse<T> {
+  data: T
+  message?: string
+  success: boolean
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
+
+export interface SearchFilters {
+  query?: string
+  location?: string
+  dateRange?: {
+    startDate: string
+    endDate: string
+  }
+  priceRange?: {
+    min: number
+    max: number
+  }
+  amenities?: string[]
+  type?: string
+}
+
+export interface FormError {
+  field: string
+  message: string
+}
+
+export interface ValidationErrors {
+  [key: string]: string
+}
+
+// Component prop types
+export interface BaseComponentProps {
+  className?: string
+  children?: React.ReactNode
+}
+
+export interface ModalProps extends BaseComponentProps {
+  isOpen: boolean
+  onClose: () => void
+  title?: string
+}
+
+export interface ButtonProps extends BaseComponentProps {
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+  size?: 'default' | 'sm' | 'lg' | 'icon'
+  disabled?: boolean
+  loading?: boolean
+  onClick?: () => void
+  type?: 'button' | 'submit' | 'reset'
+}
+
+export interface InputProps extends BaseComponentProps {
+  label?: string
+  placeholder?: string
+  type?: string
+  value?: string
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+  error?: string
+  required?: boolean
+  disabled?: boolean
+}
+
+// Route types
+export interface RouteConfig {
+  path: string
+  component: React.ComponentType
+  roles?: string[]
+  requiresAuth?: boolean
+}
+
+// Theme types
+export interface ThemeConfig {
+  colors: {
+    primary: string
+    secondary: string
+    accent: string
+    background: string
+    foreground: string
+    muted: string
+    border: string
+  }
+  fonts: {
+    sans: string
+    serif: string
+    mono: string
+  }
+  spacing: {
+    xs: string
+    sm: string
+    md: string
+    lg: string
+    xl: string
+  }
+  borderRadius: {
+    sm: string
+    md: string
+    lg: string
+  }
+}
+
+// Payment types
+export interface Payment {
+  id: string
+  bookingId: string
+  userId: string
+  amount: number
+  currency: string
+  status: 'pending' | 'completed' | 'failed' | 'refunded' | 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED'
+  method: 'stripe' | 'paypal' | 'bank_transfer'
+  transactionId?: string
+  refundAmount?: number
+  bookingType?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreatePaymentData {
+  bookingId: string
+  amount: number
+  currency: string
+  method: 'stripe' | 'paypal' | 'bank_transfer'
+  returnUrl?: string
+}
+
+// Dispute types
+export interface Dispute {
+  id: string
+  bookingId: string
+  userId: string
+  driverId?: string
+  type: 'payment' | 'service' | 'damage' | 'cancellation'
+  status: 'open' | 'investigating' | 'resolved' | 'closed' | 'OPEN' | 'IN_REVIEW' | 'RESOLVED' | 'CLOSED'
+  description: string
+  evidence?: string[]
+  resolution?: string
+  reason?: string
+  bookingType?: string
+  createdAt: string
+  updatedAt: string
+}
+
 // Weather types
+export interface CurrentWeather {
+  temperature: number
+  feelsLike: number
+  humidity: number
+  pressure: number
+  visibility: number
+  windSpeed: number
+  windDirection: number
+  description: string
+  timestamp: string
+}
+
 export interface WeatherForecast {
   location: {
     name: string
@@ -250,47 +388,13 @@ export interface WeatherForecast {
     }
   }
   current: CurrentWeather
-  forecast: WeatherDay[]
-}
-
-export interface CurrentWeather {
-  temperature: number
-  feelsLike: number
-  humidity: number
-  pressure: number
-  visibility: number
-  windSpeed: number
-  windDirection: number
-  description: string
-  icon: string
-  timestamp: string
-}
-
-export interface WeatherDay {
-  date: string
-  temperature: {
-    min: number
-    max: number
-  }
-  description: string
-  icon: string
-  precipitation: number
-  humidity: number
-  windSpeed: number
-}
-
-// Dispute types
-export interface Dispute {
-  id: string
-  bookingId: string
-  bookingType: 'HOTEL' | 'CAR'
-  userId: string
-  driverId?: string
-  reason: string
-  description: string
-  status: 'OPEN' | 'IN_REVIEW' | 'RESOLVED' | 'CLOSED'
-  resolution?: string
-  adminId?: string
-  createdAt: string
-  updatedAt: string
+  forecast: Array<{
+    date: string
+    temperature: {
+      min: number
+      max: number
+    }
+    description: string
+    precipitation: number
+  }>
 }

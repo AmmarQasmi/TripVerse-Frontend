@@ -68,7 +68,7 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
               ))}
             </datalist>
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              📍
+              🧭
             </div>
           </div>
         </div>

@@ -18,6 +18,9 @@ export function Header() {
           </Link>
 
           <nav className="hidden md:flex items-center space-x-8">
+            <Link href="/client/flights" className="text-gray-600 hover:text-gray-900">
+              Flights
+            </Link>
             <Link href="/client/hotels" className="text-gray-600 hover:text-gray-900">
               Hotels
             </Link>

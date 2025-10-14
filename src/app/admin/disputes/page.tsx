@@ -17,7 +17,7 @@ export default function AdminDisputesPage() {
   const filteredDisputes = disputes?.filter(dispute => {
     const matchesSearch = dispute.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          dispute.bookingId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         dispute.reason.toLowerCase().includes(searchQuery.toLowerCase())
+                         (dispute.reason && dispute.reason.toLowerCase().includes(searchQuery.toLowerCase()))
     const matchesStatus = statusFilter === 'all' || dispute.status === statusFilter
     return matchesSearch && matchesStatus
   }) || []
