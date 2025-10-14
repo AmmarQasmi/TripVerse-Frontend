@@ -25,7 +25,7 @@ interface CarSearchParams {
 export default function CarsPage() {
   const { user } = useAuth()
   const [searchParams, setSearchParams] = useState<CarSearchParams>({
-    pickupLocation: user?.region || '',
+    pickupLocation: user?.city?.region || '',
     dropoffLocation: '',
     pickupDate: '',
     dropoffDate: '',
@@ -58,14 +58,14 @@ export default function CarsPage() {
 
   // Auto-load user's region cars on first visit
   useEffect(() => {
-    if (user?.region && isInitialLoad) {
-      setSearchParams(prev => ({ ...prev, pickupLocation: user.region || '' }))
+    if (user?.city?.region && isInitialLoad) {
+      setSearchParams(prev => ({ ...prev, pickupLocation: user.city.region || '' }))
       setIsInitialLoad(false)
-    } else if (!user?.region && isInitialLoad) {
+    } else if (!user?.city?.region && isInitialLoad) {
       setShowRegionModal(true)
       setIsInitialLoad(false)
     }
-  }, [user?.region, isInitialLoad])
+  }, [user?.city?.region, isInitialLoad])
 
   const handleSearch = (newParams: CarSearchParams) => {
     setSearchParams(newParams)
@@ -97,10 +97,16 @@ export default function CarsPage() {
   const mockCars = cars?.map(car => ({
     ...car,
     driver: {
-      id: '1',
+      id: 1,
       email: 'ahmed.khan@example.com',
-      name: 'Ahmed Khan',
-      role: 'DRIVER' as const,
+      full_name: 'Ahmed Khan',
+      role: 'driver' as const,
+      status: 'active',
+      city: {
+        id: 1,
+        name: 'Karachi',
+        region: 'Sindh'
+      },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       isVerified: true,
@@ -187,7 +193,7 @@ export default function CarsPage() {
       <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Auto-Region Message */}
-          {user?.region && searchParams.pickupLocation === user.region && (
+          {user?.city?.region && searchParams.pickupLocation === user.city.region && (
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -195,7 +201,7 @@ export default function CarsPage() {
               className="mb-8"
             >
               <h3 className="text-2xl font-semibold text-white mb-2">
-                Recommended for you — Cars available in {user.region}
+                Recommended for you — Cars available in {user.city.region}
               </h3>
               <p className="text-gray-300">
                 Personalized recommendations based on your location

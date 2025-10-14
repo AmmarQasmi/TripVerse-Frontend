@@ -39,16 +39,16 @@ export function Header() {
             {user ? (
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">
-                  Welcome, {user.name}
+                  Welcome, {user.full_name}
                 </span>
-                {user.role === 'DRIVER' && (
+                {user.role === 'driver' && (
                   <Link href="/driver/dashboard">
                     <Button variant="outline" size="sm">
                       Driver Dashboard
                     </Button>
                   </Link>
                 )}
-                {user.role === 'ADMIN' && (
+                {user.role === 'admin' && (
                   <Link href="/admin/dashboard">
                     <Button variant="outline" size="sm">
                       Admin Dashboard

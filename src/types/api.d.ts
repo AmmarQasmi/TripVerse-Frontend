@@ -1,15 +1,99 @@
 // API Types
 export interface User {
-  id: string
+  id: number
   email: string
-  name: string
-  role: 'CLIENT' | 'DRIVER' | 'ADMIN'
-  createdAt: string
-  updatedAt: string
-  region?: string
+  full_name: string
+  role: 'client' | 'driver' | 'admin'
+  status: string
+  city: {
+    id: number
+    name: string
+    region: string
+  }
+  createdAt?: string
+  updatedAt?: string
+  phone?: string
   avatar?: string
+  isVerified?: boolean
+  verificationStatus?: 'PENDING' | 'VERIFIED' | 'REJECTED'
+  driverLicense?: string
+  carDocuments?: string[]
 }
 
+export interface LoginCredentials {
+  email: string
+  password: string
+}
+
+export interface RegisterData {
+  email: string
+  password: string
+  full_name: string
+  role: 'client' | 'driver'
+  city_id: number
+}
+
+// City types
+export interface City {
+  id: number
+  name: string
+  region: string
+}
+
+// Auth Response types
+export interface AuthResponse {
+  access_token: string
+  user: User
+}
+
+// Hotel types
+export interface Hotel {
+  id: string
+  name: string
+  description: string
+  location: string
+  address: string
+  rating?: number
+  pricePerNight?: number
+  images?: string[]
+  amenities?: string[]
+  roomTypes?: RoomType[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface RoomType {
+  id: string
+  hotelId: string
+  name: string
+  description: string
+  capacity: number
+  pricePerNight: number
+  amenities: string[]
+  images?: string[]
+  availability?: RoomAvailability[]
+}
+
+export interface RoomAvailability {
+  id: string
+  roomTypeId: string
+  date: string
+  availableRooms: number
+  totalRooms: number
+}
+
+export interface HotelSearchParams {
+  query?: string
+  location?: string
+  checkIn?: string
+  checkOut?: string
+  minPrice?: number
+  maxPrice?: number
+  rating?: number
+  amenities?: string[]
+}
+
+// Car types
 export interface Car {
   id: string
   brand: string
@@ -30,33 +114,6 @@ export interface Car {
   updatedAt: string
   transmission: string
   fuelType: string
-}
-
-export interface Hotel {
-  id: string
-  name: string
-  location: string
-  address: string
-  description: string
-  images: string[]
-  rating: number
-  pricePerNight: number
-  amenities: string[]
-  roomTypes: RoomType[]
-  createdAt: string
-  updatedAt: string
-}
-
-export interface RoomType {
-  id: string
-  name: string
-  description: string
-  price?: number
-  capacity: number
-  amenities: string[]
-  images: string[]
-  pricePerNight: number
-  hotelId: string
 }
 
 export interface Monument {
@@ -132,19 +189,6 @@ export interface MonumentSearchParams {
   location?: string
   historicalPeriod?: string
   architecturalStyle?: string
-}
-
-export interface LoginCredentials {
-  email: string
-  password: string
-}
-
-export interface RegisterData {
-  name: string
-  email: string
-  password: string
-  role: 'CLIENT' | 'DRIVER' | 'ADMIN'
-  region?: string
 }
 
 export interface CreateCarBookingData {

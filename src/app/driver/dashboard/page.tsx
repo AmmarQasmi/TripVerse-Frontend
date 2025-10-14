@@ -114,7 +114,7 @@ export default function DriverDashboard() {
                   Driver Dashboard
                 </h1>
                 <p className="text-lg text-gray-300">
-                  Welcome back, {user?.name || 'Driver'}! Manage your car rentals and earnings.
+                  Welcome back, {user?.full_name || 'Driver'}! Manage your car rentals and earnings.
                 </p>
               </div>
               {stats.verificationStatus === 'VERIFIED' && (
