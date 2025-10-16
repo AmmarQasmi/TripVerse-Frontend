@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
@@ -13,22 +13,66 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuth()
+  const [error, setError] = useState('')
+  const { login, user } = useAuth()
   const router = useRouter()
+
+  // Get redirect URL from query params
+  const getRedirectUrl = () => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      return params.get('redirect') || null
+    }
+    return null
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
     
     try {
+      // Login - cookie is set by backend automatically
       await login({ email, password })
-      router.push('/client/dashboard')
-    } catch (error) {
+      
+      // Check if there's a redirect URL (user was trying to access protected page)
+      const redirectUrl = getRedirectUrl()
+      
+      if (redirectUrl) {
+        console.log('Redirecting back to:', redirectUrl)
+        router.push(redirectUrl)
+      } else {
+        // No redirect URL, go to default dashboard
+        router.push('/client/dashboard')
+      }
+    } catch (error: any) {
       console.error('Login failed:', error)
+      setError(error.message || 'Login failed. Please check your credentials.')
     } finally {
       setIsLoading(false)
     }
   }
+  
+  // Redirect already logged-in users
+  useEffect(() => {
+    if (user) {
+      // Check if there's a redirect URL
+      const redirectUrl = getRedirectUrl()
+      
+      if (redirectUrl) {
+        router.push(redirectUrl)
+      } else {
+        // User is already logged in, redirect to appropriate dashboard
+        if (user.role === 'admin') {
+          router.push('/admin/dashboard')
+        } else if (user.role === 'driver') {
+          router.push('/driver/dashboard')
+        } else {
+          router.push('/client/dashboard')
+        }
+      }
+    }
+  }, [user, router])
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
@@ -60,6 +104,13 @@ export default function LoginPage() {
             </h2>
             <p className="text-gray-600 mt-2">Sign in to continue your journey</p>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-5">

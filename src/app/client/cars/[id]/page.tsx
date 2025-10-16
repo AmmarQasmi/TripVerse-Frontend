@@ -10,6 +10,7 @@ import { AvailabilityCalendar } from '@/components/cars/AvailabilityCalendar'
 import { CarBookingForm } from '@/components/cars/CarBookingForm'
 import { CommissionBreakdown } from '@/components/cars/CommissionBreakdown'
 import { useCarById } from '@/features/cars/useCarSearch'
+import { useRequireAuth } from '@/hooks/useRequireAuth'
 
 interface BookingData {
   pickupDate: string
@@ -36,6 +37,7 @@ export default function CarDetailPage() {
   const carId = params.id as string
   
   const { data: car, isLoading, error } = useCarById(carId)
+  const { user, requireAuth, isAuthenticated } = useRequireAuth()
   const [isBooking, setIsBooking] = useState(false)
   
   // Mock availability data
@@ -47,6 +49,12 @@ export default function CarDetailPage() {
   ]
 
   const handleBookingSubmit = async (bookingData: BookingData) => {
+    // 🔒 REQUIRE LOGIN before booking
+    if (!requireAuth()) {
+      console.log('🔐 Login required for car booking')
+      return // User will be redirected to login
+    }
+    
     setIsBooking(true)
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000))

@@ -10,38 +10,32 @@ class HttpClient {
       headers: {
         'Content-Type': 'application/json',
       },
+      withCredentials: true, // CRITICAL: Enables sending cookies with requests
     })
 
     this.setupInterceptors()
   }
 
   private setupInterceptors() {
-    // Request interceptor to add auth token
-    this.instance.interceptors.request.use(
-      (config) => {
-        if (typeof window !== 'undefined') {
-          const token = localStorage.getItem('access_token')
-          if (token) {
-            config.headers.Authorization = `Bearer ${token}`
-          }
-        }
-        return config
-      },
-      (error) => {
-        return Promise.reject(error)
-      }
-    )
-
     // Response interceptor to handle errors
     this.instance.interceptors.response.use(
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
-          // Handle unauthorized access
+          // 401 Unauthorized - but DON'T auto-redirect!
+          // Let individual pages decide what to do
+          // This allows public browsing while protecting specific actions
+          
           if (typeof window !== 'undefined') {
-            localStorage.removeItem('access_token')
-            localStorage.removeItem('user')
-            window.location.href = '/auth/login'
+            const currentPath = window.location.pathname
+            
+            // Log for debugging
+            if (currentPath.includes('/auth/')) {
+              // On auth pages, 401 is expected if checking session
+              // Don't log anything
+            } else {
+              console.log('⚠️ 401 Unauthorized - login required for this action')
+            }
           }
         }
         return Promise.reject(error)

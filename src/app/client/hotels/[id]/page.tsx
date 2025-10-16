@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
@@ -13,12 +13,15 @@ import { RoomTypeCard } from '@/components/hotels/RoomTypeCard'
 import { HotelReviews } from '@/components/hotels/HotelReviews'
 import { HotelMap } from '@/components/hotels/HotelMap'
 import { BookingSummary } from '@/components/hotels/BookingSummary'
+import { useRequireAuth } from '@/hooks/useRequireAuth'
 
 export default function HotelDetailPage() {
   const params = useParams()
+  const router = useRouter()
   const hotelId = params.id as string
   
   const { data: hotel, isLoading, error } = useHotelById(hotelId)
+  const { user, requireAuth, isAuthenticated } = useRequireAuth()
   
   const [activeTab, setActiveTab] = useState<'overview' | 'rooms' | 'reviews' | 'location'>('overview')
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null)
@@ -31,6 +34,13 @@ export default function HotelDetailPage() {
   })
 
   const handleBooking = (roomTypeId: string) => {
+    // 🔒 REQUIRE LOGIN before booking
+    if (!requireAuth()) {
+      console.log('🔐 Login required for hotel booking')
+      return // User will be redirected to login
+    }
+    
+    // User is authenticated, proceed with booking
     setSelectedRoom(roomTypeId)
     setBookingData(prev => ({ ...prev, roomTypeId }))
     setShowBookingModal(true)
@@ -227,6 +237,7 @@ export default function HotelDetailPage() {
                         room={room}
                         onSelect={() => handleBooking(room.id)}
                         isSelected={selectedRoom === room.id}
+                        isAuthenticated={isAuthenticated()}
                       />
                     </motion.div>
                   )) || (

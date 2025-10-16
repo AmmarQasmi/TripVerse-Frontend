@@ -95,10 +95,10 @@ export default function SignupPage() {
         city_id: parseInt(formData.city_id),
       }
 
-      // Call API
+      // Call API - cookie is automatically set by backend
       const response = await authApi.signup(signupData)
 
-      // Redirect based on role
+      // Redirect based on role from response
       if (response.user.role === 'driver') {
         router.push('/driver/dashboard')
       } else if (response.user.role === 'admin') {

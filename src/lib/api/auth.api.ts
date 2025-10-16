@@ -1,82 +1,57 @@
 import { httpClient } from './http'
 import { API_ENDPOINTS } from './endpoints'
-import { User, LoginCredentials, RegisterData, AuthResponse, City } from '@/types'
+import { User, LoginCredentials, RegisterData, City } from '@/types'
 
 export const authApi = {
-  // Login
-  login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const response = await httpClient.post<AuthResponse>(
+  // Login - cookie is automatically set by backend
+  login: async (credentials: LoginCredentials): Promise<{ user: User; message: string }> => {
+    const response = await httpClient.post<{ user: User; message: string }>(
       API_ENDPOINTS.AUTH.LOGIN,
       credentials
     )
-    // Store token and user data
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('access_token', response.access_token)
-      localStorage.setItem('user', JSON.stringify(response.user))
-    }
+    // NO localStorage manipulation!
+    // The JWT token is stored in an httpOnly cookie by the backend
+    // The browser automatically saves and sends it with every request
     return response
   },
 
-  // Signup/Register
-  signup: async (data: RegisterData): Promise<AuthResponse> => {
-    const response = await httpClient.post<AuthResponse>(
+  // Signup - cookie is automatically set by backend
+  signup: async (data: RegisterData): Promise<{ user: User; message: string }> => {
+    const response = await httpClient.post<{ user: User; message: string }>(
       API_ENDPOINTS.AUTH.SIGNUP,
       data
     )
-    // Store token and user data
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('access_token', response.access_token)
-      localStorage.setItem('user', JSON.stringify(response.user))
-    }
+    // NO localStorage manipulation!
+    // The JWT token is stored in an httpOnly cookie by the backend
     return response
   },
 
   // Alias for signup
-  register: async (data: RegisterData): Promise<AuthResponse> => {
+  register: async (data: RegisterData) => {
     return authApi.signup(data)
   },
 
-  // Logout
+  // Logout - cookie is cleared by backend
   logout: async () => {
-    const response = await httpClient.post(API_ENDPOINTS.AUTH.LOGOUT)
-    // Clear local storage
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('user')
-    }
+    const response = await httpClient.post<{ message: string }>(
+      API_ENDPOINTS.AUTH.LOGOUT
+    )
+    // NO localStorage manipulation!
+    // The cookie is cleared by the backend
     return response
   },
 
   // Get current user profile
+  // Cookie is automatically sent with the request
   getProfile: async (): Promise<User> => {
-    return httpClient.get<User>(API_ENDPOINTS.AUTH.ME)
+    const response = await httpClient.get<{ user: User }>(API_ENDPOINTS.AUTH.ME)
+    return response.user
   },
 
   // Get current user (alias)
   getMe: async (): Promise<User> => {
-    return httpClient.get<User>(API_ENDPOINTS.AUTH.ME)
-  },
-
-  // Refresh token
-  refreshToken: async (): Promise<{ token: string }> => {
-    return httpClient.post<{ token: string }>(API_ENDPOINTS.AUTH.REFRESH)
-  },
-
-  // Get current user from localStorage
-  getCurrentUser: (): User | null => {
-    if (typeof window !== 'undefined') {
-      const user = localStorage.getItem('user')
-      return user ? JSON.parse(user) : null
-    }
-    return null
-  },
-
-  // Check if user is authenticated
-  isAuthenticated: (): boolean => {
-    if (typeof window !== 'undefined') {
-      return !!localStorage.getItem('access_token')
-    }
-    return false
+    const response = await httpClient.get<{ user: User }>(API_ENDPOINTS.AUTH.ME)
+    return response.user
   },
 }
 
