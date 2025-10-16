@@ -3,8 +3,10 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { ArrowLeft, Clock, MapPin, Plane, Users, Luggage } from 'lucide-react'
+import { useRequireAuth } from '@/hooks/useRequireAuth'
 
 // Mock flight data (same as in main page)
 const mockFlight = {
@@ -48,6 +50,8 @@ interface FlightDetailsPageProps {
 }
 
 export default function FlightDetailsPage({ params }: FlightDetailsPageProps) {
+  const router = useRouter()
+  const { user, requireAuth, isAuthenticated } = useRequireAuth()
   const [passengers, setPassengers] = useState({ adults: 1, children: 0, infants: 0 })
   const [cabinClass, setCabinClass] = useState('ECONOMY')
 
@@ -74,6 +78,13 @@ export default function FlightDetailsPage({ params }: FlightDetailsPageProps) {
   }
 
   const handleBookFlight = () => {
+    // 🔒 REQUIRE LOGIN before booking
+    if (!requireAuth()) {
+      console.log('🔐 Login required for flight booking')
+      return // User will be redirected to login
+    }
+    
+    // User is authenticated, proceed with booking
     // Navigate to booking confirmation page
     const bookingData = {
       flightId: mockFlight.id,
@@ -326,8 +337,14 @@ export default function FlightDetailsPage({ params }: FlightDetailsPageProps) {
                 onClick={handleBookFlight}
                 className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white py-3 rounded-xl font-semibold"
               >
-                Book This Flight
+                {isAuthenticated() ? 'Book This Flight' : '🔒 Login to Book'}
               </Button>
+              
+              {!isAuthenticated() && (
+                <p className="text-xs text-yellow-400 text-center mt-2">
+                  Please login to continue with booking
+                </p>
+              )}
 
               <p className="text-xs text-gray-400 text-center mt-4">
                 All payments are protected and processed through Stripe.

@@ -1,12 +1,13 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { User } from '@/types'
+import { User, LoginCredentials } from '@/types'
+import { authApi } from '@/lib/api/auth.api'
 
 interface AuthContextType {
   user: User | null
-  login: (credentials: { email: string; password: string }) => Promise<void>
-  logout: () => void
+  login: (credentials: LoginCredentials) => Promise<void>
+  logout: () => Promise<void>
   isLoading: boolean
 }
 
@@ -18,63 +19,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Check for existing session on mount
-    const checkSession = async () => {
-      try {
-        if (typeof window !== 'undefined') {
-          const token = localStorage.getItem('auth_token')
-          if (token) {
-            // Validate token and get user data
-            // This would typically make an API call to verify the token
-            // For now, we'll just clear it if it exists
-            localStorage.removeItem('auth_token')
-          }
-        }
-      } catch (error) {
-        console.error('Session check failed:', error)
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('auth_token')
-        }
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
     checkSession()
   }, [])
 
-  const login = async (credentials: { email: string; password: string }) => {
+  const checkSession = async () => {
     try {
-      // This would make an API call to authenticate
-      // For now, we'll simulate a successful login
-      const mockUser: User = {
-        id: 1,
-        email: credentials.email,
-        full_name: 'John Doe',
-        role: 'client',
-        status: 'active',
-        city: {
-          id: 1,
-          name: 'Karachi',
-          region: 'Sindh'
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      console.log('🔍 Checking session...')
+      
+      // Silently check for existing session
+      // This doesn't redirect or show errors - just checks if user is logged in
+      const userData = await authApi.getProfile()
+      
+      console.log('✅ Session valid! Authenticated as:', userData.email)
+      setUser(userData)
+    } catch (error: any) {
+      // No session - this is NORMAL for public browsing
+      const statusCode = error.response?.status
+      
+      if (statusCode === 401) {
+        console.log('ℹ️ No active session (not logged in)')
+      } else {
+        console.error('❌ Session check error:', error.message)
       }
       
-      setUser(mockUser)
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('auth_token', 'mock_token')
-      }
-    } catch (error) {
-      console.error('Login failed:', error)
-      throw error
+      setUser(null)
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token')
+  const login = async (credentials: LoginCredentials) => {
+    try {
+      console.log('🔐 Attempting login...')
+      
+      // Call the backend login API
+      // Backend sets httpOnly cookie automatically
+      const response = await authApi.login(credentials)
+      
+      console.log('✅ Login successful! User:', response.user.email)
+      console.log('🍪 Cookie should now be set by backend')
+      
+      // Set user state from response
+      setUser(response.user)
+    } catch (error: any) {
+      console.error('❌ Login failed:', error)
+      // Extract error message from the API response
+      const errorMessage = error.response?.data?.message || error.message || 'Login failed. Please check your credentials.'
+      throw new Error(errorMessage)
+    }
+  }
+
+  const logout = async () => {
+    try {
+      // Call backend logout endpoint
+      // Backend clears the httpOnly cookie
+      await authApi.logout()
+    } catch (error) {
+      console.error('Logout API call failed:', error)
+    } finally {
+      // Clear user state
+      setUser(null)
+      // Cookie is already cleared by backend
     }
   }
 

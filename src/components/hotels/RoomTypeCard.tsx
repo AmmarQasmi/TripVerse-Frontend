@@ -9,9 +9,10 @@ interface RoomTypeCardProps {
   room: RoomType
   onSelect: () => void
   isSelected?: boolean
+  isAuthenticated?: boolean
 }
 
-export function RoomTypeCard({ room, onSelect, isSelected }: RoomTypeCardProps) {
+export function RoomTypeCard({ room, onSelect, isSelected, isAuthenticated = true }: RoomTypeCardProps) {
   const getAmenityIcons = (amenities: string[]) => {
     const iconMap: { [key: string]: string } = {
       'wifi': '📶',
@@ -103,6 +104,8 @@ export function RoomTypeCard({ room, onSelect, isSelected }: RoomTypeCardProps) 
             <div className="text-sm text-gray-400">
               {isSelected ? (
                 <span className="text-[#38bdf8] font-medium">✓ Selected</span>
+              ) : !isAuthenticated ? (
+                <span className="text-yellow-400 font-medium">🔒 Login required</span>
               ) : (
                 <span>Click to select this room</span>
               )}
@@ -115,7 +118,7 @@ export function RoomTypeCard({ room, onSelect, isSelected }: RoomTypeCardProps) 
                   : 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e40af] hover:to-[#0f766e] text-white'
               }`}
             >
-              {isSelected ? 'Selected' : 'Select Room'}
+              {isSelected ? 'Selected' : !isAuthenticated ? '🔒 Login to Book' : 'Select Room'}
             </Button>
           </div>
         </div>
