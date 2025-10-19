@@ -3,59 +3,53 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Car } from '@/types'
+import { Car, CarApiResponse } from '@/types'
 
 interface CarBookingFormProps {
-  car: Car
+  car: Car | CarApiResponse
   onBookingSubmit: (bookingData: BookingData) => void
   isLoading?: boolean
+  isAuthenticated?: boolean
 }
 
 interface BookingData {
+  pickupLocation: string
+  dropoffLocation: string
   pickupDate: string
   dropoffDate: string
-  pickupTime: string
-  dropoffTime: string
-  extras: {
-    gps: boolean
-    insurance: boolean
-    childSeat: boolean
-  }
+  estimatedDistance?: number
+  customerNotes?: string
 }
 
-export function CarBookingForm({ car, onBookingSubmit, isLoading = false }: CarBookingFormProps) {
+export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuthenticated = true }: CarBookingFormProps) {
   const [formData, setFormData] = useState<BookingData>({
+    pickupLocation: '',
+    dropoffLocation: '',
     pickupDate: '',
     dropoffDate: '',
-    pickupTime: '10:00',
-    dropoffTime: '10:00',
-    extras: {
-      gps: false,
-      insurance: false,
-      childSeat: false,
-    }
+    estimatedDistance: undefined,
+    customerNotes: ''
   })
+
+  // Helper function to get price from either Car or CarApiResponse
+  const getCarPrice = () => {
+    if ('pricePerDay' in car) {
+      return car.pricePerDay
+    } else if ('pricing' in car) {
+      return car.pricing.base_price_per_day
+    }
+    return 0
+  }
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const today = new Date().toISOString().split('T')[0]
 
-  const handleInputChange = (field: string, value: string | boolean) => {
-    if (field.startsWith('extras.')) {
-      const extraKey = field.split('.')[1] as keyof BookingData['extras']
-      setFormData(prev => ({
-        ...prev,
-        extras: {
-          ...prev.extras,
-          [extraKey]: value
-        }
-      }))
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }))
-    }
+  const handleInputChange = (field: string, value: string | number) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
     
     // Clear error when user starts typing
     if (errors[field]) {
@@ -68,6 +62,14 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false }: CarB
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
+
+    if (!formData.pickupLocation) {
+      newErrors.pickupLocation = 'Pickup location is required'
+    }
+
+    if (!formData.dropoffLocation) {
+      newErrors.dropoffLocation = 'Dropoff location is required'
+    }
 
     if (!formData.pickupDate) {
       newErrors.pickupDate = 'Pickup date is required'
@@ -84,6 +86,10 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false }: CarB
       if (dropoff <= pickup) {
         newErrors.dropoffDate = 'Drop-off date must be after pickup date'
       }
+    }
+
+    if (formData.estimatedDistance && formData.estimatedDistance <= 0) {
+      newErrors.estimatedDistance = 'Distance must be greater than 0'
     }
 
     setErrors(newErrors)
@@ -105,20 +111,7 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false }: CarB
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
   }
 
-  const calculateExtrasTotal = () => {
-    const extras = {
-      gps: formData.extras.gps ? 500 : 0,
-      insurance: formData.extras.insurance ? 1500 : 0,
-      childSeat: formData.extras.childSeat ? 300 : 0,
-    }
-    return Object.values(extras).reduce((sum, price) => sum + price, 0)
-  }
-
   const days = calculateDays()
-  const baseTotal = (car.pricePerDay || 0) * days
-  const extrasTotal = calculateExtrasTotal()
-  const platformCommission = (baseTotal + extrasTotal) * 0.05
-  const total = baseTotal + extrasTotal + platformCommission
 
   return (
     <Card className="shadow-lg">
@@ -131,8 +124,47 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false }: CarB
 
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Location Selection */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Pickup Location *
+              </label>
+              <input
+                type="text"
+                value={formData.pickupLocation}
+                onChange={(e) => handleInputChange('pickupLocation', e.target.value)}
+                placeholder="e.g., Karachi Airport"
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.pickupLocation ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {errors.pickupLocation && (
+                <p className="text-red-500 text-sm mt-1">{errors.pickupLocation}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Dropoff Location *
+              </label>
+              <input
+                type="text"
+                value={formData.dropoffLocation}
+                onChange={(e) => handleInputChange('dropoffLocation', e.target.value)}
+                placeholder="e.g., Lahore City Center"
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.dropoffLocation ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {errors.dropoffLocation && (
+                <p className="text-red-500 text-sm mt-1">{errors.dropoffLocation}</p>
+              )}
+            </div>
+          </div>
+
           {/* Date Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Pickup Date *
@@ -149,6 +181,28 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false }: CarB
               {errors.pickupDate && (
                 <p className="text-red-500 text-sm mt-1">{errors.pickupDate}</p>
               )}
+              <p className="text-xs text-gray-500 mt-1">
+                🚗 Pickup time will be arranged with the driver
+              </p>
+            </div>
+
+            {/* Arrow Button */}
+            <div className="flex justify-center items-center pb-2">
+              <div className="bg-blue-100 hover:bg-blue-200 rounded-full p-2 transition-colors duration-200">
+                <svg 
+                  className="w-5 h-5 text-blue-600" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M13 7l5 5m0 0l-5 5m5-5H6" 
+                  />
+                </svg>
+              </div>
             </div>
 
             <div>
@@ -167,116 +221,69 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false }: CarB
               {errors.dropoffDate && (
                 <p className="text-red-500 text-sm mt-1">{errors.dropoffDate}</p>
               )}
+              <p className="text-xs text-gray-500 mt-1">
+                💡 For multi-day rentals, you'll return the car on this date (any time before 11 PM)
+              </p>
             </div>
           </div>
 
-          {/* Time Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Pickup Time
-              </label>
-              <input
-                type="time"
-                value={formData.pickupTime}
-                onChange={(e) => handleInputChange('pickupTime', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Drop-off Time
-              </label>
-              <input
-                type="time"
-                value={formData.dropoffTime}
-                onChange={(e) => handleInputChange('dropoffTime', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          {/* Extras */}
+          {/* Distance Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Optional Extras
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Estimated Distance (km)
             </label>
-            <div className="space-y-3">
-              <label className="flex items-center space-x-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.extras.gps}
-                  onChange={(e) => handleInputChange('extras.gps', e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900">GPS Navigation</span>
-                    <span className="text-gray-600">PKR 500</span>
-                  </div>
-                  <p className="text-sm text-gray-500">Turn-by-turn navigation system</p>
-                </div>
-              </label>
-
-              <label className="flex items-center space-x-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.extras.insurance}
-                  onChange={(e) => handleInputChange('extras.insurance', e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900">Comprehensive Insurance</span>
-                    <span className="text-gray-600">PKR 1,500</span>
-                  </div>
-                  <p className="text-sm text-gray-500">Enhanced insurance coverage</p>
-                </div>
-              </label>
-
-              <label className="flex items-center space-x-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.extras.childSeat}
-                  onChange={(e) => handleInputChange('extras.childSeat', e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900">Child Safety Seat</span>
-                    <span className="text-gray-600">PKR 300</span>
-                  </div>
-                  <p className="text-sm text-gray-500">Child safety seat rental</p>
-                </div>
-              </label>
-            </div>
+            <input
+              type="number"
+              value={formData.estimatedDistance || ''}
+              onChange={(e) => handleInputChange('estimatedDistance', e.target.value ? parseFloat(e.target.value) : 0)}
+              placeholder="e.g., 1200"
+              min="0"
+              step="0.1"
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.estimatedDistance ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+            {errors.estimatedDistance && (
+              <p className="text-red-500 text-sm mt-1">{errors.estimatedDistance}</p>
+            )}
+            <p className="text-sm text-gray-500 mt-1">
+              Please provide the estimated distance for accurate pricing. This will be replaced by automatic calculation in the future.
+            </p>
           </div>
 
-          {/* Price Summary */}
+          {/* Customer Notes */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Special Instructions (Optional)
+            </label>
+            <textarea
+              value={formData.customerNotes || ''}
+              onChange={(e) => handleInputChange('customerNotes', e.target.value)}
+              placeholder="Any special requests or instructions for the driver..."
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Trip Summary */}
           {days > 0 && (
             <div className="bg-gray-50 p-4 rounded-lg space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-600">Rental Duration:</span>
+                <span className="text-gray-600">Trip Duration:</span>
                 <span className="font-medium">{days} {days === 1 ? 'day' : 'days'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Base Price:</span>
-                <span className="font-medium">PKR {baseTotal.toLocaleString()}</span>
+                <span className="text-gray-600">Base Price per Day:</span>
+                <span className="font-medium">PKR {getCarPrice().toLocaleString()}</span>
               </div>
-              {extrasTotal > 0 && (
+              {formData.estimatedDistance && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Extras:</span>
-                  <span className="font-medium">PKR {extrasTotal.toLocaleString()}</span>
+                  <span className="text-gray-600">Estimated Distance:</span>
+                  <span className="font-medium">{formData.estimatedDistance} km</span>
                 </div>
               )}
-              <div className="flex justify-between">
-                <span className="text-gray-600">Platform Fee (5%):</span>
-                <span className="font-medium">PKR {platformCommission.toLocaleString()}</span>
-              </div>
-              <div className="border-t pt-2 flex justify-between text-lg font-bold">
-                <span>Total:</span>
-                <span>PKR {total.toLocaleString()}</span>
+              <div className="text-sm text-gray-500">
+                * Final pricing will be calculated after you submit the booking request
               </div>
             </div>
           )}
@@ -293,17 +300,28 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false }: CarB
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Processing...
+                Calculating Price...
               </span>
+            ) : !isAuthenticated ? (
+              <span>🔒 Login to Calculate Price</span>
             ) : (
-              <span>Proceed to Payment</span>
+              <span>Calculate Price & Send Request</span>
             )}
           </Button>
 
-          {/* Security Note */}
+          {/* Info Note */}
           <div className="text-center text-sm text-gray-500">
-            <span className="mr-2">🔒</span>
-            Secure payment powered by Stripe
+            {!isAuthenticated ? (
+              <>
+                <span className="mr-2">🔒</span>
+                Please login to continue with your booking
+              </>
+            ) : (
+              <>
+                <span className="mr-2">ℹ️</span>
+                You'll see the final price breakdown before confirming your booking
+              </>
+            )}
           </div>
         </form>
       </CardContent>

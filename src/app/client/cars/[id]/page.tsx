@@ -1,6 +1,7 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { CarImageCarousel } from '@/components/cars/CarImageCarousel'
@@ -9,19 +10,18 @@ import { DriverProfileCard } from '@/components/cars/DriverProfileCard'
 import { AvailabilityCalendar } from '@/components/cars/AvailabilityCalendar'
 import { CarBookingForm } from '@/components/cars/CarBookingForm'
 import { CommissionBreakdown } from '@/components/cars/CommissionBreakdown'
-import { useCarById } from '@/features/cars/useCarSearch'
+import { useCarById, useCarPriceCalculation } from '@/features/cars/useCarSearch'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
+import { carsApi } from '@/lib/api/cars.api'
+import { CarApiResponse } from '@/types'
 
 interface BookingData {
+  pickupLocation: string
+  dropoffLocation: string
   pickupDate: string
   dropoffDate: string
-  pickupTime: string
-  dropoffTime: string
-  extras: {
-    gps: boolean
-    insurance: boolean
-    childSeat: boolean
-  }
+  estimatedDistance?: number
+  customerNotes?: string
 }
 
 interface CarAvailability {
@@ -39,6 +39,9 @@ export default function CarDetailPage() {
   const { data: car, isLoading, error } = useCarById(carId)
   const { user, requireAuth, isAuthenticated } = useRequireAuth()
   const [isBooking, setIsBooking] = useState(false)
+  const [bookingData, setBookingData] = useState<BookingData | null>(null)
+  const [priceCalculation, setPriceCalculation] = useState<any>(null)
+  const [showBookingForm, setShowBookingForm] = useState(false)
   
   // Mock availability data
   const mockAvailability: CarAvailability[] = [
@@ -48,7 +51,7 @@ export default function CarDetailPage() {
     { id: '4', carId, date: '2024-01-25', isAvailable: false },
   ]
 
-  const handleBookingSubmit = async (bookingData: BookingData) => {
+  const handleBookingSubmit = async (data: BookingData) => {
     // 🔒 REQUIRE LOGIN before booking
     if (!requireAuth()) {
       console.log('🔐 Login required for car booking')
@@ -56,12 +59,48 @@ export default function CarDetailPage() {
     }
     
     setIsBooking(true)
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    // Navigate to booking confirmation or payment page
-    router.push(`/client/cars/booking/confirm?carId=${carId}`)
-    setIsBooking(false)
+    try {
+      // Create booking request
+      const response = await carsApi.createBookingRequest({
+        car_id: parseInt(carId),
+        pickup_location: data.pickupLocation,
+        dropoff_location: data.dropoffLocation,
+        start_date: data.pickupDate,
+        end_date: data.dropoffDate,
+        customer_notes: data.customerNotes,
+      })
+      
+      setBookingData(data)
+      setShowBookingForm(false)
+      
+      // Show success message
+      alert('Booking request sent to driver! You will be notified when they respond.')
+      
+    } catch (error: any) {
+      console.error('Booking request failed:', error)
+      alert('Failed to send booking request. Please try again.')
+    } finally {
+      setIsBooking(false)
+    }
+  }
+
+  const handleCalculatePrice = async (data: BookingData) => {
+    try {
+      const response = await carsApi.calculatePrice(
+        carId,
+        data.pickupLocation,
+        data.dropoffLocation,
+        data.pickupDate,
+        data.dropoffDate,
+        data.estimatedDistance
+      )
+      setPriceCalculation(response)
+      setBookingData(data)
+      setShowBookingForm(true)
+    } catch (error: any) {
+      console.error('Price calculation failed:', error)
+      alert('Failed to calculate price. Please try again.')
+    }
   }
 
   if (isLoading) {
@@ -119,30 +158,32 @@ export default function CarDetailPage() {
     )
   }
 
-  // Mock driver data
-  const mockDriver = {
-    id: 1,
-    full_name: 'Ahmed Khan',
-    email: 'ahmed.khan@example.com',
-    role: 'driver' as const,
-    status: 'active',
-    city: {
-      id: 1,
-      name: 'Karachi',
-      region: 'Sindh'
-    },
-    createdAt: '2023-06-15T00:00:00Z',
-    updatedAt: '2024-01-15T00:00:00Z',
+  // Extract driver and car data from API response
+  const driver = car?.driver || {
+    id: '1',
+    name: 'Ahmed Khan',
+    city: 'Karachi',
     isVerified: true,
-    rating: 4.8,
-    totalTrips: 45,
-    joinedDate: '2023-06-15',
-    responseTime: 'within an hour',
-    languages: ['English', 'Urdu'],
   }
 
-  // Mock car images
-  const carImages = car.images || [
+  const carDetails = car?.car || {
+    make: 'Toyota',
+    model: 'Camry',
+    year: 2022,
+    seats: 5,
+    transmission: 'automatic',
+    fuel_type: 'petrol',
+    color: 'White',
+    license_plate: 'ABC-123',
+  }
+
+  const pricing = car?.pricing || {
+    base_price_per_day: 5000,
+    distance_rate_per_km: 50,
+  }
+
+  // Car images from API or fallback
+  const carImages = car?.images || [
     'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80',
     'https://images.unsplash.com/photo-1549317336-206569e8475c?w=800&q=80',
     'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80',
@@ -167,21 +208,21 @@ export default function CarDetailPage() {
               </svg>
             </button>
             <h1 className="text-4xl font-bold text-white">
-              {car.brand} {car.model}
+              {carDetails.make} {carDetails.model}
             </h1>
           </div>
-          <p className="text-xl text-gray-300 mb-4">{car.year} • {car.color}</p>
+          <p className="text-xl text-gray-300 mb-4">{carDetails.year} • {carDetails.color}</p>
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">
               <span className="text-yellow-400">⭐</span>
-              <span className="text-white font-semibold">{car.rating?.toFixed(1) || 'New'}</span>
+              <span className="text-white font-semibold">{driver.isVerified ? 'Verified' : 'New'}</span>
             </div>
             <div className="text-white font-semibold">
-              PKR {car.pricePerDay?.toLocaleString()}/day
+              PKR {pricing.base_price_per_day?.toLocaleString()}/day
             </div>
             <div className="flex items-center space-x-2 text-gray-300">
               <span>🧭</span>
-              <span>{car.location}</span>
+              <span>{driver.city}</span>
             </div>
           </div>
         </motion.div>
@@ -196,7 +237,7 @@ export default function CarDetailPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <CarImageCarousel images={carImages} alt={`${car.brand} ${car.model}`} />
+              <CarImageCarousel images={carImages} alt={`${carDetails.make} ${carDetails.model}`} />
             </motion.div>
 
             {/* Car Details */}
@@ -205,7 +246,27 @@ export default function CarDetailPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <CarDetails car={car} />
+              <CarDetails car={{
+                id: car.id,
+                brand: car.car.make,
+                model: car.car.model,
+                year: car.car.year,
+                color: car.car.color,
+                type: 'sedan', // Default type
+                seats: car.car.seats,
+                pricePerDay: car.pricing.base_price_per_day,
+                location: car.driver.city,
+                images: car.images,
+                description: `${car.car.make} ${car.car.model} - ${car.car.year}`,
+                features: [`${car.car.seats} seats`, car.car.transmission, car.car.fuel_type],
+                driverId: car.driver.id,
+                rating: 4.8,
+                isAvailable: true,
+                createdAt: car.createdAt,
+                updatedAt: car.createdAt,
+                transmission: car.car.transmission,
+                fuelType: car.car.fuel_type,
+              }} />
             </motion.div>
 
             {/* Availability Calendar */}
@@ -231,10 +292,50 @@ export default function CarDetailPage() {
               transition={{ delay: 0.1 }}
             >
               <DriverProfileCard 
-                driver={mockDriver} 
+                driver={{
+                  id: parseInt(driver.id),
+                  full_name: driver.name,
+                  email: 'driver@example.com',
+                  role: 'driver' as const,
+                  status: 'active',
+                  city: {
+                    id: 1,
+                    name: driver.city,
+                    region: driver.city
+                  },
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  isVerified: driver.isVerified,
+                  rating: 4.8,
+                  totalTrips: 45,
+                }} 
                 carCount={1}
               />
             </motion.div>
+
+            {/* Login Prompt for Anonymous Users */}
+            {!isAuthenticated() && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 }}
+                className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 mb-6"
+              >
+                <div className="flex items-center space-x-3">
+                  <span className="text-yellow-600 text-2xl">🔒</span>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-yellow-900 mb-1">Login Required to Book</h3>
+                    <p className="text-yellow-700">Please login to continue with your booking and get personalized recommendations</p>
+                  </div>
+                  <Link 
+                    href="/auth/login" 
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors duration-200"
+                  >
+                    Login
+                  </Link>
+                </div>
+              </motion.div>
+            )}
 
             {/* Booking Form */}
             <motion.div
@@ -244,28 +345,49 @@ export default function CarDetailPage() {
             >
               <CarBookingForm 
                 car={car}
-                onBookingSubmit={handleBookingSubmit}
+                onBookingSubmit={handleCalculatePrice}
                 isLoading={isBooking}
+                isAuthenticated={isAuthenticated()}
               />
             </motion.div>
 
-            {/* Commission Breakdown */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <CommissionBreakdown
-                basePrice={car.pricePerDay || 0}
-                days={3}
-                extras={{
-                  gps: 500,
-                  insurance: 1500,
-                  childSeat: 300,
-                }}
-                taxes={0}
-              />
-            </motion.div>
+            {/* Price Calculation Results */}
+            {priceCalculation && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6"
+              >
+                <h3 className="text-xl font-semibold text-white mb-4">Price Breakdown</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-gray-300">
+                    <span>Base Price ({priceCalculation.trip_duration_days} days)</span>
+                    <span>PKR {priceCalculation.pricing_breakdown.base_price.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-300">
+                    <span>Distance ({priceCalculation.estimated_distance} km)</span>
+                    <span>PKR {priceCalculation.pricing_breakdown.distance_price.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-300">
+                    <span>Platform Fee (5%)</span>
+                    <span>PKR {priceCalculation.pricing_breakdown.platform_fee.toLocaleString()}</span>
+                  </div>
+                  <hr className="border-gray-600" />
+                  <div className="flex justify-between text-white font-semibold text-lg">
+                    <span>Total Amount</span>
+                    <span>PKR {priceCalculation.pricing_breakdown.total_amount.toLocaleString()}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleBookingSubmit(bookingData!)}
+                  disabled={isBooking}
+                  className="w-full mt-4 bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+                >
+                  {isBooking ? 'Sending Request...' : 'Send Booking Request'}
+                </button>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>

@@ -94,17 +94,17 @@ export default function BookingConfirmationPage() {
                       {car.images?.[0] && (
                         <img
                           src={car.images[0]}
-                          alt={`${car.brand} ${car.model}`}
+                          alt={`${car.car.make} ${car.car.model}`}
                           className="w-full h-full object-cover"
                         />
                       )}
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold text-white">
-                        {car.brand} {car.model}
+                        {car.car.make} {car.car.model}
                       </h3>
-                      <p className="text-gray-300">{car.year} • {car.color}</p>
-                      <p className="text-gray-300">{car.type} • {car.seats} seats</p>
+                      <p className="text-gray-300">{car.car.year} • {car.car.color}</p>
+                      <p className="text-gray-300">{car.car.transmission} • {car.car.seats} seats</p>
                     </div>
                   </div>
                 </CardContent>
@@ -173,13 +173,13 @@ export default function BookingConfirmationPage() {
                   </div>
                   <div className="space-y-2">
                     <h4 className="font-semibold text-white">Pickup Location</h4>
-                    <p className="text-gray-300">{car.location}</p>
+                    <p className="text-gray-300">{car.driver.city}</p>
                     <p className="text-gray-300">Contact driver for exact location</p>
                   </div>
                   <div className="space-y-2">
                     <h4 className="font-semibold text-white">Total Amount</h4>
                     <p className="text-2xl font-bold text-white">
-                      PKR {(car.pricePerDay || 0) * 3 + 2300}
+                      PKR {(car.pricing.base_price_per_day || 0) * 3 + 2300}
                     </p>
                     <p className="text-sm text-gray-300">Includes all fees</p>
                   </div>
