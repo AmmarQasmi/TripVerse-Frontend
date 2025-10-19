@@ -116,6 +116,33 @@ export interface Car {
   fuelType: string
 }
 
+// New API response types for cars
+export interface CarApiResponse {
+  id: string
+  driver: {
+    id: string
+    name: string
+    city: string
+    isVerified: boolean
+  }
+  car: {
+    make: string
+    model: string
+    year: number
+    seats: number
+    transmission: string
+    fuel_type: string
+    color: string
+    license_plate: string
+  }
+  pricing: {
+    base_price_per_day: number
+    distance_rate_per_km: number
+  }
+  images: string[]
+  createdAt: string
+}
+
 export interface Monument {
   id: string
   name: string
@@ -168,6 +195,13 @@ export interface CarSearchParams {
   seats?: number
   minPrice?: number
   maxPrice?: number
+  city_id?: string
+  start_date?: string
+  end_date?: string
+  transmission?: string
+  fuel_type?: string
+  min_price?: number
+  max_price?: number
 }
 
 export interface HotelSearchParams {

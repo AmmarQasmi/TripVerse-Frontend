@@ -11,8 +11,9 @@ import { CarDestinationsCarousel } from '@/components/cars/CarDestinationsCarous
 import { useCarSearch } from '@/features/cars/useCarSearch'
 import { useAuth } from '@/features/auth/useAuth'
 import { TransparentHeader } from '@/components/shared/TransparentHeader'
+import { CarSearchParams } from '@/types'
 
-interface CarSearchParams {
+interface CarSearchFormData {
   pickupLocation: string
   dropoffLocation: string
   pickupDate: string
@@ -24,7 +25,7 @@ interface CarSearchParams {
 
 export default function CarsPage() {
   const { user } = useAuth()
-  const [searchParams, setSearchParams] = useState<CarSearchParams>({
+  const [searchParams, setSearchParams] = useState<CarSearchFormData>({
     pickupLocation: user?.city?.region || '',
     dropoffLocation: '',
     pickupDate: '',
@@ -50,10 +51,14 @@ export default function CarsPage() {
   
   const { data: cars, isLoading } = useCarSearch({
     query: searchParams.pickupLocation,
-    location: searchParams.pickupLocation,
-    startDate: searchParams.pickupDate,
-    endDate: searchParams.dropoffDate,
-    type: searchParams.carType,
+    city_id: user?.city?.id?.toString(),
+    start_date: searchParams.pickupDate,
+    end_date: searchParams.dropoffDate,
+    seats: filters.passengerCapacity || undefined,
+    transmission: filters.transmission[0] || undefined,
+    fuel_type: filters.fuelType[0] || undefined,
+    min_price: filters.priceRange[0] || undefined,
+    max_price: filters.priceRange[1] || undefined,
   })
 
   // Auto-load user's region cars on first visit
@@ -67,7 +72,7 @@ export default function CarsPage() {
     }
   }, [user?.city?.region, isInitialLoad])
 
-  const handleSearch = (newParams: CarSearchParams) => {
+  const handleSearch = (newParams: CarSearchFormData) => {
     setSearchParams(newParams)
   }
 
@@ -184,7 +189,7 @@ export default function CarsPage() {
       <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Auto-Region Message */}
-          {user?.city?.region && searchParams.pickupLocation === user.city.region && (
+          {user?.city?.region && searchParams.pickupLocation === user.city.region ? (
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -197,6 +202,29 @@ export default function CarsPage() {
               <p className="text-gray-300">
                 Personalized recommendations based on your location
               </p>
+            </motion.div>
+          ) : !user && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-2xl p-6 mb-8"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-bold text-blue-900 mb-2">
+                    🚗 Discover Cars in Your City
+                  </h3>
+                  <p className="text-blue-700">
+                    Login to see personalized car recommendations in your area
+                  </p>
+                </div>
+                <Link 
+                  href="/auth/login" 
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200"
+                >
+                  Login
+                </Link>
+              </div>
             </motion.div>
           )}
 
@@ -228,9 +256,9 @@ export default function CarsPage() {
                     </div>
                   ))}
                 </div>
-              ) : mockCars && mockCars.length > 0 ? (
+              ) : cars && cars.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {mockCars.map((car, index) => (
+                  {cars.map((car, index) => (
                     <motion.div
                       key={car.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -238,7 +266,27 @@ export default function CarsPage() {
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                     >
                       <Link href={`/client/cars/${car.id}`}>
-                        <CarCard car={car} isAvailable={true} />
+                        <CarCard car={{
+                          id: car.id,
+                          brand: car.car.make,
+                          model: car.car.model,
+                          year: car.car.year,
+                          color: car.car.color,
+                          type: 'sedan', // Default type
+                          seats: car.car.seats,
+                          pricePerDay: car.pricing.base_price_per_day,
+                          location: car.driver.city,
+                          images: car.images,
+                          description: `${car.car.make} ${car.car.model} - ${car.car.year}`,
+                          features: [`${car.car.seats} seats`, car.car.transmission, car.car.fuel_type],
+                          driverId: car.driver.id,
+                          rating: 4.8, // Default rating for now
+                          isAvailable: true,
+                          createdAt: car.createdAt,
+                          updatedAt: car.createdAt,
+                          transmission: car.car.transmission,
+                          fuelType: car.car.fuel_type,
+                        }} isAvailable={true} />
                       </Link>
                     </motion.div>
                   ))}
