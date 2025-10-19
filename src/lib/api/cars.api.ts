@@ -17,7 +17,7 @@ export const carsApi = {
     if (params.maxPrice) searchParams.append('max_price', params.maxPrice.toString())
 
     return httpClient.get<{
-      data: Car[]
+      data: CarApiResponse[]
       pagination: {
         page: number
         limit: number
