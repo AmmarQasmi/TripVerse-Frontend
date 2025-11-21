@@ -6,7 +6,7 @@ class HttpClient {
   constructor() {
     this.instance = axios.create({
       baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
-      timeout: 10000,
+      timeout: 30000, // Increased to 30 seconds for database operations
       headers: {
         'Content-Type': 'application/json',
       },

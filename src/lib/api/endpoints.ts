@@ -20,6 +20,14 @@ export const API_ENDPOINTS = {
   // Driver endpoints
   DRIVERS: {
     PROFILE: '/drivers/profile',
+    UPLOAD_DOCUMENT: '/drivers/documents/upload',
+    DELETE_DOCUMENT: (id: string) => `/drivers/documents/${id}`,
+    SUBMIT_VERIFICATION: '/drivers/verification/submit',
+    VERIFICATION: {
+      PENDING: '/drivers/verification/pending',
+      VERIFIED: '/drivers/verification/verified',
+      VERIFY: (id: string) => `/drivers/verification/${id}`,
+    },
   },
 
   // User endpoints
@@ -39,6 +47,9 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/hotels/${id}`,
     DELETE: (id: string) => `/hotels/${id}`,
     ROOM_TYPES: (id: string) => `/hotels/${id}/room-types`,
+    UPLOAD_IMAGES: (id: string) => `/hotels/${id}/images/upload`,
+    DELETE_IMAGE: (hotelId: string, imageId: string) => `/hotels/${hotelId}/images/${imageId}/cloudinary`,
+    OPTIMIZED_IMAGES: (id: string) => `/hotels/${id}/images/optimized`,
   },
 
   // Car endpoints
@@ -50,6 +61,12 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/cars/${id}`,
     DELETE: (id: string) => `/cars/${id}`,
     AVAILABLE: '/cars/available',
+    UPLOAD_IMAGES: (id: string) => `/cars/${id}/images/upload`,
+    DELETE_IMAGE: (carId: string, imageId: string) => `/cars/${carId}/images/${imageId}/cloudinary`,
+    OPTIMIZED_IMAGES: (id: string) => `/cars/${id}/images/optimized`,
+    BOOKINGS: {
+      DRIVER_BOOKINGS: '/cars/bookings/driver-bookings',
+    },
   },
 
   // Hotel booking endpoints

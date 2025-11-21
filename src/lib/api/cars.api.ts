@@ -1,6 +1,7 @@
 import { httpClient } from './http'
 import { API_ENDPOINTS } from './endpoints'
 import { Car, CarSearchParams, CarApiResponse } from '@/types'
+import { DriverBooking } from '@/types/api'
 
 export const carsApi = {
   // Search available cars
@@ -134,26 +135,9 @@ export const carsApi = {
   },
 
   // Get driver's bookings
-  getDriverBookings: async (status?: string) => {
+  getDriverBookings: async (status?: string): Promise<DriverBooking[]> => {
     const params = status ? `?status=${status}` : ''
-    return httpClient.get<Array<{
-      id: number
-      status: string
-      customer: {
-        name: string
-      }
-      car: {
-        make: string
-        model: string
-        year: number
-      }
-      pickup_location: string
-      dropoff_location: string
-      start_date: string
-      end_date: string
-      driver_earnings: number
-      created_at: string
-    }>>(`/cars/bookings/driver-bookings${params}`)
+    return httpClient.get<DriverBooking[]>(`${API_ENDPOINTS.CARS.BOOKINGS.DRIVER_BOOKINGS}${params}`)
   },
 
   // Start trip
@@ -202,5 +186,46 @@ export const carsApi = {
       message: string
       sent_at: string
     }>(`/cars/bookings/${bookingId}/chat/messages`, { message })
+  },
+
+  // Upload car images
+  uploadCarImages: async (carId: string, files: File[]) => {
+    const formData = new FormData()
+    files.forEach((file) => {
+      formData.append('images', file)
+    })
+
+    return httpClient.post<{
+      message: string
+      images: Array<{
+        url: string
+        public_id: string
+      }>
+    }>(API_ENDPOINTS.CARS.UPLOAD_IMAGES(carId), formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+  },
+
+  // Delete car image
+  deleteCarImage: async (carId: string, imageId: string) => {
+    return httpClient.delete<{ message: string }>(
+      API_ENDPOINTS.CARS.DELETE_IMAGE(carId, imageId)
+    )
+  },
+
+  // Get optimized car images
+  getOptimizedCarImages: async (carId: string) => {
+    return httpClient.get<Array<{
+      id: number
+      original: string
+      responsive: {
+        thumbnail: string
+        medium: string
+        large: string
+        original: string
+      }
+    }>>(API_ENDPOINTS.CARS.OPTIMIZED_IMAGES(carId))
   },
 }
