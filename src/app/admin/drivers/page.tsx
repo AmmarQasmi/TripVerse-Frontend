@@ -1,108 +1,82 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-
-interface Driver {
-  id: string
-  full_name: string
-  email: string
-  phone: string
-  joinedDate: string
-  verificationStatus: 'PENDING' | 'VERIFIED' | 'REJECTED' | 'INCOMPLETE'
-  totalCars: number
-  totalTrips: number
-  totalEarnings: number
-  rating: number
-  documentsSubmitted: number
-  documentsTotal: number
-}
+import { adminApi } from '@/lib/api/admin.api'
+import { Driver } from '@/types/api'
 
 export default function AdminDriversPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'verified' | 'rejected'>('all')
+  const [pendingDrivers, setPendingDrivers] = useState<Driver[]>([])
+  const [verifiedDrivers, setVerifiedDrivers] = useState<Driver[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchDrivers = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const [pending, verified] = await Promise.all([
+          adminApi.getPendingDrivers(),
+          adminApi.getVerifiedDrivers(),
+        ])
+        setPendingDrivers(pending)
+        setVerifiedDrivers(verified)
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to load drivers')
+        console.error('Error fetching drivers:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDrivers()
+  }, [])
+
+  // Combine all drivers for filtering
+  const allDrivers = [...pendingDrivers, ...verifiedDrivers]
   
-  // Mock data
-  const drivers: Driver[] = [
-    {
-      id: '1',
-      full_name: 'Ahmed Khan',
-      email: 'ahmed.khan@example.com',
-      phone: '+92 300 1234567',
-      joinedDate: '2024-01-10',
-      verificationStatus: 'PENDING',
-      totalCars: 2,
-      totalTrips: 0,
-      totalEarnings: 0,
-      rating: 0,
-      documentsSubmitted: 3,
-      documentsTotal: 4,
-    },
-    {
-      id: '2',
-      full_name: 'Sara Ahmed',
-      email: 'sara.ahmed@example.com',
-      phone: '+92 301 9876543',
-      joinedDate: '2023-12-15',
-      verificationStatus: 'VERIFIED',
-      totalCars: 3,
-      totalTrips: 45,
-      totalEarnings: 225000,
-      rating: 4.8,
-      documentsSubmitted: 4,
-      documentsTotal: 4,
-    },
-    {
-      id: '3',
-      full_name: 'Ali Hassan',
-      email: 'ali.hassan@example.com',
-      phone: '+92 333 4567890',
-      joinedDate: '2024-01-08',
-      verificationStatus: 'INCOMPLETE',
-      totalCars: 0,
-      totalTrips: 0,
-      totalEarnings: 0,
-      rating: 0,
-      documentsSubmitted: 1,
-      documentsTotal: 4,
-    },
-    {
-      id: '4',
-      full_name: 'Fatima Malik',
-      email: 'fatima.malik@example.com',
-      phone: '+92 345 2345678',
-      joinedDate: '2023-11-20',
-      verificationStatus: 'VERIFIED',
-      totalCars: 1,
-      totalTrips: 23,
-      totalEarnings: 115000,
-      rating: 4.9,
-      documentsSubmitted: 4,
-      documentsTotal: 4,
-    },
-    {
-      id: '5',
-      full_name: 'Usman Shah',
-      email: 'usman.shah@example.com',
-      phone: '+92 321 3456789',
-      joinedDate: '2024-01-12',
-      verificationStatus: 'REJECTED',
-      totalCars: 0,
-      totalTrips: 0,
-      totalEarnings: 0,
-      rating: 0,
-      documentsSubmitted: 4,
-      documentsTotal: 4,
-    },
-  ]
+  // Transform to display format
+  const drivers = allDrivers.map(driver => {
+    const hasPendingDocs = driver.documents.some(d => d.status === 'pending')
+    const hasUnverifiedRatings = driver.ratings.some(r => !r.verified_at)
+    
+    return {
+      ...driver, // Keep original driver data for detail page
+      id: driver.id.toString(),
+      full_name: driver.user.full_name,
+      email: driver.user.email,
+      phone: '', // Not available in backend response
+      joinedDate: driver.created_at,
+      verificationStatus: driver.is_verified 
+        ? 'VERIFIED' as const
+        : hasPendingDocs || hasUnverifiedRatings
+          ? 'PENDING' as const
+          : 'INCOMPLETE' as const,
+      totalCars: driver.cars?.length || 0,
+      totalTrips: 0, // TODO: Calculate from bookings when available
+      totalEarnings: 0, // TODO: Calculate from bookings when available
+      rating: driver.is_verified && driver.ratings.length > 0
+        ? Number((driver.ratings.reduce((sum, r) => sum + Number(r.rating), 0) / driver.ratings.length).toFixed(1))
+        : 0,
+      documentsSubmitted: driver.documents.length,
+      documentsTotal: 4, // Required documents: license, cnic, vehicle_registration, insurance
+    }
+  })
 
   const filteredDrivers = drivers.filter(driver => {
     if (filter === 'all') return true
     if (filter === 'pending') return driver.verificationStatus === 'PENDING' || driver.verificationStatus === 'INCOMPLETE'
     if (filter === 'verified') return driver.verificationStatus === 'VERIFIED'
-    if (filter === 'rejected') return driver.verificationStatus === 'REJECTED'
+    // Rejected filter - drivers with verification_notes but not verified are considered rejected
+    if (filter === 'rejected') {
+      const driverData = allDrivers.find(d => d.id.toString() === driver.id)
+      return driverData ? !driverData.is_verified && !!driverData.verification_notes : false
+    }
     return true
   })
 
@@ -110,7 +84,7 @@ export default function AdminDriversPage() {
     total: drivers.length,
     pending: drivers.filter(d => d.verificationStatus === 'PENDING' || d.verificationStatus === 'INCOMPLETE').length,
     verified: drivers.filter(d => d.verificationStatus === 'VERIFIED').length,
-    rejected: drivers.filter(d => d.verificationStatus === 'REJECTED').length,
+    rejected: allDrivers.filter(d => !d.is_verified && !!d.verification_notes).length,
   }
 
   const getStatusColor = (status: string) => {
@@ -152,13 +126,43 @@ export default function AdminDriversPage() {
         >
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">
-              Driver Management
-            </h1>
-            <p className="text-lg text-gray-300">
-              Review and manage driver verifications
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold text-white mb-2">
+                  Driver Management
+                </h1>
+                <p className="text-lg text-gray-300">
+                  Review and manage driver verifications
+                </p>
+              </div>
+              <Button
+                onClick={() => {
+                  setIsLoading(true)
+                  adminApi.getPendingDrivers().then(setPendingDrivers).catch(console.error)
+                  adminApi.getVerifiedDrivers().then(setVerifiedDrivers).catch(console.error).finally(() => setIsLoading(false))
+                }}
+                variant="outline"
+                disabled={isLoading}
+              >
+                🔄 Refresh
+              </Button>
+            </div>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 bg-red-500/20 border border-red-500 rounded-lg p-4">
+              <p className="text-red-200">{error}</p>
+              <Button
+                onClick={() => window.location.reload()}
+                variant="outline"
+                size="sm"
+                className="mt-2"
+              >
+                Retry
+              </Button>
+            </div>
+          )}
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -279,8 +283,14 @@ export default function AdminDriversPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {filteredDrivers.map((driver, index) => (
+              {isLoading ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4 animate-spin">⏳</div>
+                  <p className="text-gray-600">Loading drivers...</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredDrivers.map((driver, index) => (
                   <motion.div
                     key={driver.id}
                     initial={{ opacity: 0, x: -20 }}
@@ -297,7 +307,7 @@ export default function AdminDriversPage() {
                             <h3 className="text-lg font-semibold text-gray-900">{driver.full_name}</h3>
                             <div className="text-sm text-gray-600 space-y-1">
                               <p>📧 {driver.email}</p>
-                              <p>📱 {driver.phone}</p>
+                              <p>📍 {driver.user?.city?.name || 'N/A'}, {driver.user?.city?.region || ''}</p>
                               <p>📅 Joined {new Date(driver.joinedDate).toLocaleDateString()}</p>
                             </div>
                           </div>
@@ -354,18 +364,19 @@ export default function AdminDriversPage() {
                   </motion.div>
                 ))}
 
-                {filteredDrivers.length === 0 && (
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">🚗</div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                      No drivers found
-                    </h3>
-                    <p className="text-gray-600">
-                      No drivers match the selected filter
-                    </p>
-                  </div>
-                )}
-              </div>
+                  {filteredDrivers.length === 0 && (
+                    <div className="text-center py-12">
+                      <div className="text-6xl mb-4">🚗</div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                        No drivers found
+                      </h3>
+                      <p className="text-gray-600">
+                        {isLoading ? 'Loading...' : 'No drivers match the selected filter'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>

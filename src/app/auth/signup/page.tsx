@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { authApi, cityApi } from '@/lib/api/auth.api'
 import { City, RegisterData } from '@/types'
+import { useAuth } from '@/features/auth/useAuth'
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -24,8 +25,10 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingCities, setIsLoadingCities] = useState(true)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const router = useRouter()
+  const { setUser } = useAuth()
 
   // Fetch cities and regions on component mount
   useEffect(() => {
@@ -44,20 +47,35 @@ export default function SignupPage() {
 
   const fetchCities = async () => {
     try {
+      setIsLoadingCities(true)
       const data = await cityApi.getCities()
+      console.log('Fetched cities:', data)
       setCities(data)
       setFilteredCities(data)
-    } catch (error) {
+      if (data.length === 0) {
+        setErrors(prev => ({ ...prev, cities: 'No cities available. Please contact support.' }))
+      }
+    } catch (error: any) {
       console.error('Failed to fetch cities:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to load cities'
+      setErrors(prev => ({ ...prev, cities: errorMessage }))
+    } finally {
+      setIsLoadingCities(false)
     }
   }
 
   const fetchRegions = async () => {
     try {
       const data = await cityApi.getRegions()
+      console.log('Fetched regions:', data)
       setRegions(data)
-    } catch (error) {
+      if (data.length === 0) {
+        setErrors(prev => ({ ...prev, regions: 'No regions available. Please contact support.' }))
+      }
+    } catch (error: any) {
       console.error('Failed to fetch regions:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to load regions'
+      setErrors(prev => ({ ...prev, regions: errorMessage }))
     }
   }
 
@@ -97,21 +115,31 @@ export default function SignupPage() {
 
       // Call API - cookie is automatically set by backend
       const response = await authApi.signup(signupData)
+      
+      console.log('Signup response:', response)
+      console.log('User role:', response.user.role)
+
+      // Update auth state immediately with the new user
+      setUser(response.user)
+
+      // Small delay to ensure state is updated before redirect
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       // Redirect based on role from response
       if (response.user.role === 'driver') {
-        router.push('/driver/dashboard')
+        // New drivers need to complete verification first
+        console.log('Redirecting driver to verification page...')
+        window.location.href = '/driver/verification'
       } else if (response.user.role === 'admin') {
-        router.push('/admin/dashboard')
+        window.location.href = '/admin/dashboard'
       } else {
-        router.push('/client/dashboard')
+        window.location.href = '/client/dashboard'
       }
     } catch (error: any) {
       console.error('Signup failed:', error)
       // Extract error message from axios error
       const errorMessage = error.response?.data?.message || error.message || 'Signup failed. Please try again.'
       setErrors({ general: errorMessage })
-    } finally {
       setIsLoading(false)
     }
   }
@@ -159,6 +187,16 @@ export default function SignupPage() {
           {errors.general && (
             <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
               {errors.general}
+            </div>
+          )}
+          
+          {/* Cities/Regions Error */}
+          {(errors.cities || errors.regions) && (
+            <div className="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg">
+              <p className="font-semibold mb-1">Unable to load location data:</p>
+              {errors.cities && <p className="text-sm">• {errors.cities}</p>}
+              {errors.regions && <p className="text-sm">• {errors.regions}</p>}
+              <p className="text-sm mt-2">Please check your connection or contact support if the issue persists.</p>
             </div>
           )}
 
@@ -240,21 +278,34 @@ export default function SignupPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Region
                 </label>
-                <select
-                  value={selectedRegion}
-                  onChange={(e) => {
-                    setSelectedRegion(e.target.value)
-                    setFormData(prev => ({ ...prev, city_id: '' })) // Reset city when region changes
-                  }}
-                  className="w-full h-11 px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-900 focus:border-transparent transition-colors"
-                >
-                  <option value="" className="text-gray-500">All Regions</option>
-                  {regions.map((region) => (
-                    <option key={region} value={region} className="text-gray-900">
-                      {region}
-                    </option>
-                  ))}
-                </select>
+                {isLoadingCities ? (
+                  <div className="w-full h-11 px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg flex items-center">
+                    <span className="text-gray-500 text-sm">Loading regions...</span>
+                  </div>
+                ) : (
+                  <>
+                    <select
+                      value={selectedRegion}
+                      onChange={(e) => {
+                        setSelectedRegion(e.target.value)
+                        setFormData(prev => ({ ...prev, city_id: '' })) // Reset city when region changes
+                      }}
+                      className="w-full h-11 px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-900 focus:border-transparent transition-colors"
+                    >
+                      <option value="" className="text-gray-500">All Regions</option>
+                      {regions.length > 0 ? (
+                        regions.map((region) => (
+                          <option key={region} value={region} className="text-gray-900">
+                            {region}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="" disabled className="text-gray-500">No regions available</option>
+                      )}
+                    </select>
+                    {errors.regions && <p className="mt-2 text-sm text-red-600">{errors.regions}</p>}
+                  </>
+                )}
               </div>
 
               {/* City Selection */}
@@ -262,20 +313,32 @@ export default function SignupPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   City <span className="text-red-500">*</span>
                 </label>
-                <select
-                  value={formData.city_id}
-                  onChange={(e) => handleInputChange('city_id', e.target.value)}
-                  required
-                  className="w-full h-11 px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-900 focus:border-transparent transition-colors"
-                >
-                  <option value="" className="text-gray-500">Select your city</option>
-                  {filteredCities.map((city) => (
-                    <option key={city.id} value={city.id} className="text-gray-900">
-                      {city.name} {selectedRegion ? '' : `(${city.region})`}
-                    </option>
-                  ))}
-                </select>
-                {errors.city_id && <p className="mt-2 text-sm text-red-600">{errors.city_id}</p>}
+                {isLoadingCities ? (
+                  <div className="w-full h-11 px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg flex items-center">
+                    <span className="text-gray-500 text-sm">Loading cities...</span>
+                  </div>
+                ) : (
+                  <>
+                    <select
+                      value={formData.city_id}
+                      onChange={(e) => handleInputChange('city_id', e.target.value)}
+                      required
+                      disabled={filteredCities.length === 0}
+                      className="w-full h-11 px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-900 focus:border-transparent transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    >
+                      <option value="" className="text-gray-500">
+                        {filteredCities.length === 0 ? 'No cities available' : 'Select your city'}
+                      </option>
+                      {filteredCities.map((city) => (
+                        <option key={city.id} value={city.id} className="text-gray-900">
+                          {city.name} {selectedRegion ? '' : `(${city.region})`}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.city_id && <p className="mt-2 text-sm text-red-600">{errors.city_id}</p>}
+                    {errors.cities && <p className="mt-2 text-sm text-red-600">{errors.cities}</p>}
+                  </>
+                )}
               </div>
             </div>
 

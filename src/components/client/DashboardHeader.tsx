@@ -71,11 +71,7 @@ export function DashboardHeader() {
                 <span className="text-xs text-gray-200">{user?.email || ''}</span>
               </div>
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center text-white font-semibold shadow-lg">
-                {user?.avatar ? (
-                  <img src={user.avatar} alt="Profile" className="w-full h-full rounded-full object-cover" />
-                ) : (
-                  <span>{user?.full_name ? getInitials(user.full_name) : 'U'}</span>
-                )}
+                <span>{user?.full_name ? getInitials(user.full_name) : 'U'}</span>
               </div>
               <svg 
                 className={`w-4 h-4 text-white transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} 

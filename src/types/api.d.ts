@@ -13,7 +13,6 @@ export interface User {
   createdAt?: string
   updatedAt?: string
   phone?: string
-  avatar?: string
   isVerified?: boolean
   verificationStatus?: 'PENDING' | 'VERIFIED' | 'REJECTED'
   driverLicense?: string
@@ -38,6 +37,80 @@ export interface City {
   id: number
   name: string
   region: string
+}
+
+// Driver types
+export type DocumentType = 'license' | 'cnic' | 'vehicle_registration' | 'insurance' | 'other'
+export type DocumentStatus = 'pending' | 'approved' | 'rejected'
+
+export interface DriverDocument {
+  id: number
+  driver_id: number
+  document_type: DocumentType
+  document_url: string
+  public_id?: string | null
+  status: DocumentStatus
+  rejection_reason?: string | null
+  uploaded_at: string
+  reviewed_at?: string | null
+  reviewed_by?: number | null
+}
+
+export interface DriverRating {
+  id: number
+  driver_id: number
+  platform: string
+  rating: number
+  screenshot_url?: string | null
+  verified_at?: string | null
+  created_at: string
+}
+
+export interface Driver {
+  id: number
+  user_id: number
+  is_verified: boolean
+  stripe_account_id?: string | null
+  verification_notes?: string | null
+  verified_at?: string | null
+  created_at: string
+  updated_at: string
+  user: {
+    id: number
+    email: string
+    full_name: string
+    status: string
+    city: {
+      id: number
+      name: string
+      region: string
+    }
+  }
+  documents: DriverDocument[]
+  ratings: DriverRating[]
+  cars?: any[]
+}
+
+// Admin-specific driver type (same as Driver but for clarity)
+export type AdminDriver = Driver
+
+export interface DriverBooking {
+  id: number
+  status: string
+  customer: {
+    name: string
+  }
+  car: {
+    make: string
+    model: string
+    year: number
+  }
+  pickup_location: string
+  dropoff_location: string
+  start_date: string
+  end_date: string
+  driver_earnings: number
+  created_at: string
 }
 
 // Auth Response types
