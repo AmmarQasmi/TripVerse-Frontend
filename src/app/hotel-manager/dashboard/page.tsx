@@ -5,20 +5,17 @@ import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { StatsCard } from '@/components/shared/StatsCard'
-import { SuspensionStatusCard } from '@/components/driver/SuspensionStatusCard'
-import { DisputeWarningBadge } from '@/components/shared/DisputeWarningBadge'
 import { DashboardHeader } from '@/components/shared/DashboardHeader'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/features/auth/useAuth'
-import { driversApi } from '@/lib/api/drivers.api'
-import type { DriverDashboard, DriverSuspensionStatus } from '@/lib/api/drivers.api'
+import { hotelManagersApi } from '@/lib/api/hotel-managers.api'
+import type { HotelManagerDashboard } from '@/lib/api/hotel-managers.api'
 
-export default function DriverDashboard() {
+export default function HotelManagerDashboard() {
   const { user } = useAuth()
   const router = useRouter()
-  const [dashboard, setDashboard] = useState<DriverDashboard | null>(null)
-  const [suspensionStatus, setSuspensionStatus] = useState<DriverSuspensionStatus | null>(null)
+  const [dashboard, setDashboard] = useState<HotelManagerDashboard | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -27,21 +24,17 @@ export default function DriverDashboard() {
       try {
         setIsLoading(true)
         setError(null)
-        const [dashboardData, suspensionData] = await Promise.all([
-          driversApi.getDashboard(),
-          driversApi.getSuspensionStatus().catch(() => null), // Don't fail if endpoint doesn't exist yet
-        ])
+        const dashboardData = await hotelManagersApi.getDashboard()
         setDashboard(dashboardData)
-        setSuspensionStatus(suspensionData)
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to load dashboard')
-        console.error('Error fetching driver dashboard:', err)
+        console.error('Error fetching hotel manager dashboard:', err)
       } finally {
         setIsLoading(false)
       }
     }
 
-    if (user?.role === 'driver') {
+    if (user?.role === 'hotel_manager') {
       fetchDashboard()
     }
   }, [user])
@@ -57,15 +50,11 @@ export default function DriverDashboard() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'CONFIRMED':
+      case 'CHECKED_IN':
+      case 'CHECKED_OUT':
         return 'bg-green-100 text-green-800'
-      case 'PENDING_DRIVER_ACCEPTANCE':
-      case 'ACCEPTED':
+      case 'PENDING':
         return 'bg-yellow-100 text-yellow-800'
-      case 'COMPLETED':
-        return 'bg-blue-100 text-blue-800'
-      case 'IN_PROGRESS':
-        return 'bg-purple-100 text-purple-800'
-      case 'REJECTED':
       case 'CANCELLED':
         return 'bg-red-100 text-red-800'
       default:
@@ -109,8 +98,8 @@ export default function DriverDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <DashboardHeader 
-        title={`Welcome back, ${user?.full_name || 'Driver'}!`}
-        subtitle="Manage your car rentals and earnings"
+        title={`Welcome back, ${user?.full_name || 'Hotel Manager'}!`}
+        subtitle="Manage your hotels and bookings"
       />
       <div className="container mx-auto px-4 py-8">
         <motion.div
@@ -125,8 +114,18 @@ export default function DriverDashboard() {
                   <div className="flex items-center space-x-2">
                     <span className="text-2xl">✅</span>
                     <div>
-                      <p className="font-semibold text-white">Verified Driver</p>
+                      <p className="font-semibold text-white">Verified Hotel Manager</p>
                       <p className="text-xs text-gray-300">All documents approved</p>
+                    </div>
+                  </div>
+                </div>
+              ) : verification_status.has_rejected_documents ? (
+                <div className="bg-red-500/20 border-2 border-red-500 rounded-xl px-4 py-2">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-2xl">❌</span>
+                    <div>
+                      <p className="font-semibold text-white">Verification Rejected</p>
+                      <p className="text-xs text-gray-300">Please review and re-upload documents</p>
                     </div>
                   </div>
                 </div>
@@ -148,39 +147,29 @@ export default function DriverDashboard() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-6 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4"
+                className={`mb-6 rounded-lg p-4 ${
+                  verification_status.has_rejected_documents
+                    ? 'bg-red-500/10 border border-red-500/30'
+                    : 'bg-yellow-500/10 border border-yellow-500/30'
+                }`}
               >
-                <p className="text-yellow-200 text-sm">
-                  <strong>Note:</strong> Your verification is pending admin approval. You can view your dashboard but cannot perform actions (add cars, manage bookings, etc.) until you are verified.
+                <p className={`text-sm ${
+                  verification_status.has_rejected_documents ? 'text-red-200' : 'text-yellow-200'
+                }`}>
+                  <strong>Note:</strong> {
+                    verification_status.has_rejected_documents
+                      ? 'Your verification has been rejected. Please review the rejection reasons and re-upload your documents.'
+                      : 'Your verification is pending admin approval. You can view your dashboard but cannot create hotels or manage bookings until you are verified.'
+                  }
                 </p>
+                <Link href="/hotel-manager/verification">
+                  <Button variant="outline" className="mt-3">
+                    {verification_status.has_rejected_documents ? 'Review Rejected Documents' : 'Complete Verification'}
+                  </Button>
+                </Link>
               </motion.div>
             )}
-
-            {/* Suspension/Warning Status */}
-            {suspensionStatus && (
-            <motion.div
-                initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-                className="mb-6"
-              >
-                <SuspensionStatusCard status={suspensionStatus} />
-            </motion.div>
-            )}
-
-            {/* Dispute Warning Badge */}
-            {suspensionStatus && suspensionStatus.warning_sent && !suspensionStatus.is_suspended && !suspensionStatus.is_banned && (
-            <motion.div
-                initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-                className="mb-6"
-              >
-                <DisputeWarningBadge 
-                  disputeCount={suspensionStatus.dispute_count} 
-                  warningSent={suspensionStatus.warning_sent} 
-                />
-            </motion.div>
-                      )}
-                    </div>
+          </div>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -192,24 +181,24 @@ export default function DriverDashboard() {
               delay={0.1}
             />
             <StatsCard
-              title="Incoming Requests"
-              value={stats.incoming_requests}
-              subtitle="Awaiting your response"
-              icon="📨"
+              title="Total Hotels"
+              value={stats.total_hotels}
+              subtitle={`${stats.active_hotels} active`}
+              icon="🏨"
               delay={0.2}
             />
             <StatsCard
-              title="Confirmed Bookings"
-              value={stats.confirmed_bookings}
-              subtitle="Active bookings"
-              icon="🚗"
+              title="Total Bookings"
+              value={stats.total_bookings}
+              subtitle={`${stats.confirmed_bookings} confirmed`}
+              icon="📋"
               delay={0.3}
             />
             <StatsCard
-              title="Car Listings"
-              value={stats.car_listings_count}
-              subtitle={`${stats.active_cars_count} active`}
-              icon="🚙"
+              title="Rooms Available"
+              value={stats.rooms_available}
+              subtitle={`${stats.rooms_booked} booked`}
+              icon="🛏️"
               delay={0.4}
             />
           </div>
@@ -222,20 +211,20 @@ export default function DriverDashboard() {
               transition={{ delay: 0.5 }}
             >
               {verification_status.is_verified ? (
-                <Link href="/driver/cars/new">
+                <Link href="/hotel-manager/hotels/new">
                   <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-2 border-blue-500/30">
                     <CardContent className="p-6 text-center">
                       <div className="text-5xl mb-3">➕</div>
-                      <h3 className="font-semibold text-white text-lg">Add New Car</h3>
-                      <p className="text-sm text-gray-300">List a new vehicle</p>
+                      <h3 className="font-semibold text-white text-lg">Add New Hotel</h3>
+                      <p className="text-sm text-gray-300">List a new hotel</p>
                     </CardContent>
                   </Card>
                 </Link>
               ) : (
-                <Card className="opacity-50 cursor-not-allowed bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-2 border-blue-500/30" title="Please verify your account to add cars">
+                <Card className="opacity-50 cursor-not-allowed bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-2 border-blue-500/30" title="Please verify your account to add hotels">
                   <CardContent className="p-6 text-center">
                     <div className="text-5xl mb-3">➕</div>
-                    <h3 className="font-semibold text-white text-lg">Add New Car</h3>
+                    <h3 className="font-semibold text-white text-lg">Add New Hotel</h3>
                     <p className="text-sm text-gray-300">Verify to enable</p>
                   </CardContent>
                 </Card>
@@ -248,20 +237,20 @@ export default function DriverDashboard() {
               transition={{ delay: 0.6 }}
             >
               {verification_status.is_verified ? (
-                <Link href="/driver/cars">
+                <Link href="/hotel-manager/hotels">
                   <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/10 backdrop-blur-md border-white/20">
                     <CardContent className="p-6 text-center">
-                      <div className="text-5xl mb-3">🚗</div>
-                      <h3 className="font-semibold text-white text-lg">My Cars</h3>
-                      <p className="text-sm text-gray-300">{stats.active_cars_count} of {stats.car_listings_count} active</p>
+                      <div className="text-5xl mb-3">🏨</div>
+                      <h3 className="font-semibold text-white text-lg">My Hotels</h3>
+                      <p className="text-sm text-gray-300">{stats.active_hotels} of {stats.total_hotels} active</p>
                     </CardContent>
                   </Card>
                 </Link>
               ) : (
-                <Card className="opacity-50 cursor-not-allowed bg-white/10 backdrop-blur-md border-white/20" title="Please verify your account to manage cars">
+                <Card className="opacity-50 cursor-not-allowed bg-white/10 backdrop-blur-md border-white/20" title="Please verify your account to manage hotels">
                   <CardContent className="p-6 text-center">
-                    <div className="text-5xl mb-3">🚗</div>
-                    <h3 className="font-semibold text-white text-lg">My Cars</h3>
+                    <div className="text-5xl mb-3">🏨</div>
+                    <h3 className="font-semibold text-white text-lg">My Hotels</h3>
                     <p className="text-sm text-gray-300">Verify to enable</p>
                   </CardContent>
                 </Card>
@@ -274,7 +263,7 @@ export default function DriverDashboard() {
               transition={{ delay: 0.7 }}
             >
               {verification_status.is_verified ? (
-                <Link href="/driver/bookings">
+                <Link href="/hotel-manager/bookings">
                   <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/10 backdrop-blur-md border-white/20">
                     <CardContent className="p-6 text-center">
                       <div className="text-5xl mb-3">📋</div>
@@ -300,7 +289,7 @@ export default function DriverDashboard() {
               transition={{ delay: 0.8 }}
             >
               {verification_status.is_verified ? (
-                <Link href="/driver/payouts">
+                <Link href="/hotel-manager/earnings">
                   <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/10 backdrop-blur-md border-white/20">
                     <CardContent className="p-6 text-center">
                       <div className="text-5xl mb-3">💳</div>
@@ -321,54 +310,55 @@ export default function DriverDashboard() {
             </motion.div>
           </div>
 
-            {/* Recent Bookings */}
-              <Card className="shadow-lg">
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <CardTitle>Recent Bookings</CardTitle>
+          {/* Recent Bookings */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Recent Bookings</CardTitle>
                 {verification_status.is_verified && (
-                      <Link href="/driver/bookings">
-                        <Button variant="outline" size="sm">
-                          View All
-                        </Button>
-                      </Link>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-3">
+                  <Link href="/hotel-manager/bookings">
+                    <Button variant="outline" size="sm">
+                      View All
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
                 {recent_bookings.length > 0 ? (
                   recent_bookings.map((booking) => (
-                          <div key={booking.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <div className="font-semibold text-gray-900">
-                            {booking.car.make} {booking.car.model}
-                                </div>
-                                <div className="text-sm text-gray-600">
-                                  {booking.customer.name} • {formatDate(booking.start_date)} - {formatDate(booking.end_date)}
-                                </div>
-                              </div>
-                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
-                                {booking.status}
-                              </span>
-                            </div>
-                            <div className="mt-3">
-                              <p className="text-gray-600 text-sm">Your Earning</p>
-                              <p className="font-bold text-green-600 text-lg">PKR {booking.driver_earnings.toLocaleString()}</p>
-                            </div>
+                    <div key={booking.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <div className="font-semibold text-gray-900">
+                            {booking.hotel.name}
                           </div>
-                        ))
-                      ) : (
-                        <div className="p-8 text-center text-gray-500">
-                    <p>{verification_status.is_verified ? 'No bookings yet. Start by adding a car!' : 'No bookings available. Complete verification to start receiving bookings.'}</p>
+                          <div className="text-sm text-gray-600">
+                            {booking.customer.name} • {booking.room_type} • {formatDate(booking.check_in)} - {formatDate(booking.check_out)}
+                          </div>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
+                          {booking.status}
+                        </span>
                       </div>
-                    )}
+                      <div className="mt-3">
+                        <p className="text-gray-600 text-sm">Total Amount</p>
+                        <p className="font-bold text-green-600 text-lg">PKR {booking.total_amount.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-8 text-center text-gray-500">
+                    <p>{verification_status.is_verified ? 'No bookings yet. Start by adding a hotel!' : 'No bookings available. Complete verification to start receiving bookings.'}</p>
                   </div>
-                </CardContent>
-              </Card>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
     </div>
   )
 }
+

@@ -6,7 +6,7 @@ export function useDriverCarBookings() {
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['driver-car-bookings'],
-    queryFn: carBookingsApi.getDriverBookings,
+    queryFn: () => carBookingsApi.getDriverBookings(),
   })
 
   const updateBookingStatus = useMutation({

@@ -74,4 +74,47 @@ export const hotelsApi = {
       }
     }>>(API_ENDPOINTS.HOTELS.OPTIMIZED_IMAGES(hotelId))
   },
+
+  // Hotel Manager endpoints
+  getManagerHotels: async () => {
+    return httpClient.get<Array<{
+      id: string
+      name: string
+      description: string | null
+      location: string
+      address: string | null
+      rating: number | null
+      is_active: boolean
+      is_listed: boolean
+      images: string[]
+      room_types_count: number
+      total_bookings: number
+      total_earnings: number
+      created_at: string
+      updated_at: string
+    }>>(API_ENDPOINTS.HOTELS.MANAGER_HOTELS)
+  },
+
+  updateHotelAvailability: async (hotelId: string, data: { is_listed?: boolean }) => {
+    return httpClient.patch<{
+      id: number
+      is_listed: boolean
+      message: string
+    }>(API_ENDPOINTS.HOTELS.UPDATE_AVAILABILITY(hotelId), data)
+  },
+
+  getHotelAvailability: async (hotelId: string) => {
+    return httpClient.get<{
+      hotel_id: number
+      hotel_name: string
+      is_listed: boolean
+      room_availability: Array<{
+        room_type_id: number
+        room_type_name: string
+        total_rooms: number
+        booked_rooms: number
+        available_rooms: number
+      }>
+    }>(API_ENDPOINTS.HOTELS.GET_AVAILABILITY(hotelId))
+  },
 }

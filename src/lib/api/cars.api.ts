@@ -228,4 +228,39 @@ export const carsApi = {
       }
     }>>(API_ENDPOINTS.CARS.OPTIMIZED_IMAGES(carId))
   },
+
+  // Get driver's cars
+  getDriverCars: async () => {
+    return httpClient.get<{
+      data: Array<{
+        id: string
+        car: {
+          make: string
+          model: string
+          year: number
+          seats: number
+          transmission: string
+          fuel_type: string
+          color: string
+          license_plate: string
+        }
+        pricing: {
+          base_price_per_day: number
+          distance_rate_per_km: number
+        }
+        images: string[]
+        is_active: boolean
+        booking_stats: {
+          total_bookings: number
+          active_bookings: number
+          total_earnings: number
+        }
+        created_at: string
+      }>
+      driver: {
+        id: string
+        is_verified: boolean
+      }
+    }>(API_ENDPOINTS.CARS.DRIVER_CARS)
+  },
 }

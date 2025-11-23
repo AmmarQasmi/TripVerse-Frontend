@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { DashboardHeader } from '@/components/client/DashboardHeader'
+import { LandingHeader } from '@/components/landing/LandingHeader'
 import { OverviewStatsCard } from '@/components/client/OverviewStatsCard'
 import { TripCard, NewTripCard } from '@/components/client/TripCard'
 import { QuickToolCard } from '@/components/client/QuickToolCard'
@@ -43,11 +43,11 @@ export default function ClientDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Dashboard Header */}
-      <DashboardHeader />
+      {/* Official Website Header */}
+      <LandingHeader />
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 pt-24">
         {/* SECTION 2: Overview Cards - Quick Stats */}
         <motion.section 
           className="mb-12"

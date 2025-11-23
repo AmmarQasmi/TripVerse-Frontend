@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { useDisputesAdmin } from '@/features/admin/useDisputesAdmin'
 
 export default function AdminDisputesPage() {
@@ -14,7 +15,7 @@ export default function AdminDisputesPage() {
   
   const { disputes, isLoading, resolveDispute } = useDisputesAdmin()
 
-  const filteredDisputes = disputes?.filter(dispute => {
+  const filteredDisputes = disputes?.filter((dispute: any) => {
     const matchesSearch = dispute.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          dispute.bookingId.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (dispute.reason && dispute.reason.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -63,15 +64,14 @@ export default function AdminDisputesPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Dispute Resolution
-        </h1>
-        <p className="text-lg text-gray-600">
-          Review and resolve customer disputes and complaints.
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <PageHeader 
+        title="Dispute Management"
+        subtitle="Review and resolve customer disputes"
+        backUrl="/admin/dashboard"
+        backLabel="Back to Dashboard"
+      />
+      <div className="container mx-auto px-4 py-8">
 
       {/* Filters */}
       <div className="mb-6 flex flex-col md:flex-row gap-4">
@@ -121,7 +121,7 @@ export default function AdminDisputesPage() {
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Open Disputes</p>
                 <p className="text-2xl font-bold text-red-600">
-                  {disputes?.filter(d => d.status === 'OPEN').length || 0}
+                  {disputes?.filter((d: any) => d.status === 'OPEN').length || 0}
                 </p>
               </div>
               <div className="text-2xl">🔴</div>
@@ -135,7 +135,7 @@ export default function AdminDisputesPage() {
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">In Review</p>
                 <p className="text-2xl font-bold text-yellow-600">
-                  {disputes?.filter(d => d.status === 'IN_REVIEW').length || 0}
+                  {disputes?.filter((d: any) => d.status === 'IN_REVIEW').length || 0}
                 </p>
               </div>
               <div className="text-2xl">🟡</div>
@@ -149,7 +149,7 @@ export default function AdminDisputesPage() {
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Resolved</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {disputes?.filter(d => d.status === 'RESOLVED').length || 0}
+                  {disputes?.filter((d: any) => d.status === 'RESOLVED').length || 0}
                 </p>
               </div>
               <div className="text-2xl">✅</div>
@@ -170,7 +170,7 @@ export default function AdminDisputesPage() {
             </Card>
           ))
         ) : filteredDisputes.length > 0 ? (
-          filteredDisputes.map((dispute) => (
+          filteredDisputes.map((dispute: any) => (
             <Card key={dispute.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
@@ -324,6 +324,7 @@ export default function AdminDisputesPage() {
           </Card>
         </div>
       )}
+      </div>
     </div>
   )
 }

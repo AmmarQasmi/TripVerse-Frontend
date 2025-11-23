@@ -15,8 +15,12 @@ export const carBookingsApi = {
     return httpClient.get<CarBooking[]>(API_ENDPOINTS.CAR_BOOKINGS.USER)
   },
 
-  getDriverBookings: async () => {
-    return httpClient.get<CarBooking[]>(API_ENDPOINTS.CAR_BOOKINGS.DRIVER)
+  getDriverBookings: async (status?: string) => {
+    const config: any = {}
+    if (status && typeof status === 'string' && status.trim() !== '') {
+      config.params = { status: status.trim() }
+    }
+    return httpClient.get<CarBooking[]>(API_ENDPOINTS.CARS.BOOKINGS.DRIVER_BOOKINGS, config)
   },
 
   create: async (booking: CreateCarBookingData) => {
