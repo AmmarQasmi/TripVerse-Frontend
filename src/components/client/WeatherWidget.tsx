@@ -3,26 +3,32 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { useCurrentWeatherByCity } from '@/features/weather/useForecast'
 
 interface WeatherWidgetProps {
-  location?: string
-  temperature?: number
-  condition?: string
+  cityName?: string
 }
 
 export function WeatherWidget({ 
-  location = 'Your Location',
-  temperature = 24,
-  condition = 'Sunny'
+  cityName
 }: WeatherWidgetProps) {
   const [currentTime, setCurrentTime] = useState(new Date())
+  const { data: weather, isLoading, error } = useCurrentWeatherByCity(cityName)
+  
+  // Use real weather data or fallback to defaults
+  const location = weather?.cityName || cityName || 'Your Location'
+  const temperature = weather?.temperature ?? 24
+  const condition = weather?.condition || 'Sunny'
+  const icon = weather?.icon || '🌤️'
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000)
     return () => clearInterval(timer)
   }, [])
 
+  // Use icon from API or fallback based on condition
   const getWeatherIcon = () => {
+    if (icon && icon !== '🌤️') return icon
     const lowerCondition = condition.toLowerCase()
     if (lowerCondition.includes('sun') || lowerCondition.includes('clear')) return '☀️'
     if (lowerCondition.includes('cloud')) return '☁️'
@@ -67,27 +73,42 @@ export function WeatherWidget({
             <h3 className="text-white font-semibold text-lg">Weather</h3>
             <p className="text-gray-200 text-xs">{location}</p>
           </div>
-          <motion.div
-            animate={{ rotate: [0, 360] }}
-            transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-            className="text-4xl filter drop-shadow-lg"
-          >
-            {getWeatherIcon()}
-          </motion.div>
+          {isLoading ? (
+            <div className="w-10 h-10 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+          ) : (
+            <motion.div
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+              className="text-4xl filter drop-shadow-lg"
+            >
+              {getWeatherIcon()}
+            </motion.div>
+          )}
         </div>
 
         {/* Temperature */}
-        <div className="mb-4">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 200 }}
-            className="text-5xl font-bold bg-gradient-to-r from-teal-400 via-emerald-400 to-orange-400 bg-clip-text text-transparent mb-1"
-          >
-            {temperature}°C
-          </motion.div>
-          <p className="text-gray-200 text-sm">{condition}</p>
-        </div>
+        {isLoading ? (
+          <div className="mb-4">
+            <div className="h-16 bg-white/10 rounded-lg animate-pulse mb-2"></div>
+            <div className="h-4 bg-white/10 rounded animate-pulse w-2/3"></div>
+          </div>
+        ) : error ? (
+          <div className="mb-4">
+            <p className="text-white/70 text-sm">Unable to load weather data</p>
+          </div>
+        ) : (
+          <div className="mb-4">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 200 }}
+              className="text-5xl font-bold bg-gradient-to-r from-teal-400 via-emerald-400 to-orange-400 bg-clip-text text-transparent mb-1"
+            >
+              {temperature}°C
+            </motion.div>
+            <p className="text-gray-200 text-sm">{condition}</p>
+          </div>
+        )}
 
         {/* Motivational Message */}
         <div className="mb-4 p-3 rounded-lg backdrop-blur-sm bg-white/20 border border-white/30">

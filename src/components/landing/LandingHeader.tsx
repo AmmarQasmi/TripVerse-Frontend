@@ -8,6 +8,7 @@ import { MonumentUploadModal } from './MonumentUploadModal'
 import { useAuth } from '@/features/auth/useAuth'
 import { motion, AnimatePresence } from 'framer-motion'
 import { NotificationBell } from '@/components/shared/NotificationBell'
+import { useCurrentWeatherByCity } from '@/features/weather/useForecast'
 
 export function LandingHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -43,6 +44,8 @@ export function LandingHeader() {
   }
 
   const isClientLoggedIn = user && user.role === 'client'
+  const cityName = user?.city?.name
+  const { data: weather, isLoading: weatherLoading } = useCurrentWeatherByCity(cityName)
 
   return (
     <>
@@ -123,6 +126,24 @@ export function LandingHeader() {
                   TripVerse
                 </h1>
               </Link>
+
+              {/* Weather Display (only for logged-in clients) - Moved to left */}
+              {isClientLoggedIn && cityName && (
+                <div className="flex items-center space-x-2 px-3 py-1 rounded-lg bg-white/10 backdrop-blur-sm ml-4">
+                  {weatherLoading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span className="text-xs text-white/70">Loading...</span>
+                    </div>
+                  ) : weather ? (
+                    <Link href="/client/weather" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+                      <span className="text-lg">{weather.icon}</span>
+                      <span className="text-sm font-medium text-white">{weather.temperature}°C</span>
+                      <span className="text-xs text-white/80 hidden sm:inline">{weather.cityName}</span>
+                    </Link>
+                  ) : null}
+                </div>
+              )}
             </div>
 
             {/* Right: Message, Chatbot, Camera Icon, Login/Sign Up or Profile Dropdown */}

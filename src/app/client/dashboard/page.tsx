@@ -280,9 +280,7 @@ export default function ClientDashboard() {
             transition={{ delay: 0.8 }}
           >
             <WeatherWidget
-              location={(user as any)?.region || 'Your Location'}
-              temperature={24}
-              condition="Sunny"
+              cityName={user?.city?.name}
             />
           </motion.div>
         </div>
