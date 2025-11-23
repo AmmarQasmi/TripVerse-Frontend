@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 interface CarListing {
   id: string
@@ -115,6 +116,12 @@ export default function AdminCarsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <PageHeader 
+        title="Car Management"
+        subtitle="Review and manage car listings"
+        backUrl="/admin/dashboard"
+        backLabel="Back to Dashboard"
+      />
       <div className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

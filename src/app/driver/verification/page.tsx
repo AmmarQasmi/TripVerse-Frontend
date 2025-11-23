@@ -11,6 +11,7 @@ import { driversApi, DocumentType } from '@/lib/api/drivers.api'
 import { Driver, DriverDocument, DriverRating } from '@/types/api'
 import { SingleFileUpload } from '@/components/shared/SingleFileUpload'
 import { DocumentViewer } from '@/components/shared/DocumentViewer'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { uploadApi } from '@/lib/api/upload.api'
 
 // Required document types
@@ -326,6 +327,12 @@ export default function DriverVerificationPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <PageHeader 
+        title="Driver Verification"
+        subtitle="Submit documents to verify your driver account"
+        backUrl="/driver/dashboard"
+        backLabel="Back to Dashboard"
+      />
       <div className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

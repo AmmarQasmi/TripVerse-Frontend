@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '@/features/auth/useAuth'
+import { NotificationBell } from '@/components/shared/NotificationBell'
 
 export function DashboardHeader() {
   const { user, logout } = useAuth()
@@ -60,8 +61,11 @@ export function DashboardHeader() {
             </motion.p>
           </div>
 
-          {/* Right: Profile Dropdown */}
-          <div className="relative" ref={dropdownRef}>
+          {/* Right: Notifications & Profile Dropdown */}
+          <div className="flex items-center space-x-4">
+            <NotificationBell />
+            
+            <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors"
@@ -148,6 +152,7 @@ export function DashboardHeader() {
                 </motion.div>
               )}
             </AnimatePresence>
+            </div>
           </div>
         </div>
       </div>

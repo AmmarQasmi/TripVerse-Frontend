@@ -20,14 +20,22 @@ export const API_ENDPOINTS = {
   // Driver endpoints
   DRIVERS: {
     PROFILE: '/drivers/profile',
+    DASHBOARD: '/drivers/dashboard',
+    EARNINGS: '/drivers/earnings',
     UPLOAD_DOCUMENT: '/drivers/documents/upload',
     DELETE_DOCUMENT: (id: string) => `/drivers/documents/${id}`,
     SUBMIT_VERIFICATION: '/drivers/verification/submit',
-    VERIFICATION: {
-      PENDING: '/drivers/verification/pending',
-      VERIFIED: '/drivers/verification/verified',
-      VERIFY: (id: string) => `/drivers/verification/${id}`,
-    },
+  },
+
+  // Hotel Manager endpoints
+  HOTEL_MANAGERS: {
+    PROFILE: '/hotel-managers/profile',
+    DASHBOARD: '/hotel-managers/dashboard',
+    EARNINGS: '/hotel-managers/earnings',
+    EARNINGS_BREAKDOWN: '/hotel-managers/earnings/breakdown',
+    UPLOAD_DOCUMENT: '/hotel-managers/documents/upload',
+    DELETE_DOCUMENT: (id: string) => `/hotel-managers/documents/${id}`,
+    SUBMIT_VERIFICATION: '/hotel-managers/verification/submit',
   },
 
   // User endpoints
@@ -50,6 +58,9 @@ export const API_ENDPOINTS = {
     UPLOAD_IMAGES: (id: string) => `/hotels/${id}/images/upload`,
     DELETE_IMAGE: (hotelId: string, imageId: string) => `/hotels/${hotelId}/images/${imageId}/cloudinary`,
     OPTIMIZED_IMAGES: (id: string) => `/hotels/${id}/images/optimized`,
+    MANAGER_HOTELS: '/hotels/manager/hotels',
+    UPDATE_AVAILABILITY: (id: string) => `/hotels/${id}/availability`,
+    GET_AVAILABILITY: (id: string) => `/hotels/${id}/availability`,
   },
 
   // Car endpoints
@@ -61,6 +72,7 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/cars/${id}`,
     DELETE: (id: string) => `/cars/${id}`,
     AVAILABLE: '/cars/available',
+    DRIVER_CARS: '/cars/driver/cars',
     UPLOAD_IMAGES: (id: string) => `/cars/${id}/images/upload`,
     DELETE_IMAGE: (carId: string, imageId: string) => `/cars/${carId}/images/${imageId}/cloudinary`,
     OPTIMIZED_IMAGES: (id: string) => `/cars/${id}/images/optimized`,
@@ -73,11 +85,14 @@ export const API_ENDPOINTS = {
   HOTEL_BOOKINGS: {
     BASE: '/hotel-bookings',
     BY_ID: (id: string) => `/hotel-bookings/${id}`,
-    CREATE: '/hotel-bookings',
+    CREATE: '/hotel-bookings/request',
     UPDATE: (id: string) => `/hotel-bookings/${id}`,
     CANCEL: (id: string) => `/hotel-bookings/${id}/cancel`,
-    USER: '/hotel-bookings/user',
-    DRIVER: '/hotel-bookings/driver',
+    CONFIRM: (id: string) => `/hotel-bookings/${id}/confirm`,
+    USER: '/hotel-bookings/my-bookings',
+    MANAGER_BOOKINGS: '/hotel-bookings/manager/bookings',
+    MANAGER_STATS: '/hotel-bookings/manager/stats',
+    ADMIN_ALL: '/hotel-bookings/admin/all',
   },
 
   // Car booking endpoints
@@ -124,9 +139,43 @@ export const API_ENDPOINTS = {
   ADMIN: {
     DASHBOARD: '/admin/dashboard',
     DRIVERS: '/admin/drivers',
+    DRIVER_DETAILS: (id: string) => `/admin/drivers/${id}`,
     VERIFY_DRIVER: (id: string) => `/admin/drivers/${id}/verify`,
+    SUSPEND_DRIVER: (id: string) => `/admin/drivers/${id}/suspend`,
+    BAN_DRIVER: (id: string) => `/admin/drivers/${id}/ban`,
+    DRIVERS_VERIFICATION: {
+      PENDING: '/admin/drivers/verification/pending',
+      VERIFIED: '/admin/drivers/verification/verified',
+    },
+    HOTELS: '/admin/hotels',
+    HOTEL_DETAILS: (id: string) => `/admin/hotels/${id}`,
+    UPDATE_HOTEL: (id: string) => `/admin/hotels/${id}`,
+    DELETE_HOTEL: (id: string) => `/admin/hotels/${id}`,
+    HOTEL_MANAGERS: '/admin/hotel-managers',
+    HOTEL_MANAGER_DETAILS: (id: string) => `/admin/hotel-managers/${id}`,
+    VERIFY_HOTEL_MANAGER: (id: string) => `/admin/hotel-managers/${id}/verify`,
+    PENDING_HOTEL_MANAGERS: '/admin/hotel-managers/pending',
+    VERIFIED_HOTEL_MANAGERS: '/admin/hotel-managers/verified',
     PAYMENTS: '/admin/payments',
+    PAYMENT_DETAILS: (id: string) => `/admin/payments/${id}`,
     DISPUTES: '/admin/disputes',
+    CREATE_DISPUTE: '/admin/disputes',
+    DISPUTE_DETAILS: (id: string) => `/admin/disputes/${id}`,
     RESOLVE_DISPUTE: (id: string) => `/admin/disputes/${id}/resolve`,
+    REPORTS: {
+      BOOKINGS: '/admin/reports/bookings',
+      REVENUE: '/admin/reports/revenue',
+      DRIVERS: '/admin/reports/drivers',
+    },
+    USERS: '/admin/users',
+  },
+
+  // Notifications endpoints
+  NOTIFICATIONS: {
+    BASE: '/notifications',
+    UNREAD: '/notifications/unread',
+    MARK_READ: (id: string) => `/notifications/${id}/read`,
+    MARK_ALL_READ: '/notifications/read-all',
+    DELETE: (id: string) => `/notifications/${id}`,
   },
 } as const

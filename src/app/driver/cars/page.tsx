@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { useAuth } from '@/features/auth/useAuth'
+import { carsApi } from '@/lib/api/cars.api'
 
 interface DriverCar {
   id: string
@@ -23,49 +25,45 @@ interface DriverCar {
 
 export default function DriverCarsPage() {
   const { user } = useAuth()
-  
-  // Mock data - replace with actual API calls
-  const [cars] = useState<DriverCar[]>([
-    {
-      id: '1',
-      brand: 'Toyota',
-      model: 'Camry',
-      year: 2022,
-      color: 'Silver',
-      type: 'SEDAN',
-      pricePerDay: 5000,
-      status: 'ACTIVE',
-      totalBookings: 23,
-      totalEarnings: 115000,
-      image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=80',
-    },
-    {
-      id: '2',
-      brand: 'Honda',
-      model: 'Civic',
-      year: 2021,
-      color: 'Black',
-      type: 'SEDAN',
-      pricePerDay: 4500,
-      status: 'ACTIVE',
-      totalBookings: 18,
-      totalEarnings: 81000,
-      image: 'https://images.unsplash.com/photo-1549317336-206569e8475c?w=400&q=80',
-    },
-    {
-      id: '3',
-      brand: 'Toyota',
-      model: 'Fortuner',
-      year: 2023,
-      color: 'White',
-      type: 'SUV',
-      pricePerDay: 8000,
-      status: 'PENDING_APPROVAL',
-      totalBookings: 0,
-      totalEarnings: 0,
-      image: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&q=80',
-    },
-  ])
+  const [cars, setCars] = useState<DriverCar[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchCars = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const response = await carsApi.getDriverCars()
+        
+        // Transform API response to match component interface
+        const transformedCars: DriverCar[] = response.data.map((car) => ({
+          id: car.id,
+          brand: car.car.make,
+          model: car.car.model,
+          year: car.car.year,
+          color: car.car.color,
+          type: car.car.transmission === 'automatic' ? 'AUTOMATIC' : 'MANUAL',
+          pricePerDay: car.pricing.base_price_per_day,
+          status: car.is_active ? 'ACTIVE' : 'INACTIVE',
+          totalBookings: car.booking_stats.total_bookings,
+          totalEarnings: car.booking_stats.total_earnings,
+          image: car.images && car.images.length > 0 ? car.images[0] : undefined,
+        }))
+        
+        setCars(transformedCars)
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to load cars')
+        console.error('Error fetching driver cars:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (user?.role === 'driver') {
+      fetchCars()
+    }
+  }, [user])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -98,10 +96,54 @@ export default function DriverCarsPage() {
   const totalBookings = cars.reduce((sum, car) => sum + car.totalBookings, 0)
   const totalEarnings = cars.reduce((sum, car) => sum + car.totalEarnings, 0)
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <PageHeader 
+          title="My Cars"
+          subtitle="Manage your car listings"
+          backUrl="/driver/dashboard"
+          backLabel="Back to Dashboard"
+        />
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+          <div className="text-white text-xl">Loading cars...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <PageHeader 
+          title="My Cars"
+          subtitle="Manage your car listings"
+          backUrl="/driver/dashboard"
+          backLabel="Back to Dashboard"
+        />
+        <div className="container mx-auto px-4 py-8">
+          <Card className="bg-red-500/20 border-red-500">
+            <CardContent className="p-6">
+              <p className="text-white">{error}</p>
+              <Button onClick={() => window.location.reload()} variant="outline" className="mt-4">
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <PageHeader 
+        title="My Cars"
+        subtitle="Manage your car listings"
+        backUrl="/driver/dashboard"
+        backLabel="Back to Dashboard"
+      />
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

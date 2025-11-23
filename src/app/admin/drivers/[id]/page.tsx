@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { adminApi } from '@/lib/api/admin.api'
 import { Driver, DriverDocument, DriverRating, DocumentType } from '@/types/api'
 import { DocumentViewer } from '@/components/shared/DocumentViewer'
@@ -21,14 +22,20 @@ export default function AdminDriverReviewPage() {
   const [viewingDocument, setViewingDocument] = useState<{ url: string; name: string } | null>(null)
   const [rejectionReason, setRejectionReason] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
+  const [disciplinaryHistory, setDisciplinaryHistory] = useState<any[]>([])
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false)
 
   useEffect(() => {
     const fetchDriver = async () => {
       try {
         setIsLoading(true)
         setError(null)
-        const driverData = await adminApi.getDriverById(driverId)
+        const [driverData, history] = await Promise.all([
+          adminApi.getDriverById(driverId),
+          adminApi.getDriverDisciplinaryHistory(driverId).catch(() => [] as any[]),
+        ])
         setDriver(driverData)
+        setDisciplinaryHistory(history as any[])
         if (driverData.documents.length > 0) {
           setSelectedDocument(driverData.documents[0])
         }
@@ -154,6 +161,12 @@ export default function AdminDriverReviewPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <PageHeader 
+        title={`Driver Review: ${driver?.user?.full_name || 'Loading...'}`}
+        subtitle="Review driver documents and verification status"
+        backUrl="/admin/drivers"
+        backLabel="Back to Drivers"
+      />
       <div className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -427,6 +440,143 @@ export default function AdminDriverReviewPage() {
                       )}
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Disciplinary History */}
+          {driver.is_verified && (
+            <Card className="shadow-lg mt-8">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <span className="text-2xl mr-2">📋</span>
+                  Disciplinary History
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {disciplinaryHistory.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No disciplinary actions recorded.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {disciplinaryHistory.map((action, index) => (
+                      <div
+                        key={index}
+                        className={`p-4 rounded-lg border-2 ${
+                          action.action_type === 'ban'
+                            ? 'bg-red-50 border-red-200'
+                            : action.action_type === 'suspension'
+                            ? 'bg-orange-50 border-orange-200'
+                            : 'bg-yellow-50 border-yellow-200'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xl">
+                              {action.action_type === 'ban' ? '🚫' : action.action_type === 'suspension' ? '⏸️' : '⚠️'}
+                            </span>
+                            <span className="font-semibold text-gray-900 capitalize">
+                              {action.action_type}
+                            </span>
+                            {action.is_paused && (
+                              <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                PAUSED
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-sm text-gray-600">
+                            {new Date(action.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-600">Disputes</p>
+                            <p className="font-semibold text-gray-900">{action.dispute_count}</p>
+                          </div>
+                          {action.suspension_days && (
+                            <div>
+                              <p className="text-gray-600">Duration</p>
+                              <p className="font-semibold text-gray-900">{action.suspension_days} days</p>
+                            </div>
+                          )}
+                          {action.scheduled_start && (
+                            <div>
+                              <p className="text-gray-600">Scheduled Start</p>
+                              <p className="font-semibold text-gray-900">
+                                {new Date(action.scheduled_start).toLocaleDateString()}
+                              </p>
+                            </div>
+                          )}
+                          {action.actual_start && (
+                            <div>
+                              <p className="text-gray-600">Actual Start</p>
+                              <p className="font-semibold text-gray-900">
+                                {new Date(action.actual_start).toLocaleDateString()}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                        {action.pause_reason && (
+                          <div className="mt-2 text-sm text-gray-600">
+                            <strong>Pause Reason:</strong> {action.pause_reason}
+                          </div>
+                        )}
+                        {action.period_start && action.period_end && (
+                          <div className="mt-2 text-xs text-gray-500">
+                            Tracking Period: {new Date(action.period_start).toLocaleDateString()} - {new Date(action.period_end).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Dispute Count & Suspension Status */}
+          {driver.is_verified && (
+            <Card className="shadow-lg mt-8">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <span className="text-2xl mr-2">📊</span>
+                  Current Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-1">Dispute Count</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {(driver as any).dispute_count || 0}
+                    </p>
+                  </div>
+                  <div className={`p-4 rounded-lg ${
+                    (driver as any).is_banned ? 'bg-red-50' : 
+                    (driver as any).is_suspended ? 'bg-orange-50' : 
+                    'bg-green-50'
+                  }`}>
+                    <p className="text-sm text-gray-600 mb-1">Account Status</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {(driver as any).is_banned ? '🚫 Banned' : 
+                       (driver as any).is_suspended ? '⏸️ Suspended' : 
+                       '✅ Active'}
+                    </p>
+                  </div>
+                  {(driver as any).suspension_paused && (
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Suspension Status</p>
+                      <p className="text-2xl font-bold text-gray-900">⏸️ Paused</p>
+                    </div>
+                  )}
+                  {(driver as any).has_active_ride && (
+                    <div className="p-4 bg-yellow-50 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Active Ride</p>
+                      <p className="text-2xl font-bold text-gray-900">🚗 Yes</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

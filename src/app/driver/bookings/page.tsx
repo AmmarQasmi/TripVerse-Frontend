@@ -3,22 +3,57 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { useDriverCarBookings } from '@/features/drivers/useDriverBookings'
+import { carsApi } from '@/lib/api/cars.api'
 
 export default function DriverBookingsPage() {
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'PENDING_DRIVER_ACCEPTANCE' | 'ACCEPTED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'REJECTED'>('all')
   
-  const { bookings, isLoading, updateBookingStatus } = useDriverCarBookings()
+  const { bookings, isLoading } = useDriverCarBookings()
 
-  const filteredBookings = bookings?.filter(booking => 
-    statusFilter === 'all' || booking.status.toLowerCase() === statusFilter.toLowerCase()
-  ) || []
+  const bookingsArray: any[] = Array.isArray(bookings) ? bookings : []
+  const filteredBookings: any[] = bookingsArray.filter((booking: any) => 
+    statusFilter === 'all' || booking.status === statusFilter
+  )
 
-  const handleStatusUpdate = async (bookingId: string, newStatus: 'pending' | 'confirmed' | 'cancelled' | 'completed') => {
+  const handleAcceptBooking = async (bookingId: number) => {
     try {
-      await updateBookingStatus({ bookingId, status: newStatus })
+      await carsApi.respondToBooking(bookingId, 'accept')
+      window.location.reload()
     } catch (error) {
-      console.error('Failed to update booking status:', error)
+      console.error('Failed to accept booking:', error)
+      alert('Failed to accept booking')
+    }
+  }
+
+  const handleRejectBooking = async (bookingId: number) => {
+    try {
+      await carsApi.respondToBooking(bookingId, 'reject')
+      window.location.reload()
+    } catch (error) {
+      console.error('Failed to reject booking:', error)
+      alert('Failed to reject booking')
+    }
+  }
+
+  const handleStartTrip = async (bookingId: number) => {
+    try {
+      await carsApi.startTrip(bookingId)
+      window.location.reload()
+    } catch (error) {
+      console.error('Failed to start trip:', error)
+      alert('Failed to start trip')
+    }
+  }
+
+  const handleCompleteTrip = async (bookingId: number) => {
+    try {
+      await carsApi.completeTrip(bookingId)
+      window.location.reload()
+    } catch (error) {
+      console.error('Failed to complete trip:', error)
+      alert('Failed to complete trip')
     }
   }
 
@@ -32,13 +67,17 @@ export default function DriverBookingsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed':
+      case 'CONFIRMED':
+      case 'ACCEPTED':
         return 'bg-green-100 text-green-800'
-      case 'pending':
+      case 'PENDING_DRIVER_ACCEPTANCE':
         return 'bg-yellow-100 text-yellow-800'
-      case 'completed':
+      case 'IN_PROGRESS':
         return 'bg-blue-100 text-blue-800'
-      case 'cancelled':
+      case 'COMPLETED':
+        return 'bg-purple-100 text-purple-800'
+      case 'CANCELLED':
+      case 'REJECTED':
         return 'bg-red-100 text-red-800'
       default:
         return 'bg-gray-100 text-gray-800'
@@ -47,32 +86,42 @@ export default function DriverBookingsPage() {
 
   const getStatusActions = (booking: any) => {
     switch (booking.status) {
-      case 'pending':
+      case 'PENDING_DRIVER_ACCEPTANCE':
         return (
           <div className="flex space-x-2">
             <Button 
               size="sm" 
-              onClick={() => handleStatusUpdate(booking.id, 'confirmed')}
+              onClick={() => handleAcceptBooking(booking.id)}
             >
-              Confirm
+              Accept
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => handleStatusUpdate(booking.id, 'cancelled')}
+              onClick={() => handleRejectBooking(booking.id)}
             >
               Reject
             </Button>
           </div>
         )
-      case 'confirmed':
+      case 'CONFIRMED':
         return (
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => handleStatusUpdate(booking.id, 'completed')}
+            onClick={() => handleStartTrip(booking.id)}
           >
-            Mark Completed
+            Start Trip
+          </Button>
+        )
+      case 'IN_PROGRESS':
+        return (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleCompleteTrip(booking.id)}
+          >
+            Complete Trip
           </Button>
         )
       default:
@@ -81,9 +130,16 @@ export default function DriverBookingsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <PageHeader 
+        title="My Bookings"
+        subtitle="Manage your car rental bookings"
+        backUrl="/driver/dashboard"
+        backLabel="Back to Dashboard"
+      />
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">
           My Car Bookings
         </h1>
         <p className="text-lg text-gray-600">
@@ -93,13 +149,15 @@ export default function DriverBookingsPage() {
 
       {/* Status Filter */}
       <div className="mb-6">
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+        <div className="flex flex-wrap gap-2">
           {[
             { value: 'all', label: 'All' },
-            { value: 'pending', label: 'Pending' },
-            { value: 'confirmed', label: 'Confirmed' },
-            { value: 'completed', label: 'Completed' },
-            { value: 'cancelled', label: 'Cancelled' },
+            { value: 'PENDING_DRIVER_ACCEPTANCE', label: 'Pending' },
+            { value: 'ACCEPTED', label: 'Accepted' },
+            { value: 'CONFIRMED', label: 'Confirmed' },
+            { value: 'IN_PROGRESS', label: 'In Progress' },
+            { value: 'COMPLETED', label: 'Completed' },
+            { value: 'CANCELLED', label: 'Cancelled' },
           ].map((filter) => (
             <button
               key={filter.value}
@@ -107,7 +165,7 @@ export default function DriverBookingsPage() {
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 statusFilter === filter.value
                   ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}
             >
               {filter.label}
@@ -120,7 +178,7 @@ export default function DriverBookingsPage() {
       <div className="space-y-4">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
+            <Card key={i} className="animate-pulse bg-white/10">
               <CardContent className="p-6">
                 <div className="h-4 bg-gray-200 rounded mb-2"></div>
                 <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -128,32 +186,32 @@ export default function DriverBookingsPage() {
             </Card>
           ))
         ) : filteredBookings.length > 0 ? (
-          filteredBookings.map((booking) => (
-            <Card key={booking.id} className="hover:shadow-md transition-shadow">
+          filteredBookings.map((booking: any) => (
+            <Card key={booking.id} className="hover:shadow-md transition-shadow bg-white">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-3">
                       <h3 className="text-lg font-semibold">
-                        {booking.car?.brand} {booking.car?.model}
+                        {booking.car?.make || 'Car'} {booking.car?.model || ''}
                       </h3>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
-                        {booking.status}
+                        {booking.status.replace(/_/g, ' ')}
                       </span>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
                       <div>
-                        <span className="font-medium">Customer:</span> {booking.user?.full_name}
+                        <span className="font-medium">Customer:</span> {booking.customer?.name || 'N/A'}
                       </div>
                       <div>
-                        <span className="font-medium">Email:</span> {booking.user?.email}
+                        <span className="font-medium">Pick-up:</span> {booking.start_date ? formatDate(booking.start_date) : 'N/A'}
                       </div>
                       <div>
-                        <span className="font-medium">Pick-up:</span> {formatDate(booking.startDate)}
+                        <span className="font-medium">Return:</span> {booking.end_date ? formatDate(booking.end_date) : 'N/A'}
                       </div>
                       <div>
-                        <span className="font-medium">Return:</span> {formatDate(booking.endDate)}
+                        <span className="font-medium">Earnings:</span> ${booking.driver_earnings || 0}
                       </div>
                     </div>
 
@@ -162,28 +220,23 @@ export default function DriverBookingsPage() {
                         <span className="font-medium text-gray-900">Booking ID:</span> {booking.id}
                       </div>
                       <div>
-                        <span className="font-medium text-gray-900">Duration:</span> {
-                          Math.ceil((new Date(booking.endDate).getTime() - new Date(booking.startDate).getTime()) / (1000 * 60 * 60 * 24))
-                        } days
+                        <span className="font-medium text-gray-900">Total Amount:</span> ${booking.total_amount || 0}
                       </div>
                       <div>
-                        <span className="font-medium text-gray-900">Total Amount:</span> ${booking.totalAmount}
+                        <span className="font-medium text-gray-900">Pickup:</span> {booking.pickup_location || 'N/A'}
                       </div>
                     </div>
                   </div>
                   
                   <div className="ml-6 flex flex-col space-y-2">
                     {getStatusActions(booking)}
-                    <Button variant="outline" size="sm">
-                      View Details
-                    </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
           ))
         ) : (
-          <Card>
+          <Card className="bg-white">
             <CardContent className="p-12 text-center">
               <div className="text-gray-500 text-lg mb-4">
                 📋 No bookings found
@@ -191,7 +244,7 @@ export default function DriverBookingsPage() {
               <p className="text-gray-400">
                 {statusFilter === 'all' 
                   ? "You don't have any bookings yet."
-                  : `No bookings with status "${statusFilter.toLowerCase()}".`
+                  : `No bookings with status "${statusFilter.replace(/_/g, ' ').toLowerCase()}".`
                 }
               </p>
             </CardContent>
@@ -199,45 +252,46 @@ export default function DriverBookingsPage() {
         )}
       </div>
 
-      {/* Summary Stats */}
-      {bookings && bookings.length > 0 && (
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Booking Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">
-                  {bookings.length}
+        {/* Summary Stats */}
+        {Array.isArray(bookings) && bookings.length > 0 && (
+          <Card className="mt-8 bg-white">
+            <CardHeader>
+              <CardTitle>Booking Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {bookings.length}
+                  </div>
+                  <div className="text-sm text-blue-800">Total Bookings</div>
                 </div>
-                <div className="text-sm text-blue-800">Total Bookings</div>
-              </div>
-              
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">
-                  {bookings.filter(b => b.status === 'completed').length}
+                
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">
+                    {bookings.filter((b: any) => b.status === 'COMPLETED').length}
+                  </div>
+                  <div className="text-sm text-green-800">Completed</div>
                 </div>
-                <div className="text-sm text-green-800">Completed</div>
-              </div>
-              
-              <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600">
-                  {bookings.filter(b => b.status === 'pending' || b.status === 'confirmed').length}
+                
+                <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {bookings.filter((b: any) => ['PENDING_DRIVER_ACCEPTANCE', 'ACCEPTED', 'CONFIRMED', 'IN_PROGRESS'].includes(b.status)).length}
+                  </div>
+                  <div className="text-sm text-yellow-800">Active</div>
                 </div>
-                <div className="text-sm text-yellow-800">Active</div>
-              </div>
-              
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">
-                  ${bookings.reduce((sum, b) => sum + b.totalAmount, 0)}
+                
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">
+                    ${bookings.reduce((sum: number, b: any) => sum + (b.driver_earnings || 0), 0).toFixed(2)}
+                  </div>
+                  <div className="text-sm text-purple-800">Total Earnings</div>
                 </div>
-                <div className="text-sm text-purple-800">Total Revenue</div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   )
 }

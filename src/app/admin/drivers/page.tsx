@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { adminApi } from '@/lib/api/admin.api'
 import { Driver } from '@/types/api'
 
@@ -20,12 +21,13 @@ export default function AdminDriversPage() {
       try {
         setIsLoading(true)
         setError(null)
-        const [pending, verified] = await Promise.all([
-          adminApi.getPendingDrivers(),
-          adminApi.getVerifiedDrivers(),
+        // Use getAllDrivers to get drivers with dispute counts and suspension status
+        const [pendingResult, verifiedResult] = await Promise.all([
+          adminApi.getAllDrivers({ status: 'pending' }),
+          adminApi.getAllDrivers({ is_verified: true }),
         ])
-        setPendingDrivers(pending)
-        setVerifiedDrivers(verified)
+        setPendingDrivers((pendingResult?.data || []) as Driver[])
+        setVerifiedDrivers((verifiedResult?.data || []) as Driver[])
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to load drivers')
         console.error('Error fetching drivers:', err)
@@ -37,19 +39,42 @@ export default function AdminDriversPage() {
     fetchDrivers()
   }, [])
 
+  // Helper function to get suspension status badge
+  const getSuspensionBadge = (driver: any) => {
+    if (driver.is_banned) {
+      return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800 border border-red-300">BANNED</span>
+    }
+    if (driver.is_suspended) {
+      if (driver.suspension_paused) {
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300">SUSPENDED (PAUSED)</span>
+      }
+      return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800 border border-orange-300">SUSPENDED</span>
+    }
+    if (driver.dispute_count >= 3) {
+      return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300">⚠️ {driver.dispute_count} Disputes</span>
+    }
+    if (driver.dispute_count > 0) {
+      return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 border border-gray-300">{driver.dispute_count} Dispute{driver.dispute_count !== 1 ? 's' : ''}</span>
+    }
+    return null
+  }
+
   // Combine all drivers for filtering
   const allDrivers = [...pendingDrivers, ...verifiedDrivers]
   
   // Transform to display format
   const drivers = allDrivers.map(driver => {
-    const hasPendingDocs = driver.documents.some(d => d.status === 'pending')
-    const hasUnverifiedRatings = driver.ratings.some(r => !r.verified_at)
+    // Backend now returns documents and ratings arrays
+    const documents = (driver as any).documents || []
+    const ratings = (driver as any).ratings || []
+    const hasPendingDocs = documents.some((d: any) => d.status === 'pending')
+    const hasUnverifiedRatings = ratings.some((r: any) => !r.verified_at)
     
     return {
       ...driver, // Keep original driver data for detail page
       id: driver.id.toString(),
-      full_name: driver.user.full_name,
-      email: driver.user.email,
+      full_name: driver.user?.full_name || '',
+      email: driver.user?.email || '',
       phone: '', // Not available in backend response
       joinedDate: driver.created_at,
       verificationStatus: driver.is_verified 
@@ -57,34 +82,55 @@ export default function AdminDriversPage() {
         : hasPendingDocs || hasUnverifiedRatings
           ? 'PENDING' as const
           : 'INCOMPLETE' as const,
-      totalCars: driver.cars?.length || 0,
+      // Store original data for status determination
+      has_pending_documents: hasPendingDocs,
+      verification_notes: (driver as any).verification_notes,
+      totalCars: (driver as any).cars_count || 0,
       totalTrips: 0, // TODO: Calculate from bookings when available
       totalEarnings: 0, // TODO: Calculate from bookings when available
-      rating: driver.is_verified && driver.ratings.length > 0
-        ? Number((driver.ratings.reduce((sum, r) => sum + Number(r.rating), 0) / driver.ratings.length).toFixed(1))
+      rating: driver.is_verified && ratings.length > 0
+        ? Number((ratings.reduce((sum: number, r: any) => sum + Number(r.rating), 0) / ratings.length).toFixed(1))
         : 0,
-      documentsSubmitted: driver.documents.length,
+      documentsSubmitted: documents.length,
       documentsTotal: 4, // Required documents: license, cnic, vehicle_registration, insurance
     }
   })
 
   const filteredDrivers = drivers.filter(driver => {
     if (filter === 'all') return true
-    if (filter === 'pending') return driver.verificationStatus === 'PENDING' || driver.verificationStatus === 'INCOMPLETE'
     if (filter === 'verified') return driver.verificationStatus === 'VERIFIED'
-    // Rejected filter - drivers with verification_notes but not verified are considered rejected
+    
+    const driverData = allDrivers.find(d => d.id.toString() === driver.id)
+    const hasRejectionNotes = driverData ? !driverData.is_verified && !!driverData.verification_notes : false
+    const hasPendingDocs = driverData ? (driverData as any).has_pending_documents : false
+    
+    // Rejected filter - has verification_notes but no pending documents (truly rejected, not re-submitted)
     if (filter === 'rejected') {
-      const driverData = allDrivers.find(d => d.id.toString() === driver.id)
-      return driverData ? !driverData.is_verified && !!driverData.verification_notes : false
+      return hasRejectionNotes && !hasPendingDocs
+    }
+    // Pending filter - has pending documents OR no verification_notes (new submission or re-submission)
+    if (filter === 'pending') {
+      return !driver.is_verified && (hasPendingDocs || !hasRejectionNotes) && 
+        (driver.verificationStatus === 'PENDING' || driver.verificationStatus === 'INCOMPLETE')
     }
     return true
   })
 
   const stats = {
     total: drivers.length,
-    pending: drivers.filter(d => d.verificationStatus === 'PENDING' || d.verificationStatus === 'INCOMPLETE').length,
+    pending: drivers.filter(d => {
+      const driverData = allDrivers.find(dd => dd.id.toString() === d.id)
+      const hasRejectionNotes = driverData ? !driverData.is_verified && !!driverData.verification_notes : false
+      const hasPendingDocs = driverData ? (driverData as any).has_pending_documents : false
+      return !d.is_verified && (hasPendingDocs || !hasRejectionNotes) && 
+        (d.verificationStatus === 'PENDING' || d.verificationStatus === 'INCOMPLETE')
+    }).length,
     verified: drivers.filter(d => d.verificationStatus === 'VERIFIED').length,
-    rejected: allDrivers.filter(d => !d.is_verified && !!d.verification_notes).length,
+    rejected: allDrivers.filter(d => {
+      const hasRejectionNotes = !d.is_verified && !!d.verification_notes
+      const hasPendingDocs = (d as any).has_pending_documents
+      return hasRejectionNotes && !hasPendingDocs
+    }).length,
   }
 
   const getStatusColor = (status: string) => {
@@ -119,6 +165,12 @@ export default function AdminDriversPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <PageHeader 
+        title="Driver Management"
+        subtitle="Review and manage driver verifications"
+        backUrl="/admin/dashboard"
+        backLabel="Back to Dashboard"
+      />
       <div className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -316,6 +368,7 @@ export default function AdminDriversPage() {
                           <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(driver.verificationStatus)}`}>
                             {getStatusIcon(driver.verificationStatus)} {driver.verificationStatus}
                           </span>
+                          {getSuspensionBadge(driver)}
                           <span className="text-xs text-gray-600">
                             Documents: {driver.documentsSubmitted}/{driver.documentsTotal}
                           </span>

@@ -3,7 +3,7 @@ export interface User {
   id: number
   email: string
   full_name: string
-  role: 'client' | 'driver' | 'admin'
+  role: 'client' | 'driver' | 'admin' | 'hotel_manager'
   status: string
   city: {
     id: number
@@ -28,7 +28,7 @@ export interface RegisterData {
   email: string
   password: string
   full_name: string
-  role: 'client' | 'driver'
+  role: 'client' | 'driver' | 'hotel_manager'
   city_id: number
 }
 

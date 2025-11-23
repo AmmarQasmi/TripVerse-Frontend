@@ -109,7 +109,7 @@ export default function SignupPage() {
         full_name: formData.full_name,
         email: formData.email,
         password: formData.password,
-        role: formData.role as 'client' | 'driver',
+        role: formData.role as 'client' | 'driver' | 'hotel_manager',
         city_id: parseInt(formData.city_id),
       }
 
@@ -130,6 +130,10 @@ export default function SignupPage() {
         // New drivers need to complete verification first
         console.log('Redirecting driver to verification page...')
         window.location.href = '/driver/verification'
+      } else if (response.user.role === 'hotel_manager') {
+        // New hotel managers need to complete verification first
+        console.log('Redirecting hotel manager to verification page...')
+        window.location.href = '/hotel-manager/verification'
       } else if (response.user.role === 'admin') {
         window.location.href = '/admin/dashboard'
       } else {
@@ -232,7 +236,7 @@ export default function SignupPage() {
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Account Type <span className="text-red-500">*</span>
               </label>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <button
                   type="button"
                   onClick={() => handleInputChange('role', 'client')}
@@ -265,6 +269,23 @@ export default function SignupPage() {
                     </svg>
                     <span className="font-semibold text-base text-gray-900">Driver</span>
                     <span className="text-xs text-gray-600 mt-1">Provide car services</span>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleInputChange('role', 'hotel_manager')}
+                  className={`p-5 border-2 rounded-xl transition-all bg-white ${
+                    formData.role === 'hotel_manager'
+                      ? 'border-cyan-900 bg-cyan-50 shadow-md'
+                      : 'border-gray-300 hover:border-cyan-600 hover:shadow'
+                  }`}
+                >
+                  <div className="flex flex-col items-center">
+                    <svg className="w-10 h-10 mb-2 text-cyan-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span className="font-semibold text-base text-gray-900">Hotel Manager</span>
+                    <span className="text-xs text-gray-600 mt-1">Manage hotels</span>
                   </div>
                 </button>
               </div>

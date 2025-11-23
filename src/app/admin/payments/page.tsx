@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { usePaymentsAdmin } from '@/features/admin/usePaymentsAdmin'
 
 export default function AdminPaymentsPage() {
@@ -16,7 +17,7 @@ export default function AdminPaymentsPage() {
   
   const { payments, isLoading, processRefund } = usePaymentsAdmin()
 
-  const filteredPayments = payments?.filter(payment => {
+  const filteredPayments = payments?.filter((payment: any) => {
     const matchesSearch = payment.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          payment.bookingId.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesStatus = statusFilter === 'all' || payment.status === statusFilter
@@ -61,14 +62,21 @@ export default function AdminPaymentsPage() {
     }
   }
 
-  const totalRevenue = payments?.filter(p => p.status === 'COMPLETED').reduce((sum, p) => sum + p.amount, 0) || 0
-  const totalRefunds = payments?.filter(p => p.status === 'REFUNDED').reduce((sum, p) => sum + (p.refundAmount || 0), 0) || 0
+  const totalRevenue = payments?.filter((p: any) => p.status === 'COMPLETED').reduce((sum: number, p: any) => sum + p.amount, 0) || 0
+  const totalRefunds = payments?.filter((p: any) => p.status === 'REFUNDED').reduce((sum: number, p: any) => sum + (p.refundAmount || 0), 0) || 0
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Payment Management
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <PageHeader 
+        title="Payment Management"
+        subtitle="Monitor and manage payment transactions"
+        backUrl="/admin/dashboard"
+        backLabel="Back to Dashboard"
+      />
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Payment Management
         </h1>
         <p className="text-lg text-gray-600">
           Monitor and manage all payment transactions on the platform.
@@ -145,7 +153,7 @@ export default function AdminPaymentsPage() {
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Pending Payments</p>
                 <p className="text-2xl font-bold text-yellow-600">
-                  {payments?.filter(p => p.status === 'PENDING').length || 0}
+                  {payments?.filter((p: any) => p.status === 'PENDING').length || 0}
                 </p>
               </div>
               <div className="text-2xl">⏳</div>
@@ -184,7 +192,7 @@ export default function AdminPaymentsPage() {
             </div>
           ) : filteredPayments.length > 0 ? (
             <div className="space-y-4">
-              {filteredPayments.map((payment) => (
+              {filteredPayments.map((payment: any) => (
                 <div key={payment.id} className="flex justify-between items-center p-4 border rounded-lg hover:bg-gray-50">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
@@ -242,6 +250,7 @@ export default function AdminPaymentsPage() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }
