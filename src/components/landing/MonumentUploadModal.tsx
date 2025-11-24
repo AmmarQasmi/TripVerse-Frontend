@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
+import { useRecognition } from '@/features/monuments/useRecognition'
 
 interface MonumentUploadModalProps {
   isOpen: boolean
@@ -12,6 +14,8 @@ export function MonumentUploadModal({ isOpen, onClose }: MonumentUploadModalProp
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const router = useRouter()
+  const { recognizeMonument, isLoading, error } = useRecognition()
 
   if (!isOpen) return null
 
@@ -24,12 +28,26 @@ export function MonumentUploadModal({ isOpen, onClose }: MonumentUploadModalProp
     }
   }
 
-  const handleUpload = () => {
-    // This will be implemented when the feature is ready
-    alert('Monument recognition feature coming soon! 🏛️')
-    onClose()
-    setSelectedFile(null)
-    setPreviewUrl(null)
+  const handleUpload = async () => {
+    if (!selectedFile) return
+
+    try {
+      const result = await recognizeMonument(selectedFile)
+      
+      // Redirect to results page
+      if (result?.id) {
+        router.push(`/client/monuments/${result.id}`)
+        onClose()
+        setSelectedFile(null)
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl)
+        }
+        setPreviewUrl(null)
+      }
+    } catch (err: any) {
+      console.error('Recognition failed:', err)
+      alert(err?.response?.data?.message || 'Failed to recognize monument. Please try again.')
+    }
   }
 
   const handleClose = () => {
@@ -110,21 +128,21 @@ export function MonumentUploadModal({ isOpen, onClose }: MonumentUploadModalProp
             />
           </div>
 
-          <div className="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-blue-800">
-              <span className="font-semibold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">Coming Soon! 🚀</span><br />
-              Our AI-powered monument recognition feature is under development. 
-              Upload your image to try it out!
-            </p>
-          </div>
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-red-800">
+                {error instanceof Error ? error.message : 'Failed to recognize monument. Please try again.'}
+              </p>
+            </div>
+          )}
 
           <div className="flex space-x-3">
             <Button
               onClick={handleUpload}
-              disabled={!selectedFile}
-              className="flex-1 bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white hover:opacity-90"
+              disabled={!selectedFile || isLoading}
+              className="flex-1 bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Upload & Identify
+              {isLoading ? 'Recognizing...' : 'Upload & Identify'}
             </Button>
             <Button
               onClick={handleClose}
