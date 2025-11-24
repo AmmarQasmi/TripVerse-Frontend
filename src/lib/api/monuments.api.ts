@@ -29,7 +29,18 @@ export const monumentsApi = {
     const formData = new FormData()
     formData.append('image', imageFile)
 
-    return httpClient.post<{ monument: Monument; confidence: number }>(
+    return httpClient.post<{
+      id: number
+      name: string
+      confidence: number
+      imageUrl: string
+      wikiSnippet?: string
+      wikipediaUrl?: string
+      coordinates?: { lat: number; lng: number }
+      placeDetails?: any
+      rawData?: any
+      createdAt: string
+    }>(
       API_ENDPOINTS.MONUMENTS.RECOGNIZE,
       formData,
       {
@@ -40,7 +51,44 @@ export const monumentsApi = {
     )
   },
 
-  export: async (id: string, format: 'pdf' | 'html' | 'json') => {
+  getMyRecognitions: async (page: number = 1, limit: number = 10) => {
+    return httpClient.get<{
+      recognitions: Array<{
+        id: number
+        name: string
+        confidence: number
+        imageUrl: string
+        wikiSnippet?: string
+        wikipediaUrl?: string
+        coordinates?: { lat: number; lng: number }
+        placeDetails?: any
+        rawData?: any
+        createdAt: string
+      }>
+      total: number
+      page: number
+      limit: number
+    }>(`${API_ENDPOINTS.MONUMENTS.MY_RECOGNITIONS}?page=${page}&limit=${limit}`)
+  },
+
+  getReviews: async (id: string) => {
+    return httpClient.get<{
+      reviews?: Array<{
+        author_name: string
+        author_url?: string
+        rating: number
+        text: string
+        time: number
+        relative_time_description?: string
+      }>
+      rating?: number
+      user_ratings_total?: number
+      formatted_address?: string
+      status: 'pending' | 'completed' | 'failed' | 'not_started'
+    }>(API_ENDPOINTS.MONUMENTS.REVIEWS(id))
+  },
+
+  export: async (id: string, format: 'pdf' | 'html' | 'json' | 'docx') => {
     return httpClient.get<Blob>(`${API_ENDPOINTS.MONUMENTS.EXPORT(id)}?format=${format}`, {
       responseType: 'blob',
     })

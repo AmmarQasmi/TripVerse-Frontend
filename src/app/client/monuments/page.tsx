@@ -1,17 +1,40 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { useRecognition } from '@/features/monuments/useRecognition'
+import { monumentsApi } from '@/lib/api/monuments.api'
+import { LandingHeader } from '@/components/landing/LandingHeader'
 
 export default function MonumentsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [recognitions, setRecognitions] = useState<any[]>([])
+  const [loadingRecognitions, setLoadingRecognitions] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const router = useRouter()
   
-  const { recognizeMonument, data: recognitionResult, isLoading } = useRecognition()
+  const { recognizeMonument, isLoading } = useRecognition()
+
+  useEffect(() => {
+    loadRecognitions()
+  }, [])
+
+  const loadRecognitions = async () => {
+    try {
+      setLoadingRecognitions(true)
+      const data = await monumentsApi.getMyRecognitions(1, 20)
+      setRecognitions(data.recognitions || [])
+    } catch (error) {
+      console.error('Failed to load recognitions:', error)
+    } finally {
+      setLoadingRecognitions(false)
+    }
+  }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -27,9 +50,14 @@ export default function MonumentsPage() {
     
     setIsProcessing(true)
     try {
-      await recognizeMonument(selectedFile)
+      const result = await recognizeMonument(selectedFile)
+      if (result?.id) {
+        // Redirect to results page
+        router.push(`/client/monuments/${result.id}`)
+      }
     } catch (error) {
       console.error('Recognition failed:', error)
+      alert('Failed to recognize monument. Please try again.')
     } finally {
       setIsProcessing(false)
     }
@@ -58,7 +86,9 @@ export default function MonumentsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-white">
+      <LandingHeader />
+      <div className="container mx-auto px-4 py-8 pt-24">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
           Monument Recognition
@@ -120,17 +150,24 @@ export default function MonumentsPage() {
                     </button>
                   </div>
                   
-                  <div className="flex space-x-3">
-                    <Button
-                      onClick={handleRecognize}
-                      disabled={isProcessing || isLoading}
-                      className="flex-1"
-                    >
-                      {isProcessing || isLoading ? 'Recognizing...' : 'Recognize Monument'}
-                    </Button>
-                    <Button variant="outline" onClick={resetUpload}>
-                      Choose Different Photo
-                    </Button>
+                  <div className="space-y-3">
+                    <div className="flex space-x-3">
+                      <Button
+                        onClick={handleRecognize}
+                        disabled={isProcessing || isLoading}
+                        className="flex-1"
+                      >
+                        {isProcessing || isLoading ? 'Recognizing...' : 'Recognize Monument'}
+                      </Button>
+                      <Button variant="outline" onClick={resetUpload}>
+                        Choose Different Photo
+                      </Button>
+                    </div>
+                    {(isProcessing || isLoading) && (
+                      <p className="text-sm text-gray-500 text-center">
+                        Processing your image...
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -163,90 +200,55 @@ export default function MonumentsPage() {
           </Card>
         </div>
 
-        {/* Results Section */}
+        {/* Recent Recognitions */}
         <div className="space-y-6">
-          {recognitionResult ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Recognition Results</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-sm font-medium text-gray-500">Confidence:</span>
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-green-500 h-2 rounded-full"
-                        style={{ width: `${recognitionResult.confidence * 100}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-sm font-medium">
-                      {Math.round(recognitionResult.confidence * 100)}%
-                    </span>
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">
-                      {recognitionResult.monument.name}
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      {recognitionResult.monument.description}
-                    </p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="font-medium text-gray-500">Location:</span>
-                        <p className="text-gray-900">{recognitionResult.monument.location}</p>
-                      </div>
-                      {recognitionResult.monument.historicalPeriod && (
-                        <div>
-                          <span className="font-medium text-gray-500">Period:</span>
-                          <p className="text-gray-900">{recognitionResult.monument.historicalPeriod}</p>
-                        </div>
-                      )}
-                      {recognitionResult.monument.architecturalStyle && (
-                        <div>
-                          <span className="font-medium text-gray-500">Style:</span>
-                          <p className="text-gray-900">{recognitionResult.monument.architecturalStyle}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t">
-                    <Button className="w-full">
-                      Export Information
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <div className="text-gray-500 text-lg mb-4">
-                  🏛️ Upload a photo to get started
-                </div>
-                <p className="text-gray-400">
-                  Our AI will analyze your image and provide information about the monument.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Recent Recognitions */}
           <Card>
             <CardHeader>
               <CardTitle>Recent Recognitions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center text-gray-500 py-8">
-                <p>No recent recognitions</p>
-                <p className="text-sm">Your recognition history will appear here</p>
-              </div>
+              {loadingRecognitions ? (
+                <div className="text-center text-gray-500 py-8">
+                  <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin mx-auto mb-3"></div>
+                  <p>Loading recognitions...</p>
+                </div>
+              ) : recognitions.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">
+                  <p>No recent recognitions</p>
+                  <p className="text-sm">Your recognition history will appear here</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recognitions.map((rec) => (
+                    <Link
+                      key={rec.id}
+                      href={`/client/monuments/${rec.id}`}
+                      className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-start space-x-4">
+                        <img
+                          src={rec.imageUrl}
+                          alt={rec.name}
+                          className="w-20 h-20 object-cover rounded-lg"
+                        />
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 mb-1">{rec.name}</h3>
+                          <p className="text-sm text-gray-500 mb-2">
+                            Confidence: {Math.round(rec.confidence * 100)}%
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {new Date(rec.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
+      </div>
       </div>
     </div>
   )
