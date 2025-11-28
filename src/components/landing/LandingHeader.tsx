@@ -29,9 +29,15 @@ export function LandingHeader() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const handleLogout = () => {
-    logout()
-    router.push('/auth/login')
+  const handleLogout = async () => {
+    try {
+      await logout()
+      router.push('/auth/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Still redirect even if logout API call fails
+      router.push('/auth/login')
+    }
   }
 
   const getInitials = (name: string) => {
@@ -43,6 +49,7 @@ export function LandingHeader() {
       .slice(0, 2)
   }
 
+  const isLoggedIn = !!user
   const isClientLoggedIn = user && user.role === 'client'
   const cityName = user?.city?.name
   const { data: weather, isLoading: weatherLoading } = useCurrentWeatherByCity(cityName)
@@ -182,9 +189,9 @@ export function LandingHeader() {
                 </svg>
               </button>
 
-              {isClientLoggedIn ? (
+              {isLoggedIn ? (
                 <>
-                  <NotificationBell />
+                  {isClientLoggedIn && <NotificationBell />}
                   
                   <div className="relative" ref={dropdownRef}>
                     <button
@@ -224,30 +231,56 @@ export function LandingHeader() {
                           </div>
                           
                           <div className="py-2">
-                            <Link
-                              href="/client/dashboard"
-                              className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
-                              onClick={() => setIsDropdownOpen(false)}
-                            >
-                              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                              </svg>
-                              <span className="text-sm text-gray-700">Dashboard</span>
-                            </Link>
-
-                            <Link
-                              href="/client/bookings"
-                              className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
-                              onClick={() => setIsDropdownOpen(false)}
-                            >
-                              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                              </svg>
-                              <span className="text-sm text-gray-700">My Bookings</span>
-                            </Link>
+                            {user?.role === 'hotel_manager' ? (
+                              <>
+                                <Link
+                                  href="/hotel-manager/dashboard"
+                                  className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
+                                  onClick={() => setIsDropdownOpen(false)}
+                                >
+                                  <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                  </svg>
+                                  <span className="text-sm text-gray-700">Dashboard</span>
+                                </Link>
+                                <Link
+                                  href="/hotel-manager/hotels"
+                                  className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
+                                  onClick={() => setIsDropdownOpen(false)}
+                                >
+                                  <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                  </svg>
+                                  <span className="text-sm text-gray-700">My Hotels</span>
+                                </Link>
+                              </>
+                            ) : (
+                              <>
+                                <Link
+                                  href="/client/dashboard"
+                                  className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
+                                  onClick={() => setIsDropdownOpen(false)}
+                                >
+                                  <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                  </svg>
+                                  <span className="text-sm text-gray-700">Dashboard</span>
+                                </Link>
+                                <Link
+                                  href="/client/bookings"
+                                  className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
+                                  onClick={() => setIsDropdownOpen(false)}
+                                >
+                                  <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                  </svg>
+                                  <span className="text-sm text-gray-700">My Bookings</span>
+                                </Link>
+                              </>
+                            )}
                             
                             <Link
-                              href="/client/profile"
+                              href={user?.role === 'hotel_manager' ? "/hotel-manager/profile" : "/client/profile"}
                               className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
                               onClick={() => setIsDropdownOpen(false)}
                             >
@@ -258,7 +291,7 @@ export function LandingHeader() {
                             </Link>
                             
                             <Link
-                              href="/client/settings"
+                              href={user?.role === 'hotel_manager' ? "/hotel-manager/settings" : "/client/settings"}
                               className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
                               onClick={() => setIsDropdownOpen(false)}
                             >

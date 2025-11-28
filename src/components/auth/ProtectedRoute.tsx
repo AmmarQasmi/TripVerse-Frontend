@@ -6,7 +6,7 @@ import { useAuth } from '@/features/auth/useAuth'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
-  requiredRole?: 'client' | 'driver' | 'admin'
+  requiredRole?: 'client' | 'driver' | 'admin' | 'hotel_manager'
   redirectTo?: string
 }
 
@@ -54,6 +54,8 @@ export function ProtectedRoute({
           router.push('/admin/dashboard')
         } else if (user.role === 'driver') {
           router.push('/driver/dashboard')
+        } else if (user.role === 'hotel_manager') {
+          router.push('/hotel-manager/dashboard')
         } else {
           router.push('/client/dashboard')
         }

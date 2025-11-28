@@ -26,11 +26,15 @@ export const hotelsApi = {
   },
 
   create: async (hotel: Omit<Hotel, 'id' | 'createdAt' | 'updatedAt'>) => {
-    return httpClient.post<Hotel>(API_ENDPOINTS.HOTELS.CREATE, hotel)
+    return httpClient.post<{
+      id: number
+      name: string
+      message: string
+    }>(API_ENDPOINTS.HOTELS.CREATE, hotel)
   },
 
   update: async (id: string, hotel: Partial<Hotel>) => {
-    return httpClient.put<Hotel>(API_ENDPOINTS.HOTELS.UPDATE(id), hotel)
+    return httpClient.patch<Hotel>(API_ENDPOINTS.HOTELS.UPDATE(id), hotel)
   },
 
   delete: async (id: string) => {
@@ -116,5 +120,44 @@ export const hotelsApi = {
         available_rooms: number
       }>
     }>(API_ENDPOINTS.HOTELS.GET_AVAILABILITY(hotelId))
+  },
+
+  // Room type management
+  addRoomType: async (hotelId: string, roomTypeData: {
+    name: string
+    description?: string
+    max_occupancy: number
+    base_price: number
+    total_rooms: number
+    amenities?: string[]
+    images?: string[]
+  }) => {
+    return httpClient.post<{
+      id: number
+      name: string
+      message: string
+    }>(API_ENDPOINTS.HOTELS.ROOM_TYPES(hotelId), roomTypeData)
+  },
+
+  updateRoomType: async (hotelId: string, roomTypeId: string, roomTypeData: {
+    name?: string
+    description?: string
+    max_occupancy?: number
+    base_price?: number
+    total_rooms?: number
+    amenities?: string[]
+    images?: string[]
+  }) => {
+    return httpClient.patch<{
+      id: number
+      name: string
+      message: string
+    }>(API_ENDPOINTS.HOTELS.ROOM_TYPE(hotelId, roomTypeId), roomTypeData)
+  },
+
+  deleteRoomType: async (hotelId: string, roomTypeId: string) => {
+    return httpClient.delete<{
+      message: string
+    }>(API_ENDPOINTS.HOTELS.ROOM_TYPE(hotelId, roomTypeId))
   },
 }

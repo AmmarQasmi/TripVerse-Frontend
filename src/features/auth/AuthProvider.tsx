@@ -6,7 +6,7 @@ import { authApi } from '@/lib/api/auth.api'
 
 interface AuthContextType {
   user: User | null
-  login: (credentials: LoginCredentials) => Promise<void>
+  login: (credentials: LoginCredentials) => Promise<User>
   logout: () => Promise<void>
   checkSession: () => Promise<void>
   setUser: (user: User | null) => void
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const login = async (credentials: LoginCredentials) => {
+  const login = async (credentials: LoginCredentials): Promise<User> => {
     try {
       console.log('🔐 Attempting login...')
       
@@ -63,6 +63,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Set user state from response
       setUser(response.user)
+      
+      // Return the user so it can be used immediately for redirects
+      return response.user
     } catch (error: any) {
       console.error('❌ Login failed:', error)
       // Extract error message from the API response

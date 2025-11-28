@@ -12,8 +12,24 @@ export function useHotelBooking() {
     },
   })
 
+  const confirmBooking = useMutation({
+    mutationFn: (id: string) => hotelBookingsApi.confirm(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hotel-bookings'] })
+    },
+  })
+
+  const cancelBooking = useMutation({
+    mutationFn: (id: string) => hotelBookingsApi.cancel(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hotel-bookings'] })
+    },
+  })
+
   return {
     createBooking,
+    confirmBooking,
+    cancelBooking,
   }
 }
 
