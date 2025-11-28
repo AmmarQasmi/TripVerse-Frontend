@@ -1,7 +1,9 @@
 'use client'
 
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { LandingHeader } from '@/components/landing/LandingHeader'
 import { OverviewStatsCard } from '@/components/client/OverviewStatsCard'
 import { TripCard, NewTripCard } from '@/components/client/TripCard'
@@ -16,8 +18,24 @@ import { useUserCarBookings } from '@/features/bookings/useCarBooking'
 
 export default function ClientDashboard() {
   const { user } = useAuth()
+  const router = useRouter()
+  
+  // Redirect hotel managers to their dashboard
+  useEffect(() => {
+    if (user && user.role === 'hotel_manager') {
+      router.push('/hotel-manager/dashboard')
+    }
+  }, [user, router])
+  
+  // Only fetch bookings if user is a client
+  const isClient = user?.role === 'client'
   const { data: hotelBookings, isLoading: hotelLoading } = useUserHotelBookings()
   const { data: carBookings, isLoading: carLoading } = useUserCarBookings()
+  
+  // Don't render if user is not a client (will redirect)
+  if (user && user.role !== 'client') {
+    return null
+  }
 
   // Combine and calculate stats
   const allBookings = [...(hotelBookings || []), ...(carBookings || [])]

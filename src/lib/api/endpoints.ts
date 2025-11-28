@@ -55,6 +55,7 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/hotels/${id}`,
     DELETE: (id: string) => `/hotels/${id}`,
     ROOM_TYPES: (id: string) => `/hotels/${id}/room-types`,
+    ROOM_TYPE: (hotelId: string, roomId: string) => `/hotels/${hotelId}/rooms/${roomId}`,
     UPLOAD_IMAGES: (id: string) => `/hotels/${id}/images/upload`,
     DELETE_IMAGE: (hotelId: string, imageId: string) => `/hotels/${hotelId}/images/${imageId}/cloudinary`,
     OPTIMIZED_IMAGES: (id: string) => `/hotels/${id}/images/optimized`,

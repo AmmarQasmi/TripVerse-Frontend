@@ -33,7 +33,7 @@ export default function LoginPage() {
     
     try {
       // Login - cookie is set by backend automatically
-      await login({ email, password })
+      const loggedInUser = await login({ email, password })
       
       // Check if there's a redirect URL (user was trying to access protected page)
       const redirectUrl = getRedirectUrl()
@@ -42,8 +42,16 @@ export default function LoginPage() {
         console.log('Redirecting back to:', redirectUrl)
         router.push(redirectUrl)
       } else {
-        // No redirect URL, go to default dashboard
-        router.push('/client/dashboard')
+        // Redirect based on user role
+        if (loggedInUser.role === 'admin') {
+          router.push('/admin/dashboard')
+        } else if (loggedInUser.role === 'driver') {
+          router.push('/driver/dashboard')
+        } else if (loggedInUser.role === 'hotel_manager') {
+          router.push('/hotel-manager/dashboard')
+        } else {
+          router.push('/client/dashboard')
+        }
       }
     } catch (error: any) {
       console.error('Login failed:', error)
@@ -67,6 +75,8 @@ export default function LoginPage() {
           router.push('/admin/dashboard')
         } else if (user.role === 'driver') {
           router.push('/driver/dashboard')
+        } else if (user.role === 'hotel_manager') {
+          router.push('/hotel-manager/dashboard')
         } else {
           router.push('/client/dashboard')
         }
