@@ -9,7 +9,7 @@ import { useHotelById } from '@/features/hotels/useHotelSearch'
 import { HotelImageCarousel } from '@/components/hotels/HotelImageCarousel'
 import { HotelDetails } from '@/components/hotels/HotelDetails'
 import { HotelAmenities } from '@/components/hotels/HotelAmenities'
-import { RoomTypeCard } from '@/components/hotels/RoomTypeCard'
+import { Card, CardContent } from '@/components/ui/Card'
 import { HotelReviews } from '@/components/hotels/HotelReviews'
 import { HotelMap } from '@/components/hotels/HotelMap'
 import { BookingSummary } from '@/components/hotels/BookingSummary'
@@ -233,12 +233,61 @@ export default function HotelDetailPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                     >
-                      <RoomTypeCard
-                        room={room}
-                        onSelect={() => handleBooking(room.id)}
-                        isSelected={selectedRoom === room.id}
-                        isAuthenticated={isAuthenticated()}
-                      />
+                      <Card className={`hover:shadow-md transition-shadow ${selectedRoom === room.id ? 'ring-2 ring-blue-500' : ''}`}>
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold text-white">{room.name}</h3>
+                              {room.description && (
+                                <p className="text-sm text-gray-300 mt-1">{room.description}</p>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <p className="text-2xl font-bold text-white">PKR {room.pricePerNight?.toLocaleString() || '0'}</p>
+                              <p className="text-sm text-gray-300">per night</p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                            <div>
+                              <span className="text-gray-300">Max Occupancy:</span>
+                              <span className="ml-2 font-medium text-white">{room.capacity} guests</span>
+                            </div>
+                            {room.total_rooms !== undefined && (
+                              <div>
+                                <span className="text-gray-300">Total Rooms:</span>
+                                <span className="ml-2 font-medium text-white">{room.total_rooms}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {room.amenities && room.amenities.length > 0 && (
+                            <div className="mt-4 pt-4 border-t border-gray-600">
+                              <p className="text-sm text-gray-300 mb-2">Amenities:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {room.amenities.slice(0, 5).map((amenity: string, idx: number) => (
+                                  <span
+                                    key={idx}
+                                    className="px-2 py-1 bg-white/10 text-gray-200 text-xs rounded-full capitalize"
+                                  >
+                                    {amenity.replace('_', ' ')}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="mt-4 pt-4 border-t border-gray-600">
+                            <Button
+                              onClick={() => handleBooking(room.id)}
+                              className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
+                              disabled={!isAuthenticated()}
+                            >
+                              {isAuthenticated() ? 'Select Room' : 'Login to Book'}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
                     </motion.div>
                   )) || (
                     <div className="text-center py-12">

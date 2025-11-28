@@ -158,7 +158,7 @@ export default function ManageHotelPage() {
         name: formData.name,
         description: formData.description,
         address: formData.address,
-        star_rating: formData.star_rating,
+        rating: formData.star_rating,
         amenities: formData.amenities,
       })
 

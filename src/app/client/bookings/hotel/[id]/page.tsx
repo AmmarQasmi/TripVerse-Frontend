@@ -258,7 +258,7 @@ export default function HotelBookingDetailPage() {
                     {confirming ? 'Confirming...' : 'Confirm & Pay'}
                   </Button>
                 )}
-                {(booking.status === 'PENDING_PAYMENT' || booking.status === 'CONFIRMED') && booking.status !== 'CHECKED_OUT' && (
+                {(booking.status === 'PENDING_PAYMENT' || booking.status === 'CONFIRMED') && (
                   <Button
                     onClick={handleCancel}
                     disabled={cancelling}

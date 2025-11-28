@@ -250,13 +250,42 @@ export interface HotelBooking {
   checkInDate: string
   checkOutDate: string
   guests: number
+  quantity?: number
   totalAmount: number
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
+  currency?: string
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'PENDING_PAYMENT' | 'CONFIRMED' | 'CANCELLED' | 'CHECKED_IN' | 'CHECKED_OUT'
   createdAt: string
   updatedAt: string
   hotel?: Hotel
   roomType?: RoomType
   user?: User
+  booking_details?: {
+    hotel?: {
+      id: string
+      name: string
+      address: string
+      city: string
+    }
+    room_type?: {
+      id: string
+      name: string
+      max_occupancy: number
+      price_per_night: number
+    }
+    dates?: {
+      check_in: string
+      check_out: string
+      nights: number
+    }
+    pricing?: {
+      base_price_per_night: number
+      quantity: number
+      nights: number
+      total_amount: number
+      currency?: string
+    }
+    guest_notes?: string | null
+  }
 }
 
 export interface CarSearchParams {
