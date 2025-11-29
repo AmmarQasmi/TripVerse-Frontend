@@ -118,4 +118,27 @@
     color: rgb(156 163 175);
     opacity: 1;
   }
+  
+  /* Animated gradient text */
+  @keyframes gradient-shift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  .animated-gradient-text {
+    background: linear-gradient(90deg, #000 40%, #0891b2 50%, #000 60%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradient-shift 5s linear infinite;
+    display: inline-block;
+  }
 }

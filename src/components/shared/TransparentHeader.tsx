@@ -2,13 +2,15 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { MonumentUploadModal } from '@/components/landing/MonumentUploadModal'
 import { Home, Camera } from 'lucide-react'
 import { useAuth } from '@/features/auth/useAuth'
 import { motion, AnimatePresence } from 'framer-motion'
 import { NotificationBell } from '@/components/shared/NotificationBell'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlane, faCar, faBuilding } from '@fortawesome/free-solid-svg-icons'
 
 export function TransparentHeader() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -16,6 +18,12 @@ export function TransparentHeader() {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { user, logout } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
+  
+  // Determine which icons to show based on current page
+  const isFlightsPage = pathname?.includes('/flights')
+  const isCarsPage = pathname?.includes('/cars')
+  const isHotelsPage = pathname?.includes('/hotels')
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -66,7 +74,7 @@ export function TransparentHeader() {
               </Link>
             </div>
 
-            {/* Right: Monument Recognition Icon + Auth Buttons or Profile Dropdown */}
+            {/* Right: Monument Recognition Icon + Flight/Car Icons + Auth Buttons or Profile Dropdown */}
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setIsModalOpen(true)}
@@ -75,6 +83,85 @@ export function TransparentHeader() {
               >
                 <Camera className="w-6 h-6 text-white" />
               </button>
+
+              {/* Conditional Icons based on current page */}
+              {/* On Flights page: Show Car and Hotel icons */}
+              {isFlightsPage && (
+                <>
+                  <Link 
+                    href="/client/cars"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                    aria-label="Rent a car"
+                  >
+                    <FontAwesomeIcon 
+                      icon={faCar} 
+                      className="w-5 h-5 text-white"
+                    />
+                  </Link>
+                  <Link 
+                    href="/client/hotels"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                    aria-label="Book hotels"
+                  >
+                    <FontAwesomeIcon 
+                      icon={faBuilding} 
+                      className="w-5 h-5 text-white"
+                    />
+                  </Link>
+                </>
+              )}
+
+              {/* On Cars page: Show Hotel and Flight icons */}
+              {isCarsPage && (
+                <>
+                  <Link 
+                    href="/client/hotels"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                    aria-label="Book hotels"
+                  >
+                    <FontAwesomeIcon 
+                      icon={faBuilding} 
+                      className="w-5 h-5 text-white"
+                    />
+                  </Link>
+                  <Link 
+                    href="/client/flights"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                    aria-label="Book flights"
+                  >
+                    <FontAwesomeIcon 
+                      icon={faPlane} 
+                      className="w-5 h-5 text-white"
+                    />
+                  </Link>
+                </>
+              )}
+
+              {/* On Hotels page: Show Flight and Car icons */}
+              {isHotelsPage && (
+                <>
+                  <Link 
+                    href="/client/flights"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                    aria-label="Book flights"
+                  >
+                    <FontAwesomeIcon 
+                      icon={faPlane} 
+                      className="w-5 h-5 text-white"
+                    />
+                  </Link>
+                  <Link 
+                    href="/client/cars"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                    aria-label="Rent a car"
+                  >
+                    <FontAwesomeIcon 
+                      icon={faCar} 
+                      className="w-5 h-5 text-white"
+                    />
+                  </Link>
+                </>
+              )}
 
               {isClientLoggedIn ? (
                 <>

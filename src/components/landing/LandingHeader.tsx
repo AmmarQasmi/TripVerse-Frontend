@@ -320,19 +320,18 @@ export function LandingHeader() {
                   </div>
                 </>
               ) : (
-                <>
+                <div className="flex items-center space-x-3">
                   <Link href="/auth/login">
-                    <Button variant="ghost" className="text-white hover:text-gray-200 hover:bg-white/10">
+                    <Button className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white hover:opacity-90">
                       Login
                     </Button>
                   </Link>
-
                   <Link href="/auth/signup">
                     <Button className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white hover:opacity-90">
                       Sign Up
                     </Button>
                   </Link>
-                </>
+                </div>
               )}
             </div>
           </div>

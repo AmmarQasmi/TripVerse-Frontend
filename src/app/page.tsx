@@ -1,11 +1,14 @@
 'use client'
 
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { LandingHeader } from '@/components/landing/LandingHeader'
 import { HeroCarousel } from '@/components/landing/HeroCarousel'
 import { SearchBar } from '@/components/landing/SearchBar'
 import { FAQSection } from '@/components/landing/FAQSection'
 import { Footer } from '@/components/landing/Footer'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlane, faBuilding, faCar } from '@fortawesome/free-solid-svg-icons'
 
 export default function Home() {
   return (
@@ -64,20 +67,21 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Hotels Card */}
-            <motion.div 
-              className="relative p-8 rounded-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 backdrop-blur-md opacity-95 shadow-2xl hover:scale-105 hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-300 group overflow-hidden"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              style={{
-                border: '2px solid transparent',
-                backgroundImage: `
-                  linear-gradient(to right, rgb(29, 78, 216), rgb(21, 94, 117), rgb(30, 64, 175)),
-                  linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)
-                `,
-                backgroundOrigin: 'border-box',
-                backgroundClip: 'padding-box, border-box'
-              }}
-            >
+            <Link href="/client/hotels" className="block">
+              <motion.div 
+                className="relative p-8 rounded-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 backdrop-blur-md opacity-95 shadow-2xl hover:scale-105 hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-300 group overflow-hidden cursor-pointer"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                style={{
+                  border: '2px solid transparent',
+                  backgroundImage: `
+                    linear-gradient(to right, rgb(29, 78, 216), rgb(21, 94, 117), rgb(30, 64, 175)),
+                    linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)
+                  `,
+                  backgroundOrigin: 'border-box',
+                  backgroundClip: 'padding-box, border-box'
+                }}
+              >
               {/* Animated Neon Border - TripVerse Theme */}
               <motion.div
                 className="absolute inset-0 rounded-2xl"
@@ -130,7 +134,7 @@ export default function Home() {
               {/* Content */}
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="text-3xl">🏨</div>
+                  <FontAwesomeIcon icon={faBuilding} className="w-12 h-12 text-white" />
                   <div className="text-right">
                     <div className="text-4xl font-bold text-white mb-1">500+</div>
                     <div className="text-cyan-300 text-sm">Hotels Listed</div>
@@ -142,22 +146,24 @@ export default function Home() {
               </p>
             </div>
             </motion.div>
+            </Link>
             
             {/* Car Rental Card */}
-            <motion.div 
-              className="relative p-8 rounded-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 backdrop-blur-md opacity-95 shadow-2xl hover:scale-105 hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-300 group overflow-hidden"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              style={{
-                border: '2px solid transparent',
-                backgroundImage: `
-                  linear-gradient(to right, rgb(29, 78, 216), rgb(21, 94, 117), rgb(30, 64, 175)),
-                  linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)
-                `,
-                backgroundOrigin: 'border-box',
-                backgroundClip: 'padding-box, border-box'
-              }}
-            >
+            <Link href="/client/cars" className="block">
+              <motion.div 
+                className="relative p-8 rounded-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 backdrop-blur-md opacity-95 shadow-2xl hover:scale-105 hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-300 group overflow-hidden cursor-pointer"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                style={{
+                  border: '2px solid transparent',
+                  backgroundImage: `
+                    linear-gradient(to right, rgb(29, 78, 216), rgb(21, 94, 117), rgb(30, 64, 175)),
+                    linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)
+                  `,
+                  backgroundOrigin: 'border-box',
+                  backgroundClip: 'padding-box, border-box'
+                }}
+              >
               {/* Animated Neon Border - TripVerse Theme */}
               <motion.div
                 className="absolute inset-0 rounded-2xl"
@@ -210,7 +216,7 @@ export default function Home() {
               {/* Content */}
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="text-3xl">🚗</div>
+                  <FontAwesomeIcon icon={faCar} className="w-12 h-12 text-white" />
                   <div className="text-right">
                     <div className="text-4xl font-bold text-white mb-1">200+</div>
                     <div className="text-cyan-300 text-sm">Cars Available</div>
@@ -222,22 +228,24 @@ export default function Home() {
               </p>
             </div>
             </motion.div>
+            </Link>
             
-            {/* Monument Recognition Card */}
-            <motion.div 
-              className="relative p-8 rounded-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 backdrop-blur-md opacity-95 shadow-2xl hover:scale-105 hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-300 group overflow-hidden"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              style={{
-                border: '2px solid transparent',
-                backgroundImage: `
-                  linear-gradient(to right, rgb(29, 78, 216), rgb(21, 94, 117), rgb(30, 64, 175)),
-                  linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)
-                `,
-                backgroundOrigin: 'border-box',
-                backgroundClip: 'padding-box, border-box'
-              }}
-            >
+            {/* Flight Card */}
+            <Link href="/client/flights" className="block">
+              <motion.div 
+                className="relative p-8 rounded-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 backdrop-blur-md opacity-95 shadow-2xl hover:scale-105 hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-300 group overflow-hidden cursor-pointer"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                style={{
+                  border: '2px solid transparent',
+                  backgroundImage: `
+                    linear-gradient(to right, rgb(29, 78, 216), rgb(21, 94, 117), rgb(30, 64, 175)),
+                    linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)
+                  `,
+                  backgroundOrigin: 'border-box',
+                  backgroundClip: 'padding-box, border-box'
+                }}
+              >
               {/* Animated Neon Border - TripVerse Theme */}
               <motion.div
                 className="absolute inset-0 rounded-2xl"
@@ -290,18 +298,19 @@ export default function Home() {
               {/* Content */}
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="text-3xl">🏛️</div>
+                  <FontAwesomeIcon icon={faPlane} className="w-12 h-12 text-white" />
                   <div className="text-right">
-                    <div className="text-4xl font-bold text-white mb-1">AI</div>
-                    <div className="text-cyan-300 text-sm">Recognition</div>
+                    <div className="text-4xl font-bold text-white mb-1">100+</div>
+                    <div className="text-cyan-300 text-sm">Routes</div>
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold mb-3 text-white">Monument Recognition</h3>
+                <h3 className="text-xl font-semibold mb-3 text-white">Flights</h3>
                 <p className="text-cyan-100/80 text-sm leading-relaxed">
-                  Upload photos to identify historical monuments with AI technology.
+                  Book domestic and international flights with the best airlines at competitive prices.
               </p>
             </div>
             </motion.div>
+            </Link>
           </div>
         </div>
       </section>
