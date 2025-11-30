@@ -8,13 +8,15 @@ interface DoughnutChartProps {
   value: number
   gradient: string
   delay?: number
+  onClick?: () => void
 }
 
 export function DoughnutChart({ 
   label, 
   value, 
   gradient,
-  delay = 0 
+  delay = 0,
+  onClick
 }: DoughnutChartProps) {
   const [displayValue, setDisplayValue] = useState(0)
   const [chartProgress, setChartProgress] = useState(0)
@@ -78,11 +80,12 @@ export function DoughnutChart({
       initial={{ opacity: 0, y: 20, scale: 0.8 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay, duration: 0.5, type: "spring", stiffness: 200 }}
-      className="relative group flex flex-col items-center"
+      className={`relative group flex flex-col items-center ${onClick ? 'cursor-pointer' : ''}`}
       whileHover={{ 
         scale: 1.05,
         transition: { type: "spring", stiffness: 300, damping: 20 }
       }}
+      onClick={onClick}
     >
       {/* Doughnut Chart */}
       <motion.div 

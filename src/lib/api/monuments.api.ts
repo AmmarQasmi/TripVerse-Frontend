@@ -94,6 +94,32 @@ export const monumentsApi = {
     })
   },
 
+  exportPDF: async (id: string) => {
+    return httpClient.post<{
+      success: boolean
+      message: string
+      data: {
+        exportId: number
+        downloadUrl: string
+        format: 'pdf'
+        fileSize: number
+      }
+    }>(`/monuments/${id}/export/pdf`)
+  },
+
+  exportDOCX: async (id: string) => {
+    return httpClient.post<{
+      success: boolean
+      message: string
+      data: {
+        exportId: number
+        downloadUrl: string
+        format: 'docx'
+        fileSize: number
+      }
+    }>(`/monuments/${id}/export/docx`)
+  },
+
   checkCache: async (imageHash: string) => {
     return httpClient.get<{ monument?: Monument; exists: boolean }>(
       `${API_ENDPOINTS.MONUMENTS.CACHE}?hash=${imageHash}`
