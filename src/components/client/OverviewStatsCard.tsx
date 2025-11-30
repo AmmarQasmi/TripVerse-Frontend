@@ -40,44 +40,97 @@ export function OverviewStatsCard({
     return () => clearInterval(timer)
   }, [value])
 
+  // Format value with + if needed
+  const formattedValue = value > 0 ? `${value.toLocaleString()}+` : value.toString()
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5 }}
-      whileHover={{ scale: 1.05, y: -5 }}
       className="relative group"
     >
-      {/* Glassmorphic Card */}
-      <div className="relative overflow-hidden rounded-2xl backdrop-blur-md bg-gradient-to-br from-cyan-500/20 via-emerald-500/20 to-orange-400/20 border border-white/30 p-6 shadow-xl transition-all duration-300 group-hover:shadow-2xl group-hover:border-white/50">
-        {/* TripVerse Brand Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-teal-400/10 via-emerald-500/10 to-orange-400/10 group-hover:from-teal-400/20 group-hover:via-emerald-500/20 group-hover:to-orange-400/20 transition-all duration-500" />
+      <motion.div 
+        className="relative p-8 rounded-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 backdrop-blur-md opacity-95 shadow-2xl hover:scale-105 hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-300 overflow-hidden"
+        whileHover={{ scale: 1.05 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        style={{
+          border: '2px solid transparent',
+          backgroundImage: `
+            linear-gradient(to right, rgb(29, 78, 216), rgb(21, 94, 117), rgb(30, 64, 175)),
+            linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)
+          `,
+          backgroundOrigin: 'border-box',
+          backgroundClip: 'padding-box, border-box'
+        }}
+      >
+        {/* Animated Neon Border - TripVerse Theme */}
+        <motion.div
+          className="absolute inset-0 rounded-2xl"
+          style={{
+            background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
+            backgroundSize: '200% 100%',
+            opacity: 0.9,
+            filter: 'blur(1px)',
+            zIndex: -1,
+            border: '2px solid transparent',
+            backgroundClip: 'border-box'
+          }}
+          animate={{ 
+            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
+          }}
+          transition={{ 
+            duration: 3, 
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
         
-        {/* Animated Background Elements */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-400/20 to-emerald-400/20 rounded-full blur-2xl group-hover:scale-110 transition-transform duration-700" />
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-lime-400/20 to-orange-400/20 rounded-full blur-xl group-hover:scale-110 transition-transform duration-700" />
+        {/* Outer Glow Effect */}
+        <motion.div 
+          className="absolute inset-0 rounded-2xl"
+          style={{
+            background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
+            backgroundSize: '200% 100%',
+            filter: 'blur(3px)',
+            opacity: 0.4,
+            zIndex: -2
+          }}
+          animate={{ 
+            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
+          }}
+          transition={{ 
+            duration: 3, 
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
         
+        {/* Corner Highlights */}
+        <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-cyan-400/30 to-transparent rounded-br-full blur-sm"></div>
+        <div className="absolute bottom-0 right-0 w-16 h-16 bg-gradient-to-tl from-blue-400/30 to-transparent rounded-tl-full blur-sm"></div>
+        
+        {/* Inner Glow on Hover */}
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/10 group-hover:to-blue-500/10 transition-all duration-300 rounded-2xl"></div>
+        
+        {/* Content */}
         <div className="relative z-10">
-          {/* Icon */}
-          <div className="text-4xl mb-3 filter drop-shadow-lg">{icon}</div>
-          
-          {/* Value with Animated Counter */}
-          <motion.div 
-            className="text-3xl font-bold bg-gradient-to-r from-teal-600 via-emerald-600 to-orange-500 bg-clip-text text-transparent mb-1"
-            initial={{ scale: 0.5 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: delay + 0.2, type: 'spring', stiffness: 200 }}
-          >
-            {displayValue.toLocaleString()}
-          </motion.div>
-          
-          {/* Label */}
-          <div className="text-sm text-gray-700 font-medium">{label}</div>
+          <div className="flex items-center justify-between mb-6">
+            <div className="text-3xl">{icon}</div>
+            <div className="text-right">
+              <motion.div 
+                className="text-4xl font-bold text-white mb-1"
+                initial={{ scale: 0.5 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: delay + 0.2, type: 'spring', stiffness: 200 }}
+              >
+                {displayValue > 0 ? `${displayValue.toLocaleString()}+` : displayValue.toString()}
+              </motion.div>
+              <div className="text-cyan-300 text-sm">{label}</div>
+            </div>
+          </div>
         </div>
-
-        {/* Decorative Corner Accent */}
-        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-teal-400/30 via-emerald-400/30 to-transparent rounded-bl-full" />
-      </div>
+      </motion.div>
     </motion.div>
   )
 }

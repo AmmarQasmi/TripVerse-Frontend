@@ -21,14 +21,70 @@ export function SupportCard() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl backdrop-blur-md bg-gradient-to-br from-teal-500/20 via-emerald-500/20 to-orange-400/20 border border-white/30 p-6 shadow-xl"
+        transition={{ duration: 0.5 }}
+        whileHover={{ 
+          scale: 1.05,
+          transition: { type: "spring", stiffness: 300, damping: 20 }
+        }}
+        className="relative group overflow-hidden rounded-2xl backdrop-blur-md bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 opacity-95 shadow-2xl hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-300 p-8"
+        style={{
+          border: '2px solid transparent',
+          backgroundImage: `
+            linear-gradient(to right, rgb(29, 78, 216), rgb(21, 94, 117), rgb(30, 64, 175)),
+            linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)
+          `,
+          backgroundOrigin: 'border-box',
+          backgroundClip: 'padding-box, border-box'
+        }}
       >
-        {/* TripVerse Brand Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/10 via-emerald-500/10 to-orange-400/10" />
+        {/* Animated Neon Border - TripVerse Theme */}
+        <motion.div
+          className="absolute inset-0 rounded-2xl"
+          style={{
+            background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
+            backgroundSize: '200% 100%',
+            opacity: 0.9,
+            filter: 'blur(1px)',
+            zIndex: -1,
+            border: '2px solid transparent',
+            backgroundClip: 'border-box'
+          }}
+          animate={{ 
+            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
+          }}
+          transition={{ 
+            duration: 3, 
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
         
-        {/* Animated Background Elements */}
-        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-cyan-400/20 to-emerald-400/20 rounded-full blur-2xl" />
-        <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-br from-lime-400/20 to-orange-400/20 rounded-full blur-xl" />
+        {/* Outer Glow Effect */}
+        <motion.div 
+          className="absolute inset-0 rounded-2xl"
+          style={{
+            background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
+            backgroundSize: '200% 100%',
+            filter: 'blur(3px)',
+            opacity: 0.4,
+            zIndex: -2
+          }}
+          animate={{ 
+            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
+          }}
+          transition={{ 
+            duration: 3, 
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        
+        {/* Corner Highlights */}
+        <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-cyan-400/30 to-transparent rounded-br-full blur-sm"></div>
+        <div className="absolute bottom-0 right-0 w-16 h-16 bg-gradient-to-tl from-blue-400/30 to-transparent rounded-tl-full blur-sm"></div>
+        
+        {/* Inner Glow on Hover */}
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/10 group-hover:to-blue-500/10 transition-all duration-300 rounded-2xl"></div>
         <div className="relative z-10">
           <div className="flex items-center mb-4">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center mr-3 shadow-lg">
@@ -38,7 +94,7 @@ export function SupportCard() {
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg">Share Your Experience</h3>
-              <p className="text-gray-200 text-xs">We'd love to hear from you</p>
+              <p className="text-cyan-300 text-sm">We'd love to hear from you</p>
             </div>
           </div>
 
@@ -73,15 +129,70 @@ export function SupportCard() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="relative overflow-hidden rounded-2xl backdrop-blur-md bg-gradient-to-br from-cyan-500/20 via-lime-500/20 to-orange-400/20 border border-white/30 p-6 shadow-xl"
+        transition={{ delay: 0.1, duration: 0.5 }}
+        whileHover={{ 
+          scale: 1.05,
+          transition: { type: "spring", stiffness: 300, damping: 20 }
+        }}
+        className="relative group overflow-hidden rounded-2xl backdrop-blur-md bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 opacity-95 shadow-2xl hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-300 p-8"
+        style={{
+          border: '2px solid transparent',
+          backgroundImage: `
+            linear-gradient(to right, rgb(29, 78, 216), rgb(21, 94, 117), rgb(30, 64, 175)),
+            linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)
+          `,
+          backgroundOrigin: 'border-box',
+          backgroundClip: 'padding-box, border-box'
+        }}
       >
-        {/* TripVerse Brand Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/10 via-emerald-500/10 to-orange-400/10" />
+        {/* Animated Neon Border - TripVerse Theme */}
+        <motion.div
+          className="absolute inset-0 rounded-2xl"
+          style={{
+            background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
+            backgroundSize: '200% 100%',
+            opacity: 0.9,
+            filter: 'blur(1px)',
+            zIndex: -1,
+            border: '2px solid transparent',
+            backgroundClip: 'border-box'
+          }}
+          animate={{ 
+            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
+          }}
+          transition={{ 
+            duration: 3, 
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
         
-        {/* Animated Background Elements */}
-        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-cyan-400/20 to-emerald-400/20 rounded-full blur-2xl" />
-        <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-br from-lime-400/20 to-orange-400/20 rounded-full blur-xl" />
+        {/* Outer Glow Effect */}
+        <motion.div 
+          className="absolute inset-0 rounded-2xl"
+          style={{
+            background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
+            backgroundSize: '200% 100%',
+            filter: 'blur(3px)',
+            opacity: 0.4,
+            zIndex: -2
+          }}
+          animate={{ 
+            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
+          }}
+          transition={{ 
+            duration: 3, 
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        
+        {/* Corner Highlights */}
+        <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-cyan-400/30 to-transparent rounded-br-full blur-sm"></div>
+        <div className="absolute bottom-0 right-0 w-16 h-16 bg-gradient-to-tl from-blue-400/30 to-transparent rounded-tl-full blur-sm"></div>
+        
+        {/* Inner Glow on Hover */}
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/10 group-hover:to-blue-500/10 transition-all duration-300 rounded-2xl"></div>
         
         <div className="relative z-10">
           <div className="flex items-center mb-4">
@@ -92,7 +203,7 @@ export function SupportCard() {
             </div>
             <div>
               <h3 className="text-white font-semibold text-lg">Need Help?</h3>
-              <p className="text-gray-200 text-xs">We're here 24/7 for you</p>
+              <p className="text-cyan-300 text-sm">We're here 24/7 for you</p>
             </div>
           </div>
 
@@ -108,7 +219,7 @@ export function SupportCard() {
                 </svg>
                 <div className="text-left">
                   <p className="text-white text-sm font-medium">Live Chat</p>
-                  <p className="text-gray-200 text-xs">Get instant help</p>
+                  <p className="text-cyan-300 text-sm">Get instant help</p>
                 </div>
               </div>
               <svg className="w-4 h-4 text-gray-300 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -128,7 +239,7 @@ export function SupportCard() {
                 </svg>
                 <div className="text-left">
                   <p className="text-white text-sm font-medium">Email Support</p>
-                  <p className="text-gray-200 text-xs">support@tripverse.com</p>
+                  <p className="text-cyan-300 text-sm">support@tripverse.com</p>
                 </div>
               </div>
               <svg className="w-4 h-4 text-gray-300 group-hover:text-cyan-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -147,7 +258,7 @@ export function SupportCard() {
                 </svg>
                 <div className="text-left">
                   <p className="text-white text-sm font-medium">Help Center</p>
-                  <p className="text-gray-200 text-xs">Browse FAQs & guides</p>
+                  <p className="text-cyan-300 text-sm">Browse FAQs & guides</p>
                 </div>
               </div>
               <svg className="w-4 h-4 text-gray-300 group-hover:text-lime-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">

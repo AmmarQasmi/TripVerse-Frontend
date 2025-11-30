@@ -22,20 +22,76 @@ export function QuickToolCard({
 }: QuickToolCardProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5 }}
-      whileHover={{ y: -8 }}
+      whileHover={{ 
+        scale: 1.05,
+        transition: { type: "spring", stiffness: 300, damping: 20 }
+      }}
       className="group"
     >
       <Link href={href}>
-        <div className="relative overflow-hidden rounded-2xl backdrop-blur-md bg-gradient-to-br from-teal-500/20 via-emerald-500/20 to-orange-400/20 border border-white/30 p-6 h-full shadow-xl transition-all duration-300 group-hover:shadow-2xl group-hover:border-white/50">
-          {/* TripVerse Brand Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/10 via-emerald-500/10 to-orange-400/10 group-hover:from-cyan-400/20 group-hover:via-emerald-500/20 group-hover:to-orange-400/20 transition-all duration-500" />
+        <div 
+          className="relative overflow-hidden rounded-2xl backdrop-blur-md bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 opacity-95 shadow-2xl hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-300 h-full p-8"
+          style={{
+            border: '2px solid transparent',
+            backgroundImage: `
+              linear-gradient(to right, rgb(29, 78, 216), rgb(21, 94, 117), rgb(30, 64, 175)),
+              linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)
+            `,
+            backgroundOrigin: 'border-box',
+            backgroundClip: 'padding-box, border-box'
+          }}
+        >
+          {/* Animated Neon Border - TripVerse Theme */}
+          <motion.div
+            className="absolute inset-0 rounded-2xl"
+            style={{
+              background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
+              backgroundSize: '200% 100%',
+              opacity: 0.9,
+              filter: 'blur(1px)',
+              zIndex: -1,
+              border: '2px solid transparent',
+              backgroundClip: 'border-box'
+            }}
+            animate={{ 
+              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
+            }}
+            transition={{ 
+              duration: 3, 
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
           
-          {/* Animated Background Elements */}
-          <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-cyan-400/20 to-emerald-400/20 rounded-full blur-2xl group-hover:scale-110 transition-transform duration-700" />
-          <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-br from-lime-400/20 to-orange-400/20 rounded-full blur-xl group-hover:scale-110 transition-transform duration-700" />
+          {/* Outer Glow Effect */}
+          <motion.div 
+            className="absolute inset-0 rounded-2xl"
+            style={{
+              background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
+              backgroundSize: '200% 100%',
+              filter: 'blur(3px)',
+              opacity: 0.4,
+              zIndex: -2
+            }}
+            animate={{ 
+              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
+            }}
+            transition={{ 
+              duration: 3, 
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          
+          {/* Corner Highlights */}
+          <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-cyan-400/30 to-transparent rounded-br-full blur-sm"></div>
+          <div className="absolute bottom-0 right-0 w-16 h-16 bg-gradient-to-tl from-blue-400/30 to-transparent rounded-tl-full blur-sm"></div>
+          
+          {/* Inner Glow on Hover */}
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/10 group-hover:to-blue-500/10 transition-all duration-300 rounded-2xl"></div>
           
           <div className="relative z-10">
             {/* Icon */}
@@ -48,17 +104,17 @@ export function QuickToolCard({
             </motion.div>
             
             {/* Title */}
-            <h3 className="text-xl font-bold bg-gradient-to-r from-teal-600 via-emerald-600 to-orange-500 bg-clip-text text-transparent mb-2 transition-colors">
+            <h3 className="text-xl font-bold text-white mb-2">
               {title}
             </h3>
             
             {/* Description */}
-            <p className="text-sm text-gray-700 mb-4 line-clamp-2">
+            <p className="text-sm text-cyan-300 mb-4 line-clamp-2">
               {description}
             </p>
             
             {/* Open Button */}
-            <div className="flex items-center text-teal-600 text-sm font-semibold group-hover:text-teal-700 transition-colors">
+            <div className="flex items-center text-cyan-300 text-sm font-semibold group-hover:text-cyan-200 transition-colors">
               <span>Open</span>
               <motion.svg 
                 className="w-4 h-4 ml-2"
@@ -72,9 +128,6 @@ export function QuickToolCard({
               </motion.svg>
             </div>
           </div>
-
-          {/* Corner Accent */}
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-teal-400/30 via-emerald-400/30 to-transparent rounded-bl-full" />
         </div>
       </Link>
     </motion.div>
