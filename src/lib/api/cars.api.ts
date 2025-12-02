@@ -264,16 +264,6 @@ export const carsApi = {
     }>(API_ENDPOINTS.CARS.DRIVER_CARS)
   },
 
-  // Get all car models
-  getCarModels: async () => {
-    return httpClient.get<Array<{
-      id: number
-      make: string
-      model: string
-      displayName: string
-    }>>(API_ENDPOINTS.CARS.MODELS)
-  },
-
   // Create car (Driver)
   create: async (data: {
     make: string
