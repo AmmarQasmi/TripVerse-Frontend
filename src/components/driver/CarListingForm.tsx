@@ -1,87 +1,107 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Car } from '@/types'
+import { Select } from '@/components/ui/Select'
+import { Textarea } from '@/components/ui/Textarea'
 
 interface CarListingFormProps {
-  car?: Car
+  car?: any
   onSubmit: (carData: CarFormData) => void
   isLoading?: boolean
+  onCancel?: () => void
 }
 
 interface CarFormData {
-  brand: string
+  make: string
   model: string
-  year: number
-  color: string
-  type: string
   seats: number
+  base_price_per_day: number
+  distance_rate_per_km: number
   transmission: string
-  fuelType: string
-  pricePerDay: number
-  location: string
-  description: string
-  features: string[]
-  images: File[]
+  fuel_type: string
+  year: number
+  color?: string
+  license_plate?: string
+  images?: File[]
 }
 
-export function CarListingForm({ car, onSubmit, isLoading = false }: CarListingFormProps) {
+// Car companies and their models
+const CAR_COMPANIES: Record<string, string[]> = {
+  'Toyota': ['Corolla', 'Camry', 'Prius', 'RAV4', 'Highlander', 'Land Cruiser', 'Hilux', 'Fortuner'],
+  'Suzuki': ['Alto', 'Mehran', 'Cultus', 'Swift', 'Wagon R', 'Vitara', 'Jimny', 'Baleno'],
+  'Mercedes-Benz': ['C-Class', 'E-Class', 'S-Class', 'GLE', 'GLC', 'A-Class', 'B-Class', 'CLA'],
+  'Honda': ['Civic', 'Accord', 'City', 'CR-V', 'Pilot', 'HR-V', 'Fit'],
+  'BMW': ['3 Series', '5 Series', '7 Series', 'X1', 'X3', 'X5', 'X7'],
+  'Audi': ['A3', 'A4', 'A6', 'Q3', 'Q5', 'Q7', 'A8'],
+  'Nissan': ['Altima', 'Sentra', 'Rogue', 'Pathfinder', 'Murano', 'X-Trail'],
+  'Hyundai': ['Elantra', 'Sonata', 'Tucson', 'Santa Fe', 'Accent', 'Kona', 'Palisade'],
+  'Kia': ['Rio', 'Forte', 'Optima', 'Sorento', 'Sportage', 'Telluride'],
+  'Ford': ['Fiesta', 'Focus', 'Fusion', 'Escape', 'Explorer', 'F-150', 'Mustang'],
+  'Chevrolet': ['Cruze', 'Malibu', 'Equinox', 'Tahoe', 'Silverado', 'Camaro'],
+  'Volkswagen': ['Jetta', 'Passat', 'Tiguan', 'Atlas', 'Golf', 'Polo'],
+}
+
+const COMPANY_OPTIONS = Object.keys(CAR_COMPANIES).sort()
+
+export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: CarListingFormProps) {
   const [formData, setFormData] = useState<CarFormData>({
-    brand: car?.brand || '',
+    make: car?.make || '',
     model: car?.model || '',
     year: car?.year || new Date().getFullYear(),
     color: car?.color || '',
-    type: car?.type || 'SEDAN',
     seats: car?.seats || 4,
-    transmission: car?.transmission || 'AUTOMATIC',
-    fuelType: car?.fuelType || 'PETROL',
-    pricePerDay: car?.pricePerDay || 0,
-    location: car?.location || '',
-    description: '',
-    features: car?.features || [],
+    transmission: car?.transmission || 'automatic',
+    fuel_type: car?.fuel_type || 'petrol',
+    base_price_per_day: car?.base_price_per_day || 0,
+    distance_rate_per_km: car?.distance_rate_per_km || 0,
+    license_plate: car?.license_plate || '',
     images: [],
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [selectedFeatures, setSelectedFeatures] = useState<Set<string>>(
-    new Set(car?.features || [])
-  )
+  const [availableModels, setAvailableModels] = useState<string[]>([])
 
-  const availableFeatures = [
-    { key: 'AC', label: 'Air Conditioning', icon: '❄️' },
-    { key: 'GPS', label: 'GPS Navigation', icon: '🧭' },
-    { key: 'BLUETOOTH', label: 'Bluetooth', icon: '📱' },
-    { key: 'BACKUP_CAMERA', label: 'Backup Camera', icon: '📹' },
-    { key: 'LEATHER_SEATS', label: 'Leather Seats', icon: '🪑' },
-    { key: 'SUNROOF', label: 'Sunroof', icon: '☀️' },
-    { key: 'HEATED_SEATS', label: 'Heated Seats', icon: '🔥' },
-    { key: 'PARKING_SENSORS', label: 'Parking Sensors', icon: '🅿️' },
-  ]
+  useEffect(() => {
+    if (formData.make && CAR_COMPANIES[formData.make]) {
+      setAvailableModels(CAR_COMPANIES[formData.make])
+      // Reset model if company changes
+      if (!CAR_COMPANIES[formData.make].includes(formData.model)) {
+        setFormData(prev => ({ ...prev, model: '' }))
+      }
+    } else {
+      setAvailableModels([])
+    }
+  }, [formData.make])
 
-  const carTypes = ['SEDAN', 'SUV', 'HATCHBACK', 'CONVERTIBLE', 'VAN', 'TRUCK']
-  const transmissionTypes = ['AUTOMATIC', 'MANUAL']
-  const fuelTypes = ['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']
+  useEffect(() => {
+    if (car) {
+      setFormData({
+        make: car.make || '',
+        model: car.model || '',
+        year: car.year || new Date().getFullYear(),
+        color: car.color || '',
+        seats: car.seats || 4,
+        transmission: car.transmission || 'automatic',
+        fuel_type: car.fuel_type || 'petrol',
+        base_price_per_day: car.base_price_per_day || 0,
+        distance_rate_per_km: car.distance_rate_per_km || 0,
+        license_plate: car.license_plate || '',
+        images: [],
+      })
+      if (car.make && CAR_COMPANIES[car.make]) {
+        setAvailableModels(CAR_COMPANIES[car.make])
+      }
+    }
+  }, [car])
 
   const handleInputChange = (field: keyof CarFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
-  }
-
-  const handleFeatureToggle = (featureKey: string) => {
-    setSelectedFeatures(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(featureKey)) {
-        newSet.delete(featureKey)
-      } else {
-        newSet.add(featureKey)
-      }
-      return newSet
-    })
   }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,292 +114,317 @@ export function CarListingForm({ car, onSubmit, isLoading = false }: CarListingF
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    if (!formData.brand.trim()) newErrors.brand = 'Brand is required'
-    if (!formData.model.trim()) newErrors.model = 'Model is required'
-    if (formData.year < 1900 || formData.year > new Date().getFullYear() + 1) {
-      newErrors.year = 'Invalid year'
+    if (!formData.make || !formData.make.trim()) {
+      newErrors.make = 'Car company is required'
     }
-    if (!formData.color.trim()) newErrors.color = 'Color is required'
-    if (formData.seats < 1 || formData.seats > 50) newErrors.seats = 'Invalid number of seats'
-    if (formData.pricePerDay <= 0) newErrors.pricePerDay = 'Price must be greater than 0'
-    if (!formData.location.trim()) newErrors.location = 'Location is required'
+
+    if (!formData.model || !formData.model.trim()) {
+      newErrors.model = 'Car model is required'
+    }
+
+    if (formData.year < 2000 || formData.year > new Date().getFullYear() + 1) {
+      newErrors.year = `Year must be between 2000 and ${new Date().getFullYear() + 1}`
+    }
+
+    if (formData.seats < 2 || formData.seats > 8) {
+      newErrors.seats = 'Seats must be between 2 and 8'
+    }
+
+    if (formData.base_price_per_day <= 0) {
+      newErrors.base_price_per_day = 'Price per day must be greater than 0'
+    }
+
+    if (formData.distance_rate_per_km < 0) {
+      newErrors.distance_rate_per_km = 'Distance rate cannot be negative'
+    }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (validateForm()) {
-      onSubmit({
-        ...formData,
-        features: Array.from(selectedFeatures),
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    if (!validateForm()) return
+
+    await onSubmit(formData)
+    
+    // Reset form after successful submission if no initialData (for new cars)
+    if (!car) {
+      setFormData({
+        make: '',
+        model: '',
+        year: new Date().getFullYear(),
+        color: '',
+        seats: 4,
+        transmission: 'automatic',
+        fuel_type: 'petrol',
+        base_price_per_day: 0,
+        distance_rate_per_km: 0,
+        license_plate: '',
+        images: [],
       })
+      setAvailableModels([])
+      setErrors({})
     }
   }
 
+  const transmissionTypes = [
+    { value: 'manual', label: 'Manual' },
+    { value: 'automatic', label: 'Automatic' },
+  ]
+
+  const fuelTypes = [
+    { value: 'petrol', label: 'Petrol' },
+    { value: 'diesel', label: 'Diesel' },
+    { value: 'electric', label: 'Electric' },
+    { value: 'hybrid', label: 'Hybrid' },
+  ]
+
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="space-y-6">
-        {/* Basic Information */}
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <span className="mr-2">🚗</span>
-              Basic Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Input
-                  label="Brand *"
-                  placeholder="e.g., Toyota"
-                  value={formData.brand}
-                  onChange={(e) => handleInputChange('brand', e.target.value)}
-                  error={errors.brand}
-                />
-              </div>
-              <div>
-                <Input
-                  label="Model *"
-                  placeholder="e.g., Camry"
-                  value={formData.model}
-                  onChange={(e) => handleInputChange('model', e.target.value)}
-                  error={errors.model}
-                />
-              </div>
+    <div className="space-y-6">
+      {/* Basic Information */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <span className="mr-2">🚗</span>
+            Basic Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Select
+                label="Car Company *"
+                value={formData.make}
+                onChange={(e) => handleInputChange('make', e.target.value)}
+                error={errors.make}
+                required
+                options={[
+                  { value: '', label: 'Select company' },
+                  ...COMPANY_OPTIONS.map(company => ({
+                    value: company,
+                    label: company,
+                  })),
+                ]}
+              />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Input
-                  label="Year *"
-                  type="number"
-                  placeholder="2024"
-                  value={formData.year}
-                  onChange={(e) => handleInputChange('year', parseInt(e.target.value))}
-                  error={errors.year}
-                />
-              </div>
-              <div>
-                <Input
-                  label="Color *"
-                  placeholder="e.g., White"
-                  value={formData.color}
-                  onChange={(e) => handleInputChange('color', e.target.value)}
-                  error={errors.color}
-                />
-              </div>
-              <div>
-                <Input
-                  label="Seats *"
-                  type="number"
-                  placeholder="4"
-                  value={formData.seats}
-                  onChange={(e) => handleInputChange('seats', parseInt(e.target.value))}
-                  error={errors.seats}
-                />
-              </div>
+            <div>
+              <Select
+                label="Car Model *"
+                value={formData.model}
+                onChange={(e) => handleInputChange('model', e.target.value)}
+                error={errors.model}
+                required
+                disabled={!formData.make || availableModels.length === 0}
+                options={
+                  !formData.make
+                    ? [{ value: '', label: 'Select company first' }]
+                    : [
+                        { value: '', label: 'Select model' },
+                        ...availableModels.map(model => ({
+                          value: model,
+                          label: model,
+                        })),
+                      ]
+                }
+              />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Car Type *
-                </label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => handleInputChange('type', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {carTypes.map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Transmission *
-                </label>
-                <select
-                  value={formData.transmission}
-                  onChange={(e) => handleInputChange('transmission', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {transmissionTypes.map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fuel Type *
-                </label>
-                <select
-                  value={formData.fuelType}
-                  onChange={(e) => handleInputChange('fuelType', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {fuelTypes.map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
-              </div>
+            <div>
+              <Input
+                label="Year *"
+                type="number"
+                placeholder="2024"
+                value={formData.year}
+                onChange={(e) => handleInputChange('year', parseInt(e.target.value))}
+                error={errors.year}
+                min={2000}
+                max={new Date().getFullYear() + 1}
+                required
+              />
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Pricing & Location */}
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <span className="mr-2">💰</span>
-              Pricing & Location
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Input
-                  label="Price per Day (PKR) *"
-                  type="number"
-                  placeholder="5000"
-                  value={formData.pricePerDay}
-                  onChange={(e) => handleInputChange('pricePerDay', parseFloat(e.target.value))}
-                  error={errors.pricePerDay}
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  You'll receive 95% (PKR {(formData.pricePerDay * 0.95).toLocaleString()}) after 5% platform fee
-                </p>
-              </div>
-              <div>
-                <Input
-                  label="Location *"
-                  placeholder="e.g., Lahore, Pakistan"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  error={errors.location}
-                />
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Input
+                label="Color"
+                placeholder="e.g., White"
+                value={formData.color || ''}
+                onChange={(e) => handleInputChange('color', e.target.value)}
+                error={errors.color}
+              />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Features */}
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <span className="mr-2">⭐</span>
-              Features & Amenities
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {availableFeatures.map(feature => (
-                <label
-                  key={feature.key}
-                  className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                    selectedFeatures.has(feature.key)
-                      ? 'bg-blue-50 border-2 border-blue-500'
-                      : 'bg-gray-50 border-2 border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedFeatures.has(feature.key)}
-                    onChange={() => handleFeatureToggle(feature.key)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-xl">{feature.icon}</span>
-                  <span className="font-medium text-gray-900">{feature.label}</span>
-                </label>
-              ))}
+            <div>
+              <Input
+                label="Seats *"
+                type="number"
+                placeholder="4"
+                value={formData.seats}
+                onChange={(e) => handleInputChange('seats', parseInt(e.target.value))}
+                error={errors.seats}
+                min={2}
+                max={8}
+                required
+              />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <Input
+                label="License Plate"
+                placeholder="e.g., ABC-1234"
+                value={formData.license_plate || ''}
+                onChange={(e) => handleInputChange('license_plate', e.target.value)}
+                error={errors.license_plate}
+              />
+            </div>
+          </div>
 
-        {/* Images */}
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <span className="mr-2">📷</span>
-              Car Images
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="image-upload"
-                />
-                <label htmlFor="image-upload" className="cursor-pointer">
-                  <div className="text-4xl mb-2">📸</div>
-                  <p className="text-gray-600 mb-2">Click to upload car images</p>
-                  <p className="text-sm text-gray-500">Upload at least 3 high-quality images</p>
-                </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Select
+                label="Transmission *"
+                value={formData.transmission}
+                onChange={(e) => handleInputChange('transmission', e.target.value)}
+                error={errors.transmission}
+                required
+                options={[
+                  { value: '', label: 'Select transmission' },
+                  ...transmissionTypes
+                ]}
+              />
+            </div>
+            <div>
+              <Select
+                label="Fuel Type *"
+                value={formData.fuel_type}
+                onChange={(e) => handleInputChange('fuel_type', e.target.value)}
+                error={errors.fuel_type}
+                required
+                options={[
+                  { value: '', label: 'Select fuel type' },
+                  ...fuelTypes
+                ]}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Pricing */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <span className="mr-2">💰</span>
+            Pricing
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Input
+                label="Base Price per Day (PKR) *"
+                type="number"
+                placeholder="5000"
+                value={formData.base_price_per_day}
+                onChange={(e) => handleInputChange('base_price_per_day', parseFloat(e.target.value))}
+                error={errors.base_price_per_day}
+                min={0}
+                step="0.01"
+                required
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                You'll receive 95% (PKR {(formData.base_price_per_day * 0.95).toLocaleString()}) after 5% platform fee
+              </p>
+            </div>
+            <div>
+              <Input
+                label="Distance Rate per KM (PKR) *"
+                type="number"
+                placeholder="50"
+                value={formData.distance_rate_per_km}
+                onChange={(e) => handleInputChange('distance_rate_per_km', parseFloat(e.target.value))}
+                error={errors.distance_rate_per_km}
+                min={0}
+                step="0.01"
+                required
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Additional charge per kilometer traveled
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Images */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <span className="mr-2">📷</span>
+            Car Images
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+                id="image-upload"
+              />
+              <label htmlFor="image-upload" className="cursor-pointer">
+                <div className="text-4xl mb-2">📸</div>
+                <p className="text-gray-600 mb-2">Click to upload car images</p>
+                <p className="text-sm text-gray-500">Upload at least 3 high-quality images</p>
+              </label>
+            </div>
+            {formData.images && formData.images.length > 0 && (
+              <div className="text-sm text-gray-600">
+                {formData.images.length} image{formData.images.length !== 1 ? 's' : ''} selected
               </div>
-              {formData.images.length > 0 && (
-                <div className="text-sm text-gray-600">
-                  {formData.images.length} image{formData.images.length !== 1 ? 's' : ''} selected
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Description */}
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <span className="mr-2">📝</span>
-              Additional Description
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <textarea
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Add any additional details about your car..."
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </CardContent>
-        </Card>
-
-        {/* Submit Button */}
-        <div className="flex items-center justify-end space-x-4">
+      {/* Submit Button */}
+      <div className="flex items-center justify-end space-x-4">
+        {onCancel && (
           <Button
             type="button"
             variant="outline"
-            onClick={() => window.history.back()}
+            onClick={onCancel}
+            disabled={isLoading}
           >
             Cancel
           </Button>
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold px-8 py-3 rounded-xl"
-          >
-            {isLoading ? (
-              <span className="flex items-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Submitting...
-              </span>
-            ) : (
-              <span>{car ? 'Update Car' : 'List Car'}</span>
-            )}
-          </Button>
-        </div>
+        )}
+        <Button
+          type="button"
+          disabled={isLoading}
+          onClick={() => handleSubmit()}
+          className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold px-8 py-3 rounded-xl"
+        >
+          {isLoading ? (
+            <span className="flex items-center">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Submitting...
+            </span>
+          ) : (
+            <span>{car ? 'Update Car' : 'List Car'}</span>
+          )}
+        </Button>
       </div>
-    </form>
+    </div>
   )
 }

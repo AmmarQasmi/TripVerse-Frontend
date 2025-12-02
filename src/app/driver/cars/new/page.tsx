@@ -4,67 +4,80 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { CarListingForm } from '@/components/driver/CarListingForm'
+import { carsApi } from '@/lib/api/cars.api'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 interface CarFormData {
-  brand: string
+  make: string
   model: string
-  year: number
-  color: string
-  type: string
   seats: number
+  base_price_per_day: number
+  distance_rate_per_km: number
   transmission: string
-  fuelType: string
-  pricePerDay: number
-  location: string
-  description: string
-  features: string[]
-  images: File[]
+  fuel_type: string
+  year: number
+  color?: string
+  license_plate?: string
+  images?: File[]
 }
 
 export default function NewCarPage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (carData: CarFormData) => {
     setIsSubmitting(true)
+    setError(null)
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    console.log('New car data:', carData)
-    
-    // Navigate back to cars list
-    router.push('/driver/cars')
-    setIsSubmitting(false)
+    try {
+      // Prepare data for API (remove images - they'll be uploaded separately)
+      const { images, ...carPayload } = carData
+      
+      // Create the car first
+      const response = await carsApi.create(carPayload)
+      const carId = response.id
+
+      // Upload images if provided
+      if (images && images.length > 0) {
+        try {
+          await carsApi.uploadCarImages(carId, images)
+        } catch (imageError: any) {
+          console.error('Error uploading images:', imageError)
+          // Don't fail the entire operation if image upload fails
+          // The car was created successfully
+        }
+      }
+
+      // Navigate to car detail page or cars list
+      router.push(`/driver/cars/${carId}`)
+    } catch (err: any) {
+      console.error('Error creating car:', err)
+      setError(err.response?.data?.message || 'Failed to create car listing. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <PageHeader 
+        title="List Your Car"
+        subtitle="Fill in the details below to start earning from your vehicle"
+        backUrl="/driver/cars"
+        backLabel="Back to Cars"
+      />
       <div className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="max-w-5xl mx-auto"
         >
-          {/* Header */}
-          <div className="mb-8">
-            <button
-              onClick={() => router.back()}
-              className="flex items-center space-x-2 text-white hover:text-gray-300 transition-colors mb-4"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              <span>Back to Cars</span>
-            </button>
-            
-            <h1 className="text-4xl font-bold text-white mb-2">
-              List Your Car
-            </h1>
-            <p className="text-lg text-gray-300">
-              Fill in the details below to start earning from your vehicle
-            </p>
-          </div>
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/20 border border-red-500 rounded-lg">
+              <p className="text-red-200">{error}</p>
+            </div>
+          )}
 
           {/* Form */}
           <div className="bg-white rounded-2xl p-8 shadow-2xl">
@@ -99,10 +112,10 @@ export default function NewCarPage() {
             >
               <div className="text-3xl mb-3">✅</div>
               <h3 className="text-xl font-semibold text-white mb-2">
-                Verified Drivers
+                Admin Approval
               </h3>
               <p className="text-gray-300 text-sm">
-                Your profile is verified. Customers trust verified drivers more
+                Your car listing will be reviewed by our admin team before it becomes active
               </p>
             </motion.div>
 

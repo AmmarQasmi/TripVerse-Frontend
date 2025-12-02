@@ -101,8 +101,11 @@ export function RoomTypeForm({ initialData, onSubmit, onCancel, isLoading = fals
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
     if (!validate()) return
 
     await onSubmit({
@@ -114,6 +117,20 @@ export function RoomTypeForm({ initialData, onSubmit, onCancel, isLoading = fals
       amenities: formData.amenities.length > 0 ? formData.amenities : undefined,
       images: formData.images.length > 0 ? formData.images : undefined,
     })
+    
+    // Reset form after successful submission if no initialData (for new room types)
+    if (!initialData) {
+      setFormData({
+        name: '',
+        description: '',
+        max_occupancy: 2,
+        base_price: 0,
+        total_rooms: 1,
+        amenities: [],
+        images: [],
+      })
+      setErrors({})
+    }
   }
 
   const toggleAmenity = (amenity: string) => {
@@ -126,7 +143,7 @@ export function RoomTypeForm({ initialData, onSubmit, onCancel, isLoading = fals
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="space-y-6" onSubmit={handleSubmit}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Select
@@ -219,11 +236,15 @@ export function RoomTypeForm({ initialData, onSubmit, onCancel, isLoading = fals
             Cancel
           </Button>
         )}
-        <Button type="submit" disabled={isLoading}>
+        <Button 
+          type="button" 
+          disabled={isLoading}
+          onClick={() => handleSubmit()}
+        >
           {isLoading ? 'Saving...' : initialData?.id ? 'Update Room Type' : 'Add Room Type'}
         </Button>
       </div>
-    </form>
+    </div>
   )
 }
 
