@@ -69,14 +69,16 @@ export const API_ENDPOINTS = {
     BASE: '/cars',
     SEARCH: '/cars/search',
     BY_ID: (id: string) => `/cars/${id}`,
-    CREATE: '/cars',
-    UPDATE: (id: string) => `/cars/${id}`,
+    CREATE: '/cars/driver/cars', // Driver-specific endpoint
+    UPDATE: (id: string) => `/cars/driver/cars/${id}`, // Driver-specific endpoint
     DELETE: (id: string) => `/cars/${id}`,
     AVAILABLE: '/cars/available',
     DRIVER_CARS: '/cars/driver/cars',
+    CAR_MODELS: '/cars/models',
     UPLOAD_IMAGES: (id: string) => `/cars/${id}/images/upload`,
     DELETE_IMAGE: (carId: string, imageId: string) => `/cars/${carId}/images/${imageId}/cloudinary`,
     OPTIMIZED_IMAGES: (id: string) => `/cars/${id}/images/optimized`,
+    UPDATE_AVAILABILITY: (id: string) => `/cars/${id}/availability`,
     BOOKINGS: {
       DRIVER_BOOKINGS: '/cars/bookings/driver-bookings',
     },

@@ -299,9 +299,9 @@ export default function DriverCarsPage() {
 
                     {/* Actions */}
                     <div className="flex space-x-2">
-                      <Link href={`/driver/cars/${car.id}/edit`} className="flex-1">
+                      <Link href={`/driver/cars/${car.id}`} className="flex-1">
                         <Button variant="outline" className="w-full">
-                          ✏️ Edit
+                          ✏️ Manage
                         </Button>
                       </Link>
                       <Link href={`/client/cars/${car.id}`} className="flex-1">
@@ -309,15 +309,6 @@ export default function DriverCarsPage() {
                           👁️ View
                         </Button>
                       </Link>
-                      <Button
-                        variant="outline"
-                        className="px-4"
-                        onClick={() => {
-                          // Toggle car status
-                        }}
-                      >
-                        {car.status === 'ACTIVE' ? '⏸️' : '▶️'}
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>

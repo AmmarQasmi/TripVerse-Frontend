@@ -263,4 +263,68 @@ export const carsApi = {
       }
     }>(API_ENDPOINTS.CARS.DRIVER_CARS)
   },
+
+  // Get all car models
+  getCarModels: async () => {
+    return httpClient.get<Array<{
+      id: number
+      make: string
+      model: string
+      displayName: string
+    }>>(API_ENDPOINTS.CARS.MODELS)
+  },
+
+  // Create car (Driver)
+  create: async (data: {
+    make: string
+    model: string
+    seats: number
+    base_price_per_day: number
+    distance_rate_per_km: number
+    transmission: string
+    fuel_type: string
+    year: number
+    color?: string
+    license_plate?: string
+    images?: string[]
+  }) => {
+    return httpClient.post<{
+      id: string
+      message: string
+      car: {
+        make: string
+        model: string
+        year: number
+        seats: number
+      }
+    }>(API_ENDPOINTS.CARS.DRIVER_CARS, data)
+  },
+
+  // Update car availability
+  updateCarAvailability: async (carId: string, data: { is_listed?: boolean }) => {
+    return httpClient.patch<{
+      id: number
+      is_listed: boolean
+      message: string
+    }>(API_ENDPOINTS.CARS.UPDATE_AVAILABILITY(carId), data)
+  },
+
+  // Update car (Driver)
+  update: async (carId: string, data: {
+    make?: string
+    model?: string
+    seats?: number
+    base_price_per_day?: number
+    distance_rate_per_km?: number
+    transmission?: string
+    fuel_type?: string
+    year?: number
+    color?: string
+    license_plate?: string
+  }) => {
+    return httpClient.patch<{
+      id: string
+      message: string
+    }>(API_ENDPOINTS.CARS.UPDATE(carId), data)
+  },
 }
