@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { FlightSearchForm } from '@/components/flights/FlightSearchForm'
 import { PopularRoutesCarousel } from '@/components/flights/PopularRoutesCarousel'
 import { FlightCard } from '@/components/flights/FlightCard'
@@ -11,6 +12,8 @@ import { TrustSection } from '@/components/flights/TrustSection'
 import { Plane } from 'lucide-react'
 import { DomesticFlightGuide } from '@/components/flights/DomesticFlightGuide'
 import { TransparentHeader } from '@/components/shared/TransparentHeader'
+import { flightsApi } from '@/lib/api/flights.api'
+import { FlightSearchParams } from '@/types'
 
 // Mock flight data with Pakistani airlines
 const mockFlights = [
@@ -325,13 +328,14 @@ const airlineSummary = [
 export default function FlightsPage() {
   const [selectedFlight, setSelectedFlight] = useState<any>(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
-  const [searchParams, setSearchParams] = useState({
-    origin: '',
-    destination: '',
-    departureDate: '',
-    returnDate: '',
-    passengers: { adults: 1, children: 0, infants: 0 },
-    cabinClass: 'ECONOMY'
+  const [searchParams, setSearchParams] = useState<FlightSearchParams | null>(null)
+  const [hasSearched, setHasSearched] = useState(false)
+
+  // Query for flight search
+  const { data: flightResults, isLoading, error } = useQuery({
+    queryKey: ['flights', searchParams],
+    queryFn: () => flightsApi.search(searchParams!),
+    enabled: !!searchParams && hasSearched && !!searchParams.origin && !!searchParams.destination && !!searchParams.departure_date,
   })
 
   const handleFlightSelect = (flight: any) => {
@@ -340,9 +344,50 @@ export default function FlightsPage() {
   }
 
   const handleSearch = (params: any) => {
-    setSearchParams(params)
-    // In real app, this would trigger API call
-    console.log('Searching flights with:', params)
+    // Convert form params to API format
+    const cabinClassMap: Record<string, string> = {
+      'ECONOMY': 'economy',
+      'PREMIUM_ECONOMY': 'premium_economy',
+      'BUSINESS': 'business',
+      'FIRST': 'first',
+    }
+    
+    // Origin and destination should already be airport codes from the form
+    const origin = params.origin.toUpperCase().trim()
+    const destination = params.destination.toUpperCase().trim()
+    
+    // Validate airport codes (3-letter IATA codes)
+    if (!/^[A-Z]{3}$/.test(origin)) {
+      alert('Please enter a valid 3-letter airport code for origin (e.g., KHI, LHE, ISB)')
+      return
+    }
+    
+    if (!/^[A-Z]{3}$/.test(destination)) {
+      alert('Please enter a valid 3-letter airport code for destination (e.g., KHI, LHE, ISB)')
+      return
+    }
+    
+    const apiParams: FlightSearchParams = {
+      origin,
+      destination,
+      departure_date: params.departureDate,
+      return_date: params.tripType === 'ROUND_TRIP' ? params.returnDate : undefined,
+      adults: params.passengers?.adults || 1,
+      children: params.passengers?.children || 0,
+      infants: params.passengers?.infants || 0,
+      cabin_class: (params.cabinClass && cabinClassMap[params.cabinClass]) || 'economy',
+    }
+    
+    setSearchParams(apiParams)
+    setHasSearched(true)
+    
+    // Scroll to results section after a short delay
+    setTimeout(() => {
+      const resultsSection = document.querySelector('[data-flight-results]')
+      if (resultsSection) {
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }, 100)
   }
 
   return (
@@ -386,7 +431,7 @@ export default function FlightsPage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="max-w-6xl mx-auto"
           >
-            <FlightSearchForm onSearch={handleSearch} />
+            <FlightSearchForm onSearch={handleSearch} isLoading={isLoading} />
           </motion.div>
           
           <motion.p
@@ -424,7 +469,7 @@ export default function FlightsPage() {
       </section>
 
       {/* Available Flights Section (Glassy) */}
-      <section className="py-16 px-4 bg-gradient-to-r from-blue-800/40 via-cyan-900/40 to-teal-900/40">
+      <section className="py-16 px-4 bg-gradient-to-r from-blue-800/40 via-cyan-900/40 to-teal-900/40" data-flight-results>
         <div className="container mx-auto max-w-7xl">
           <div className="rounded-2xl bg-gray-900/60 backdrop-blur-lg border border-white/10 shadow-[0_10px_30px_rgba(2,132,199,0.15)] p-6 lg:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -437,32 +482,85 @@ export default function FlightsPage() {
             <div className="lg:col-span-3">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold text-white">
-                  Available Flights ({mockFlights.length})
+                  {isLoading ? 'Searching Flights...' : 
+                   error ? 'Error Loading Flights' :
+                   flightResults ? `Available Flights (${flightResults.total || 0})` :
+                   hasSearched ? 'No Flights Found' :
+                   'Available Flights (0)'}
                 </h3>
-                <div className="flex items-center space-x-4">
-                  <select className="bg-gray-900/70 border border-white/10 rounded-lg px-4 py-2 text-white backdrop-blur">
-                    <option>Sort by Price</option>
-                    <option>Sort by Duration</option>
-                    <option>Sort by Departure</option>
-                  </select>
-                </div>
+                {flightResults && flightResults.total > 0 && (
+                  <div className="flex items-center space-x-4">
+                    <select className="bg-gray-900/70 border border-white/10 rounded-lg px-4 py-2 text-white backdrop-blur">
+                      <option>Sort by Price</option>
+                      <option>Sort by Duration</option>
+                      <option>Sort by Departure</option>
+                    </select>
+                  </div>
+                )}
               </div>
 
-              <div className="space-y-4">
-                {mockFlights.map((flight, index) => (
-                  <motion.div
-                    key={flight.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <FlightCard 
-                      flight={flight} 
-                      onSelect={() => handleFlightSelect(flight)}
-                    />
-                  </motion.div>
-                ))}
-              </div>
+              {isLoading && (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="bg-gray-800/80 backdrop-blur-md rounded-2xl p-6 border border-cyan-700/40 animate-pulse">
+                      <div className="h-32 bg-gray-700/50 rounded"></div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {error && (
+                <div className="bg-red-900/20 border border-red-500/50 rounded-2xl p-6 text-center">
+                  <p className="text-red-400 mb-2">Failed to load flights</p>
+                  <p className="text-gray-400 text-sm">
+                    {error instanceof Error ? error.message : 'Please try again later'}
+                  </p>
+                </div>
+              )}
+
+              {!isLoading && !error && flightResults && flightResults.data && flightResults.data.length > 0 && (
+                <div className="space-y-4">
+                  {flightResults.data.map((flight, index) => (
+                    <motion.div
+                      key={flight.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <FlightCard 
+                        flight={flight} 
+                        onSelect={() => handleFlightSelect(flight)}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+
+              {!isLoading && !error && hasSearched && (!flightResults || flightResults.data.length === 0) && (
+                <div className="bg-gray-800/80 backdrop-blur-md rounded-2xl p-12 border border-cyan-700/40 text-center">
+                  <Plane className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-400 text-lg mb-2">No flights found</p>
+                  <p className="text-gray-500 text-sm">Try adjusting your search criteria</p>
+                </div>
+              )}
+
+              {!hasSearched && (
+                <div className="space-y-4">
+                  {mockFlights.slice(0, 4).map((flight, index) => (
+                    <motion.div
+                      key={flight.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <FlightCard 
+                        flight={flight} 
+                        onSelect={() => handleFlightSelect(flight)}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           </div>

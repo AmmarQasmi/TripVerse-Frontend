@@ -111,3 +111,82 @@ export interface ThemeConfig {
     lg: string
   }
 }
+
+// Flight types
+export interface Flight {
+  id: string
+  offer_id: string
+  airline: string
+  airline_code: string
+  flight_number: string
+  origin: {
+    code: string
+    name: string
+    city: string
+  }
+  destination: {
+    code: string
+    name: string
+    city: string
+  }
+  departure: {
+    time: string
+    airport: string
+  }
+  arrival: {
+    time: string
+    airport: string
+  }
+  duration_minutes: number
+  duration_formatted: string
+  stops: number
+  stops_formatted: string
+  price: {
+    amount: string
+    currency: string
+    formatted: string
+  }
+  cabin_class: string
+  slices: FlightSlice[]
+}
+
+export interface FlightSlice {
+  origin: string
+  destination: string
+  departure_time: string
+  arrival_time: string
+  duration_minutes: number
+  segments: FlightSegment[]
+}
+
+export interface FlightSegment {
+  airline: string
+  airline_code: string
+  flight_number: string
+  departure: {
+    airport: string
+    time: string
+  }
+  arrival: {
+    airport: string
+    time: string
+  }
+  duration_minutes: number
+}
+
+export interface FlightSearchParams {
+  origin: string
+  destination: string
+  departure_date: string
+  return_date?: string
+  adults?: number
+  children?: number
+  infants?: number
+  cabin_class?: 'economy' | 'premium_economy' | 'business' | 'first'
+}
+
+export interface DuffelBookingLink {
+  booking_url: string
+  session_id: string
+  reference: string
+}
