@@ -182,7 +182,7 @@ export default function CreateHotelPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <PageHeader
         title="Create New Hotel"
         subtitle="Add a new hotel to your listings"
@@ -195,18 +195,18 @@ export default function CreateHotelPage() {
           animate={{ opacity: 1, y: 0 }}
         >
           {error && (
-            <Card className="bg-red-500/20 border-red-500 mb-6">
+            <Card className="bg-red-50 border-red-500 mb-6">
               <CardContent className="p-4">
-                <p className="text-red-200">{error}</p>
+                <p className="text-red-900">{error}</p>
               </CardContent>
             </Card>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information */}
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card className="bg-white border border-gray-200">
               <CardHeader>
-                <CardTitle className="text-white">Basic Information</CardTitle>
+                <CardTitle className="text-gray-900">Basic Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Input
@@ -273,7 +273,7 @@ export default function CreateHotelPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-300 mb-2 block">
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
                     Amenities
                   </label>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -285,7 +285,7 @@ export default function CreateHotelPage() {
                           onChange={() => toggleAmenity(amenity)}
                           className="rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"
                         />
-                        <span className="text-sm text-gray-300 capitalize">
+                        <span className="text-sm text-gray-700 capitalize">
                           {amenity.replace('_', ' ')}
                         </span>
                       </label>
@@ -296,26 +296,26 @@ export default function CreateHotelPage() {
             </Card>
 
             {/* Images */}
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card className="bg-white border border-gray-200">
               <CardHeader>
-                <CardTitle className="text-white">Images</CardTitle>
+                <CardTitle className="text-gray-900">Images</CardTitle>
               </CardHeader>
               <CardContent>
                 <ImageUploader
                   onImagesSelected={(files) => setFormData(prev => ({ ...prev, images: files }))}
                   maxImages={10}
                 />
-                <p className="text-sm text-gray-400 mt-2">
+                <p className="text-sm text-gray-600 mt-2">
                   You can upload images now or add them later after creating the hotel.
                 </p>
               </CardContent>
             </Card>
 
             {/* Room Types */}
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card className="bg-white border border-gray-200">
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <CardTitle className="text-white">Room Types</CardTitle>
+                  <CardTitle className="text-gray-900">Room Types</CardTitle>
                   <Button
                     type="button"
                     variant="outline"
@@ -327,7 +327,7 @@ export default function CreateHotelPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {showRoomTypeForm && (
-                  <div className="bg-white/5 p-4 rounded-lg">
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <RoomTypeForm
                       onSubmit={addRoomType}
                       onCancel={() => setShowRoomTypeForm(false)}
@@ -337,17 +337,17 @@ export default function CreateHotelPage() {
 
                 {formData.roomTypes.length > 0 && (
                   <div className="space-y-3">
-                    <p className="text-sm text-gray-300 font-medium">
+                    <p className="text-sm text-gray-700 font-medium">
                       Added Room Types ({formData.roomTypes.length})
                     </p>
                     {formData.roomTypes.map((roomType, index) => (
                       <div
                         key={index}
-                        className="bg-white/5 p-4 rounded-lg flex justify-between items-center"
+                        className="bg-gray-50 p-4 rounded-lg flex justify-between items-center border border-gray-200"
                       >
                         <div>
-                          <p className="text-white font-medium">{roomType.name}</p>
-                          <p className="text-gray-400 text-sm">
+                          <p className="text-gray-900 font-medium">{roomType.name}</p>
+                          <p className="text-gray-600 text-sm">
                             PKR {roomType.base_price.toLocaleString()} per night • {roomType.total_rooms} rooms
                           </p>
                         </div>
@@ -366,7 +366,7 @@ export default function CreateHotelPage() {
                 )}
 
                 {formData.roomTypes.length === 0 && !showRoomTypeForm && (
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-600 text-sm">
                     Room types are optional. You can add them now or after creating the hotel.
                   </p>
                 )}

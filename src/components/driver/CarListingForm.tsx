@@ -184,12 +184,11 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 [&_label]:text-gray-700 [&_label]:font-medium [&_p.text-sm]:text-red-500">
       {/* Basic Information */}
-      <Card className="shadow-lg">
+      <Card className="shadow-lg bg-white border border-gray-200">
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <span className="mr-2">🚗</span>
+          <CardTitle className="text-gray-900">
             Basic Information
           </CardTitle>
         </CardHeader>
@@ -315,10 +314,9 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
       </Card>
 
       {/* Pricing */}
-      <Card className="shadow-lg">
+      <Card className="shadow-lg bg-white border border-gray-200">
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <span className="mr-2">💰</span>
+          <CardTitle className="text-gray-900">
             Pricing
           </CardTitle>
         </CardHeader>
@@ -336,9 +334,6 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
                 step="0.01"
                 required
               />
-              <p className="text-sm text-gray-500 mt-1">
-                You'll receive 95% (PKR {(formData.base_price_per_day * 0.95).toLocaleString()}) after 5% platform fee
-              </p>
             </div>
             <div>
               <Input
@@ -352,25 +347,21 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
                 step="0.01"
                 required
               />
-              <p className="text-sm text-gray-500 mt-1">
-                Additional charge per kilometer traveled
-              </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Images */}
-      <Card className="shadow-lg">
+      <Card className="shadow-lg bg-white border border-gray-200">
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <span className="mr-2">📷</span>
+          <CardTitle className="text-gray-900">
             Car Images
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors bg-gray-50">
               <input
                 type="file"
                 multiple
@@ -380,13 +371,12 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
                 id="image-upload"
               />
               <label htmlFor="image-upload" className="cursor-pointer">
-                <div className="text-4xl mb-2">📸</div>
-                <p className="text-gray-600 mb-2">Click to upload car images</p>
+                <p className="text-gray-700 mb-2">Click to upload car images</p>
                 <p className="text-sm text-gray-500">Upload at least 3 high-quality images</p>
               </label>
             </div>
             {formData.images && formData.images.length > 0 && (
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-700">
                 {formData.images.length} image{formData.images.length !== 1 ? 's' : ''} selected
               </div>
             )}

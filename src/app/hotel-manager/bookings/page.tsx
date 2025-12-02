@@ -98,15 +98,15 @@ export default function HotelManagerBookingsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading bookings...</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-gray-900 text-xl">Loading bookings...</div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-white">
         <PageHeader 
           title="My Bookings"
           subtitle="Manage your hotel bookings"
@@ -114,9 +114,9 @@ export default function HotelManagerBookingsPage() {
           backLabel="Back to Dashboard"
         />
         <div className="container mx-auto px-4 py-8">
-          <Card className="bg-red-500/20 border-red-500">
+          <Card className="bg-red-50 border-red-500">
             <CardContent className="p-6">
-              <p className="text-white">{error}</p>
+              <p className="text-red-900">{error}</p>
               <Button onClick={() => window.location.reload()} variant="outline" className="mt-4">
                 Retry
               </Button>
@@ -128,7 +128,7 @@ export default function HotelManagerBookingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <PageHeader 
         title="My Bookings"
         subtitle="Manage your hotel bookings"
@@ -142,28 +142,28 @@ export default function HotelManagerBookingsPage() {
         >
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card className="bg-white border border-gray-200">
               <CardContent className="p-6">
-                <div className="text-3xl font-bold text-white">{stats.total}</div>
-                <div className="text-gray-300 text-sm mt-1">Total Bookings</div>
+                <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
+                <div className="text-gray-600 text-sm mt-1">Total Bookings</div>
               </CardContent>
             </Card>
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card className="bg-white border border-gray-200">
               <CardContent className="p-6">
-                <div className="text-3xl font-bold text-white">{stats.confirmed}</div>
-                <div className="text-gray-300 text-sm mt-1">Confirmed</div>
+                <div className="text-3xl font-bold text-gray-900">{stats.confirmed}</div>
+                <div className="text-gray-600 text-sm mt-1">Confirmed</div>
               </CardContent>
             </Card>
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card className="bg-white border border-gray-200">
               <CardContent className="p-6">
-                <div className="text-3xl font-bold text-white">{stats.cancelled}</div>
-                <div className="text-gray-300 text-sm mt-1">Cancelled</div>
+                <div className="text-3xl font-bold text-gray-900">{stats.cancelled}</div>
+                <div className="text-gray-600 text-sm mt-1">Cancelled</div>
               </CardContent>
             </Card>
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card className="bg-white border border-gray-200">
               <CardContent className="p-6">
-                <div className="text-3xl font-bold text-white">PKR {stats.totalEarnings.toLocaleString()}</div>
-                <div className="text-gray-300 text-sm mt-1">Total Earnings</div>
+                <div className="text-3xl font-bold text-gray-900">PKR {stats.totalEarnings.toLocaleString()}</div>
+                <div className="text-gray-600 text-sm mt-1">Total Earnings</div>
               </CardContent>
             </Card>
           </div>
@@ -175,7 +175,7 @@ export default function HotelManagerBookingsPage() {
                 key={status}
                 variant={statusFilter === status ? 'default' : 'outline'}
                 onClick={() => setStatusFilter(status)}
-                className={statusFilter === status ? 'bg-cyan-600 hover:bg-cyan-700' : ''}
+                className={statusFilter === status ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}
               >
                 {status === 'all' ? 'All' : status.replace('_', ' ')}
               </Button>
@@ -183,16 +183,15 @@ export default function HotelManagerBookingsPage() {
           </div>
 
           {/* Bookings List */}
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="bg-white border border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white">Bookings</CardTitle>
+              <CardTitle className="text-gray-900">Bookings</CardTitle>
             </CardHeader>
             <CardContent>
               {bookings.length === 0 ? (
                 <div className="p-12 text-center">
-                  <div className="text-6xl mb-4">📋</div>
-                  <h3 className="text-xl font-semibold text-white mb-2">No Bookings Found</h3>
-                  <p className="text-gray-300">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Bookings Found</h3>
+                  <p className="text-gray-600">
                     {statusFilter === 'all' 
                       ? 'You don\'t have any bookings yet.' 
                       : `No bookings with status "${statusFilter}"`}
@@ -205,17 +204,17 @@ export default function HotelManagerBookingsPage() {
                       key={booking.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-6 border border-white/20 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                      className="p-6 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="text-xl font-semibold text-white">{booking.hotel.name}</h3>
+                            <h3 className="text-xl font-semibold text-gray-900">{booking.hotel.name}</h3>
                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
                               {booking.status.replace('_', ' ')}
                             </span>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                             <div>
                               <span className="font-semibold">Room Type:</span> {booking.room_type.name}
                             </div>
@@ -237,14 +236,14 @@ export default function HotelManagerBookingsPage() {
                           </div>
                         </div>
                       </div>
-                      <div className="border-t border-white/20 pt-4 mt-4 flex justify-between items-center">
+                      <div className="border-t border-gray-200 pt-4 mt-4 flex justify-between items-center">
                         <div>
-                          <p className="text-gray-300 text-sm">Total Amount</p>
-                          <p className="text-2xl font-bold text-white">PKR {booking.total_amount.toLocaleString()}</p>
+                          <p className="text-gray-600 text-sm">Total Amount</p>
+                          <p className="text-2xl font-bold text-gray-900">PKR {booking.total_amount.toLocaleString()}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-gray-300 text-sm">Your Earnings (95%)</p>
-                          <p className="text-xl font-bold text-green-400">PKR {booking.manager_earnings.toLocaleString()}</p>
+                          <p className="text-gray-600 text-sm">Your Earnings (95%)</p>
+                          <p className="text-xl font-bold text-green-600">PKR {booking.manager_earnings.toLocaleString()}</p>
                         </div>
                       </div>
                     </motion.div>
