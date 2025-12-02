@@ -7,9 +7,10 @@ import { MapPin, Calendar, Users, Plane, RotateCcw } from 'lucide-react'
 
 interface FlightSearchFormProps {
   onSearch: (params: any) => void
+  isLoading?: boolean
 }
 
-export function FlightSearchForm({ onSearch }: FlightSearchFormProps) {
+export function FlightSearchForm({ onSearch, isLoading = false }: FlightSearchFormProps) {
   const [tripType, setTripType] = useState<'ONE_WAY' | 'ROUND_TRIP' | 'MULTI_CITY'>('ONE_WAY')
   const [searchParams, setSearchParams] = useState({
     origin: '',
@@ -24,6 +25,10 @@ export function FlightSearchForm({ onSearch }: FlightSearchFormProps) {
   ])
   const [flexibleDates, setFlexibleDates] = useState(false)
   const [showPassengerDropdown, setShowPassengerDropdown] = useState(false)
+  const [originSuggestions, setOriginSuggestions] = useState<typeof airports>([])
+  const [destinationSuggestions, setDestinationSuggestions] = useState<typeof airports>([])
+  const [showOriginSuggestions, setShowOriginSuggestions] = useState(false)
+  const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false)
 
   // Mock airports for autocomplete
   const airports = [
@@ -55,12 +60,101 @@ export function FlightSearchForm({ onSearch }: FlightSearchFormProps) {
     }))
   }
 
+  // Filter airports based on input
+  const filterAirports = (input: string) => {
+    if (!input) return []
+    const lowerInput = input.toLowerCase()
+    return airports.filter(airport =>
+      airport.city.toLowerCase().includes(lowerInput) ||
+      airport.name.toLowerCase().includes(lowerInput) ||
+      airport.code.toLowerCase().includes(lowerInput)
+    )
+  }
+
+  // Extract airport code from city name or code
+  const extractAirportCode = (input: string): string => {
+    if (!input) return ''
+    
+    // If input is already a 3-letter code, return it uppercase
+    const trimmed = input.trim().toUpperCase()
+    if (/^[A-Z]{3}$/.test(trimmed)) {
+      return trimmed
+    }
+    
+    // Try to find matching airport from the list
+    const matched = airports.find(airport => 
+      airport.city.toLowerCase() === input.toLowerCase() ||
+      airport.name.toLowerCase().includes(input.toLowerCase()) ||
+      airport.code.toLowerCase() === input.toLowerCase()
+    )
+    
+    return matched ? matched.code : ''
+  }
+
+  const handleOriginChange = (value: string) => {
+    setSearchParams(prev => ({ ...prev, origin: value }))
+    const suggestions = filterAirports(value)
+    setOriginSuggestions(suggestions)
+    setShowOriginSuggestions(suggestions.length > 0 && value.length > 0)
+  }
+
+  const handleDestinationChange = (value: string) => {
+    setSearchParams(prev => ({ ...prev, destination: value }))
+    const suggestions = filterAirports(value)
+    setDestinationSuggestions(suggestions)
+    setShowDestinationSuggestions(suggestions.length > 0 && value.length > 0)
+  }
+
+  const selectAirport = (airport: typeof airports[0], type: 'origin' | 'destination') => {
+    if (type === 'origin') {
+      setSearchParams(prev => ({ ...prev, origin: airport.code }))
+      setShowOriginSuggestions(false)
+    } else {
+      setSearchParams(prev => ({ ...prev, destination: airport.code }))
+      setShowDestinationSuggestions(false)
+    }
+  }
+
   const handleSearch = () => {
+    // Validate required fields
     if (tripType === 'MULTI_CITY') {
+      // Validate multi-city legs
+      const hasValidLegs = multiLegs.every(leg => leg.origin && leg.destination && leg.date)
+      if (!hasValidLegs) {
+        alert('Please fill in all fields for each leg')
+        return
+      }
       onSearch({ tripType, flexibleDates, legs: multiLegs, passengers: searchParams.passengers, cabinClass: searchParams.cabinClass })
     } else {
+      // Validate one-way and round-trip
+      if (!searchParams.origin || !searchParams.destination || !searchParams.departureDate) {
+        alert('Please fill in origin, destination, and departure date')
+        return
+      }
+      
+      if (tripType === 'ROUND_TRIP' && !searchParams.returnDate) {
+        alert('Please select a return date for round trip')
+        return
+      }
+      
+      // Extract airport codes
+      const originCode = extractAirportCode(searchParams.origin)
+      const destinationCode = extractAirportCode(searchParams.destination)
+      
+      if (!originCode || originCode.length !== 3) {
+        alert('Please enter a valid origin airport (e.g., KHI, Karachi)')
+        return
+      }
+      
+      if (!destinationCode || destinationCode.length !== 3) {
+        alert('Please enter a valid destination airport (e.g., LHE, Lahore)')
+        return
+      }
+      
       onSearch({
         ...searchParams,
+        origin: originCode,
+        destination: destinationCode,
         tripType,
         flexibleDates
       })
@@ -122,10 +216,33 @@ export function FlightSearchForm({ onSearch }: FlightSearchFormProps) {
                 <input
                   type="text"
                   value={searchParams.origin}
-                  onChange={(e) => setSearchParams(prev => ({ ...prev, origin: e.target.value }))}
+                  onChange={(e) => handleOriginChange(e.target.value)}
+                  onFocus={() => {
+                    if (searchParams.origin) {
+                      const suggestions = filterAirports(searchParams.origin)
+                      setOriginSuggestions(suggestions)
+                      setShowOriginSuggestions(suggestions.length > 0)
+                    }
+                  }}
+                  onBlur={() => setTimeout(() => setShowOriginSuggestions(false), 200)}
                   placeholder="City or airport"
                   className="w-full pl-12 pr-4 py-3 bg-transparent text-white placeholder-gray-400 focus:outline-none"
                 />
+                {showOriginSuggestions && originSuggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800/95 backdrop-blur-md rounded-lg border border-gray-600 shadow-xl z-50 max-h-48 overflow-y-auto">
+                    {originSuggestions.map((airport) => (
+                      <button
+                        key={airport.code}
+                        type="button"
+                        onClick={() => selectAirport(airport, 'origin')}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-700/50 transition-colors"
+                      >
+                        <div className="text-white font-medium">{airport.city}</div>
+                        <div className="text-sm text-gray-400">{airport.name} ({airport.code})</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               {/* Divider with swap button */}
               <div className="relative flex items-center">
@@ -146,10 +263,33 @@ export function FlightSearchForm({ onSearch }: FlightSearchFormProps) {
                 <input
                   type="text"
                   value={searchParams.destination}
-                  onChange={(e) => setSearchParams(prev => ({ ...prev, destination: e.target.value }))}
+                  onChange={(e) => handleDestinationChange(e.target.value)}
+                  onFocus={() => {
+                    if (searchParams.destination) {
+                      const suggestions = filterAirports(searchParams.destination)
+                      setDestinationSuggestions(suggestions)
+                      setShowDestinationSuggestions(suggestions.length > 0)
+                    }
+                  }}
+                  onBlur={() => setTimeout(() => setShowDestinationSuggestions(false), 200)}
                   placeholder="City or airport"
                   className="w-full pl-12 pr-4 py-3 bg-transparent text-white placeholder-gray-400 focus:outline-none"
                 />
+                {showDestinationSuggestions && destinationSuggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800/95 backdrop-blur-md rounded-lg border border-gray-600 shadow-xl z-50 max-h-48 overflow-y-auto">
+                    {destinationSuggestions.map((airport) => (
+                      <button
+                        key={airport.code}
+                        type="button"
+                        onClick={() => selectAirport(airport, 'destination')}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-700/50 transition-colors"
+                      >
+                        <div className="text-white font-medium">{airport.city}</div>
+                        <div className="text-sm text-gray-400">{airport.name} ({airport.code})</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -377,10 +517,20 @@ export function FlightSearchForm({ onSearch }: FlightSearchFormProps) {
           <div className="w-full lg:w-auto">
             <Button
               onClick={handleSearch}
-              className="w-full lg:w-auto bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white py-3 px-8 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all h-[52px] flex items-center justify-center"
+              disabled={isLoading}
+              className="w-full lg:w-auto bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white py-3 px-8 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all h-[52px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Plane className="w-5 h-5 mr-2" />
-              Search Flights
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                <>
+                  <Plane className="w-5 h-5 mr-2" />
+                  Search Flights
+                </>
+              )}
             </Button>
           </div>
         </div>

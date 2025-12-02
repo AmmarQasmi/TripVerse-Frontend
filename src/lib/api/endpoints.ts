@@ -183,4 +183,10 @@ export const API_ENDPOINTS = {
     MARK_ALL_READ: '/notifications/read-all',
     DELETE: (id: string) => `/notifications/${id}`,
   },
+
+  // Flight endpoints
+  FLIGHTS: {
+    SEARCH: '/flights/search',
+    CREATE_BOOKING_LINK: '/flights/create-booking-link',
+  },
 } as const
