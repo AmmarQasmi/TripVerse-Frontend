@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { useAuth } from '@/features/auth/useAuth'
 import { hotelsApi } from '@/lib/api/hotels.api'
+import { CircularStatsCard } from '@/components/driver/CircularStatsCard'
 
 interface ManagerHotel {
   id: string
@@ -71,7 +72,7 @@ export default function HotelManagerHotelsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-white">
         <PageHeader 
           title="My Hotels"
           subtitle="Manage your hotel listings"
@@ -79,7 +80,7 @@ export default function HotelManagerHotelsPage() {
           backLabel="Back to Dashboard"
         />
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-white text-xl">Loading hotels...</div>
+          <div className="text-gray-900 text-xl">Loading hotels...</div>
         </div>
       </div>
     )
@@ -87,7 +88,7 @@ export default function HotelManagerHotelsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-white">
         <PageHeader 
           title="My Hotels"
           subtitle="Manage your hotel listings"
@@ -95,9 +96,9 @@ export default function HotelManagerHotelsPage() {
           backLabel="Back to Dashboard"
         />
         <div className="container mx-auto px-4 py-8">
-          <Card className="bg-red-500/20 border-red-500">
+          <Card className="bg-red-50 border-red-500">
             <CardContent className="p-6">
-              <p className="text-white">{error}</p>
+              <p className="text-red-900">{error}</p>
               <Button onClick={() => window.location.reload()} variant="outline" className="mt-4">
                 Retry
               </Button>
@@ -109,7 +110,7 @@ export default function HotelManagerHotelsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <PageHeader 
         title="My Hotels"
         subtitle="Manage your hotel listings"
@@ -122,133 +123,136 @@ export default function HotelManagerHotelsPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          {/* Stats Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6">
-                <div className="text-3xl font-bold text-white">{totalHotels}</div>
-                <div className="text-gray-300 text-sm mt-1">Total Hotels</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6">
-                <div className="text-3xl font-bold text-white">{activeHotels}</div>
-                <div className="text-gray-300 text-sm mt-1">Active Hotels</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6">
-                <div className="text-3xl font-bold text-white">{totalBookings}</div>
-                <div className="text-gray-300 text-sm mt-1">Total Bookings</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6">
-                <div className="text-3xl font-bold text-white">PKR {totalEarnings.toLocaleString()}</div>
-                <div className="text-gray-300 text-sm mt-1">Total Earnings</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Add Hotel Button */}
-          <div className="mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                My Hotels
+              </h1>
+              <p className="text-lg text-gray-600">
+                Manage your properties and track performance
+              </p>
+            </div>
             <Link href="/hotel-manager/hotels/new">
-              <Button className="bg-cyan-600 hover:bg-cyan-700 text-white">
-                + Add New Hotel
+              <Button className="mt-4 md:mt-0 bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold px-6 py-3 rounded-xl">
+                Add New Hotel
               </Button>
             </Link>
           </div>
+        </motion.div>
 
-          {/* Hotels List */}
-          {hotels.length === 0 ? (
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-12 text-center">
-                <div className="text-6xl mb-4">🏨</div>
-                <h3 className="text-xl font-semibold text-white mb-2">No Hotels Yet</h3>
-                <p className="text-gray-300 mb-6">Start by adding your first hotel listing</p>
-                <Link href="/hotel-manager/hotels/new">
-                  <Button className="bg-cyan-600 hover:bg-cyan-700 text-white">
-                    Add Your First Hotel
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {hotels.map((hotel) => (
-                <motion.div
-                  key={hotel.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  whileHover={{ y: -5 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:shadow-xl transition-all duration-300 h-full flex flex-col">
-                    <div className="relative h-48 bg-gray-700 rounded-t-lg overflow-hidden">
-                      {hotel.images && hotel.images.length > 0 ? (
-                        <img
-                          src={hotel.images[0]}
-                          alt={hotel.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-6xl">
-                          🏨
-                        </div>
-                      )}
-                      <div className="absolute top-2 right-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(hotel.is_listed, hotel.is_active)}`}>
-                          {getStatusText(hotel.is_listed, hotel.is_active)}
-                        </span>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+          <CircularStatsCard
+            label="Total Hotels"
+            value={totalHotels}
+            delay={0.1}
+            maxValue={Math.max(totalHotels, 10)}
+          />
+          <CircularStatsCard
+            label="Active Hotels"
+            value={activeHotels}
+            delay={0.2}
+            maxValue={Math.max(totalHotels, 1)}
+          />
+          <CircularStatsCard
+            label="Total Bookings"
+            value={totalBookings}
+            delay={0.3}
+            maxValue={Math.max(totalBookings, 10)}
+          />
+          <CircularStatsCard
+            label="Total Earnings"
+            value={`PKR ${totalEarnings.toLocaleString()}`}
+            delay={0.4}
+            maxValue={Math.max(totalEarnings, 100000)}
+          />
+        </div>
+
+        {/* Hotels List */}
+        {hotels.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {hotels.map((hotel, index) => (
+              <motion.div
+                key={hotel.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * index }}
+              >
+                <Card className="shadow-lg hover:shadow-xl transition-all duration-300 bg-white overflow-hidden border border-gray-200">
+                  {/* Hotel Image */}
+                  <div className="relative h-48 bg-gray-200">
+                    {hotel.images && hotel.images.length > 0 ? (
+                      <img
+                        src={hotel.images[0]}
+                        alt={hotel.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : null}
+                    <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(hotel.is_listed, hotel.is_active)}`}>
+                      {getStatusText(hotel.is_listed, hotel.is_active)}
+                    </div>
+                  </div>
+
+                  <CardHeader>
+                    <CardTitle className="text-xl font-bold text-gray-900">
+                      {hotel.name}
+                    </CardTitle>
+                    <p className="text-sm text-gray-600">{hotel.location}</p>
+                  </CardHeader>
+
+                  <CardContent className="space-y-4">
+                    {/* Stats */}
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="bg-gray-50 p-2 rounded-lg">
+                        <p className="text-lg font-bold text-gray-900">
+                          {hotel.room_types_count}
+                        </p>
+                        <p className="text-xs text-gray-600">Room Types</p>
+                      </div>
+                      <div className="bg-gray-50 p-2 rounded-lg">
+                        <p className="text-lg font-bold text-gray-900">{hotel.total_bookings}</p>
+                        <p className="text-xs text-gray-600">Bookings</p>
+                      </div>
+                      <div className="bg-gray-50 p-2 rounded-lg">
+                        <p className="text-lg font-bold text-gray-900">
+                          {hotel.total_earnings > 0 ? `${(hotel.total_earnings / 1000).toFixed(0)}k` : '0'}
+                        </p>
+                        <p className="text-xs text-gray-600">Earned</p>
                       </div>
                     </div>
-                    <CardContent className="p-6 flex-1 flex flex-col">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-semibold text-white mb-2">{hotel.name}</h3>
-                        <p className="text-gray-300 text-sm mb-4 line-clamp-2">
-                          {hotel.description || 'No description available'}
-                        </p>
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-center text-sm text-gray-300">
-                            <span className="mr-2">📍</span>
-                            {hotel.location}
-                          </div>
-                          {hotel.rating && (
-                            <div className="flex items-center text-sm text-gray-300">
-                              <span className="mr-2">⭐</span>
-                              {hotel.rating.toFixed(1)} Rating
-                            </div>
-                          )}
-                          <div className="flex items-center text-sm text-gray-300">
-                            <span className="mr-2">🛏️</span>
-                            {hotel.room_types_count} Room Types
-                          </div>
-                        </div>
-                      </div>
-                      <div className="border-t border-white/20 pt-4 mt-4">
-                        <div className="flex justify-between items-center mb-3">
-                          <span className="text-gray-300 text-sm">Bookings</span>
-                          <span className="text-white font-semibold">{hotel.total_bookings}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-300 text-sm">Earnings</span>
-                          <span className="text-green-400 font-semibold">PKR {hotel.total_earnings.toLocaleString()}</span>
-                        </div>
-                      </div>
-                      <div className="mt-4 flex space-x-2">
-                        <Link href={`/hotel-manager/hotels/${hotel.id}`} className="flex-1">
-                          <Button variant="outline" className="w-full">
-                            Manage
-                          </Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </motion.div>
+
+                    {/* Actions */}
+                    <div className="flex space-x-2">
+                      <Link href={`/hotel-manager/hotels/${hotel.id}`} className="flex-1">
+                        <Button variant="outline" className="w-full">
+                          Manage
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-16"
+          >
+            <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+              No hotels listed yet
+            </h3>
+            <p className="text-gray-600 mb-8">
+              Start earning by listing your first hotel
+            </p>
+            <Link href="/hotel-manager/hotels/new">
+              <Button className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold px-8 py-3 rounded-xl">
+                Add Your First Hotel
+              </Button>
+            </Link>
+          </motion.div>
+        )}
       </div>
     </div>
   )

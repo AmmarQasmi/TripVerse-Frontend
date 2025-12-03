@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { useAuth } from '@/features/auth/useAuth'
 import { carsApi } from '@/lib/api/cars.api'
+import { CircularStatsCard } from '@/components/driver/CircularStatsCard'
 
 interface DriverCar {
   id: string
@@ -98,7 +99,7 @@ export default function DriverCarsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-white">
         <PageHeader 
           title="My Cars"
           subtitle="Manage your car listings"
@@ -106,7 +107,7 @@ export default function DriverCarsPage() {
           backLabel="Back to Dashboard"
         />
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-white text-xl">Loading cars...</div>
+          <div className="text-gray-900 text-xl">Loading cars...</div>
         </div>
       </div>
     )
@@ -114,7 +115,7 @@ export default function DriverCarsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-white">
         <PageHeader 
           title="My Cars"
           subtitle="Manage your car listings"
@@ -122,9 +123,9 @@ export default function DriverCarsPage() {
           backLabel="Back to Dashboard"
         />
         <div className="container mx-auto px-4 py-8">
-          <Card className="bg-red-500/20 border-red-500">
+          <Card className="bg-red-50 border-red-500">
             <CardContent className="p-6">
-              <p className="text-white">{error}</p>
+              <p className="text-red-900">{error}</p>
               <Button onClick={() => window.location.reload()} variant="outline" className="mt-4">
                 Retry
               </Button>
@@ -136,7 +137,7 @@ export default function DriverCarsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <PageHeader 
         title="My Cars"
         subtitle="Manage your car listings"
@@ -151,10 +152,10 @@ export default function DriverCarsPage() {
         >
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">
                 My Cars
               </h1>
-              <p className="text-lg text-gray-300">
+              <p className="text-lg text-gray-600">
                 Manage your fleet and track performance
               </p>
             </div>
@@ -168,80 +169,31 @@ export default function DriverCarsPage() {
         </motion.div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Card className="shadow-lg bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-300">Total Cars</p>
-                    <p className="text-3xl font-bold text-white">{totalCars}</p>
-                  </div>
-                  <div className="text-4xl">🚗</div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card className="shadow-lg bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-300">Active Cars</p>
-                    <p className="text-3xl font-bold text-white">{activeCars}</p>
-                  </div>
-                  <div className="text-4xl">✅</div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Card className="shadow-lg bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-300">Total Bookings</p>
-                    <p className="text-3xl font-bold text-white">{totalBookings}</p>
-                  </div>
-                  <div className="text-4xl">📋</div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Card className="shadow-lg bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-300">Total Earnings</p>
-                    <p className="text-3xl font-bold text-white">
-                      PKR {totalEarnings.toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="text-4xl">💰</div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+          <CircularStatsCard
+            label="Total Cars"
+            value={totalCars}
+            delay={0.1}
+            maxValue={Math.max(totalCars, 10)}
+          />
+          <CircularStatsCard
+            label="Active Cars"
+            value={activeCars}
+            delay={0.2}
+            maxValue={Math.max(totalCars, 1)}
+          />
+          <CircularStatsCard
+            label="Total Bookings"
+            value={totalBookings}
+            delay={0.3}
+            maxValue={Math.max(totalBookings, 10)}
+          />
+          <CircularStatsCard
+            label="Total Earnings"
+            value={`PKR ${totalEarnings.toLocaleString()}`}
+            delay={0.4}
+            maxValue={Math.max(totalEarnings, 100000)}
+          />
         </div>
 
         {/* Cars List */}
@@ -254,7 +206,7 @@ export default function DriverCarsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * index }}
               >
-                <Card className="shadow-lg hover:shadow-xl transition-all duration-300 bg-white overflow-hidden">
+                <Card className="shadow-lg hover:shadow-xl transition-all duration-300 bg-white overflow-hidden border border-gray-200">
                   {/* Car Image */}
                   <div className="relative h-48 bg-gray-200">
                     {car.image && (
@@ -322,10 +274,10 @@ export default function DriverCarsPage() {
             className="text-center py-16"
           >
             <div className="text-6xl mb-4">🚗</div>
-            <h3 className="text-2xl font-semibold text-white mb-2">
+            <h3 className="text-2xl font-semibold text-gray-900 mb-2">
               No cars listed yet
             </h3>
-            <p className="text-gray-300 mb-8">
+            <p className="text-gray-600 mb-8">
               Start earning by listing your first car
             </p>
             <Link href="/driver/cars/new">

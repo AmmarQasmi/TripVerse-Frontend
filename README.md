@@ -281,6 +281,17 @@ Ensure all production environment variables are configured:
 
 This project is licensed under the MIT License.
 
+## 📚 Additional Documentation
+
+### Driver & Hotel Manager Redesign
+Complete documentation for the Driver and Hotel Manager dashboard redesign:
+
+- **[Full Documentation](./DRIVER_HOTEL_MANAGER_REDESIGN.md)** - Comprehensive guide with all changes, components, and implementation details
+- **[Quick Reference](./QUICK_REFERENCE_REDESIGN.md)** - Quick lookup guide for common patterns and code snippets
+- **[Changes Summary](./CHANGES_SUMMARY.md)** - Summary of all files modified and changes made
+
+**Note**: These changes were accidentally committed to main branch. Refer to documentation for re-implementation or rollback.
+
 ## 🆘 Support
 
 For support and questions:

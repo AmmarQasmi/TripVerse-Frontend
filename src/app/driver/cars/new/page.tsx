@@ -60,7 +60,7 @@ export default function NewCarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <PageHeader 
         title="List Your Car"
         subtitle="Fill in the details below to start earning from your vehicle"
@@ -74,65 +74,17 @@ export default function NewCarPage() {
           className="max-w-5xl mx-auto"
         >
           {error && (
-            <div className="mb-6 p-4 bg-red-500/20 border border-red-500 rounded-lg">
-              <p className="text-red-200">{error}</p>
+            <div className="mb-6 p-4 bg-red-50 border border-red-500 rounded-lg">
+              <p className="text-red-900">{error}</p>
             </div>
           )}
 
           {/* Form */}
-          <div className="bg-white rounded-2xl p-8 shadow-2xl">
+          <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-lg">
             <CarListingForm
               onSubmit={handleSubmit}
               isLoading={isSubmitting}
             />
-          </div>
-
-          {/* Info Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6"
-            >
-              <div className="text-3xl mb-3">💰</div>
-              <h3 className="text-xl font-semibold text-white mb-2">
-                Earn More
-              </h3>
-              <p className="text-gray-300 text-sm">
-                Set competitive prices and earn 95% of every booking after our 5% platform fee
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6"
-            >
-              <div className="text-3xl mb-3">✅</div>
-              <h3 className="text-xl font-semibold text-white mb-2">
-                Admin Approval
-              </h3>
-              <p className="text-gray-300 text-sm">
-                Your car listing will be reviewed by our admin team before it becomes active
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6"
-            >
-              <div className="text-3xl mb-3">🔒</div>
-              <h3 className="text-xl font-semibold text-white mb-2">
-                Secure Payments
-              </h3>
-              <p className="text-gray-300 text-sm">
-                Receive payments securely through Stripe. Money is released after trip completion
-              </p>
-            </motion.div>
           </div>
         </motion.div>
       </div>

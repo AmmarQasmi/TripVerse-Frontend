@@ -130,7 +130,7 @@ export default function DriverBookingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <PageHeader 
         title="My Bookings"
         subtitle="Manage your car rental bookings"
@@ -139,7 +139,7 @@ export default function DriverBookingsPage() {
       />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
           My Car Bookings
         </h1>
         <p className="text-lg text-gray-600">
@@ -164,8 +164,8 @@ export default function DriverBookingsPage() {
               onClick={() => setStatusFilter(filter.value as any)}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 statusFilter === filter.value
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
               {filter.label}
@@ -178,7 +178,7 @@ export default function DriverBookingsPage() {
       <div className="space-y-4">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i} className="animate-pulse bg-white/10">
+            <Card key={i} className="animate-pulse bg-gray-50">
               <CardContent className="p-6">
                 <div className="h-4 bg-gray-200 rounded mb-2"></div>
                 <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -239,9 +239,9 @@ export default function DriverBookingsPage() {
           <Card className="bg-white">
             <CardContent className="p-12 text-center">
               <div className="text-gray-500 text-lg mb-4">
-                📋 No bookings found
+                No bookings found
               </div>
-              <p className="text-gray-400">
+              <p className="text-gray-600">
                 {statusFilter === 'all' 
                   ? "You don't have any bookings yet."
                   : `No bookings with status "${statusFilter.replace(/_/g, ' ').toLowerCase()}".`
