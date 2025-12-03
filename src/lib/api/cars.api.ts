@@ -35,6 +35,17 @@ export const carsApi = {
 
   // Calculate price for a specific car and route
   calculatePrice: async (carId: string, pickupLocation: string, dropoffLocation: string, startDate: string, endDate: string, estimatedDistance?: number) => {
+    const body: any = {
+      pickup_location: pickupLocation,
+      dropoff_location: dropoffLocation,
+      start_date: startDate,
+      end_date: endDate,
+    }
+    // Only include estimated_distance if provided (backend will calculate automatically if not provided)
+    if (estimatedDistance) {
+      body.estimated_distance = estimatedDistance
+    }
+    
     return httpClient.post<{
       car_id: number
       driver_id: number
@@ -49,13 +60,7 @@ export const carsApi = {
         driver_earnings: number
         platform_fee: number
       }
-    }>(`/cars/${carId}/calculate-price`, {
-      pickup_location: pickupLocation,
-      dropoff_location: dropoffLocation,
-      start_date: startDate,
-      end_date: endDate,
-      estimated_distance: estimatedDistance, // Customer provides distance for now
-    })
+    }>(`/cars/${carId}/calculate-price`, body)
   },
 
   // Create booking request

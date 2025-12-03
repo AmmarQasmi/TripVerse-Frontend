@@ -9,6 +9,7 @@ interface CircularStatsCardProps {
   subtitle?: string
   delay?: number
   maxValue?: number // For calculating progress percentage
+  onClick?: () => void
 }
 
 export function CircularStatsCard({ 
@@ -16,7 +17,8 @@ export function CircularStatsCard({
   value,
   subtitle,
   delay = 0,
-  maxValue = 100
+  maxValue = 100,
+  onClick,
 }: CircularStatsCardProps) {
   const [displayValue, setDisplayValue] = useState(0)
   const [chartProgress, setChartProgress] = useState(0)
@@ -102,6 +104,9 @@ export function CircularStatsCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay, duration: 0.5, type: "spring", stiffness: 200 }}
       className="relative group flex flex-col items-center"
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
       whileHover={{ 
         scale: 1.05,
         transition: { type: "spring", stiffness: 300, damping: 20 }

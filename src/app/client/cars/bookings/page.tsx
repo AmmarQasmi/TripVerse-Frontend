@@ -2,12 +2,19 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useUserBookings } from '@/features/cars/useCarSearch'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { ChatInterface } from '@/components/cars/ChatInterface'
+import { useToast } from '@/components/ui/Toast'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function CarBookingsPage() {
   const { user, requireAuth, isAuthenticated } = useRequireAuth()
+  const router = useRouter()
+  const { showToast } = useToast()
+  const queryClient = useQueryClient()
   const [selectedBooking, setSelectedBooking] = useState<number | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>('')
   
@@ -77,6 +84,10 @@ export default function CarBookingsPage() {
 
   const canChat = (status: string) => {
     return ['ACCEPTED', 'CONFIRMED', 'IN_PROGRESS'].includes(status)
+  }
+
+  const handleConfirmBooking = (bookingId: number) => {
+    router.push(`/client/cars/booking/confirm?bookingId=${bookingId}`)
   }
 
   if (isLoading) {
@@ -214,6 +225,15 @@ export default function CarBookingsPage() {
                       </p>
                     </div>
                     <div className="flex space-x-3">
+                      {booking.status === 'ACCEPTED' && (
+                        <Link href={`/client/cars/booking/confirm?bookingId=${booking.id}`}>
+                          <button
+                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                          >
+                            ✅ Confirm & Pay
+                          </button>
+                        </Link>
+                      )}
                       {canChat(booking.status) && (
                         <button
                           onClick={() => setSelectedBooking(booking.id)}

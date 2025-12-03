@@ -54,12 +54,19 @@ export default function HotelBookingDetailPage() {
     }
   }
   
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'N/A'
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return 'N/A'
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    } catch {
+      return 'N/A'
+    }
   }
   
   const handleConfirm = async () => {
@@ -171,7 +178,13 @@ export default function HotelBookingDetailPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Price per Night</p>
-                  <p className="font-medium">{booking.currency?.toUpperCase() || 'PKR'} {booking.roomType?.pricePerNight?.toLocaleString() || '0'}</p>
+                  <p className="font-medium">
+                    {booking.currency?.toUpperCase() || 'PKR'} {
+                      (booking.roomType?.pricePerNight || 
+                       booking.booking_details?.room_type?.price_per_night || 
+                       0).toLocaleString()
+                    }
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -185,11 +198,15 @@ export default function HotelBookingDetailPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500">Check-in</p>
-                  <p className="font-medium text-lg">{formatDate(booking.checkInDate)}</p>
+                  <p className="font-medium text-lg">
+                    {formatDate(booking.checkInDate || booking.booking_details?.dates?.check_in)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Check-out</p>
-                  <p className="font-medium text-lg">{formatDate(booking.checkOutDate)}</p>
+                  <p className="font-medium text-lg">
+                    {formatDate(booking.checkOutDate || booking.booking_details?.dates?.check_out)}
+                  </p>
                 </div>
               </div>
               {booking.booking_details?.dates?.nights && (
@@ -244,7 +261,9 @@ export default function HotelBookingDetailPage() {
               
               <div className="pt-4 border-t space-y-2">
                 <p className="text-xs text-gray-500">Booking ID: {booking.id}</p>
-                <p className="text-xs text-gray-500">Created: {new Date(booking.createdAt).toLocaleString()}</p>
+                <p className="text-xs text-gray-500">
+                  Created: {booking.createdAt ? new Date(booking.createdAt).toLocaleString() : 'N/A'}
+                </p>
               </div>
 
               {/* Action Buttons */}

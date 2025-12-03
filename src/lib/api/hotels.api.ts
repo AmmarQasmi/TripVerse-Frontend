@@ -14,15 +14,47 @@ export const hotelsApi = {
   search: async (params: HotelSearchParams) => {
     const searchParams = new URLSearchParams()
     
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== '') {
-        searchParams.append(key, value.toString())
+    // Map frontend params to backend params
+    // Note: Backend expects city_id, but we're passing location (region name)
+    // For now, we'll fetch all hotels and filter by region on frontend if needed
+    // TODO: Add city lookup by region name to get city_id
+    
+    if (params.minPrice !== undefined) {
+      searchParams.append('minPrice', params.minPrice.toString())
+    }
+    
+    if (params.maxPrice !== undefined) {
+      searchParams.append('maxPrice', params.maxPrice.toString())
+    }
+    
+    if (params.starRating && params.starRating.length > 0) {
+      searchParams.append('starRating', params.starRating.join(','))
+    }
+    
+    if (params.amenities && params.amenities.length > 0) {
+      searchParams.append('amenities', params.amenities.join(','))
+    }
+    
+    // Use BASE endpoint (GET /hotels) which supports search params
+    const response = await httpClient.get<{
+      data: Hotel[]
+      pagination: {
+        page: number
+        limit: number
+        total: number
+        totalPages: number
       }
-    })
-
-    return httpClient.get<Hotel[]>(
-      `${API_ENDPOINTS.HOTELS.SEARCH}?${searchParams.toString()}`
-    )
+    }>(`${API_ENDPOINTS.HOTELS.BASE}?${searchParams.toString()}`)
+    
+    // Filter by location (region) on frontend if provided
+    let filteredData = response.data || []
+    if (params.location && params.location !== '') {
+      filteredData = filteredData.filter((hotel: Hotel) => 
+        hotel.location?.toLowerCase().includes(params.location!.toLowerCase())
+      )
+    }
+    
+    return filteredData
   },
 
   create: async (hotel: Omit<Hotel, 'id' | 'createdAt' | 'updatedAt'>) => {

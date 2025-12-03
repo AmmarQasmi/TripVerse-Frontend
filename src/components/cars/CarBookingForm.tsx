@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Car, CarApiResponse } from '@/types'
+import { RouteMap } from './RouteMap'
 
 interface CarBookingFormProps {
   car: Car | CarApiResponse
@@ -17,7 +18,6 @@ interface BookingData {
   dropoffLocation: string
   pickupDate: string
   dropoffDate: string
-  estimatedDistance?: number
   customerNotes?: string
 }
 
@@ -27,9 +27,10 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
     dropoffLocation: '',
     pickupDate: '',
     dropoffDate: '',
-    estimatedDistance: undefined,
     customerNotes: ''
   })
+  
+  const [calculatedDistance, setCalculatedDistance] = useState<number | undefined>(undefined)
 
   // Helper function to get price from either Car or CarApiResponse
   const getCarPrice = () => {
@@ -88,10 +89,6 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
       }
     }
 
-    if (formData.estimatedDistance && formData.estimatedDistance <= 0) {
-      newErrors.estimatedDistance = 'Distance must be greater than 0'
-    }
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -134,7 +131,7 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
                 type="text"
                 value={formData.pickupLocation}
                 onChange={(e) => handleInputChange('pickupLocation', e.target.value)}
-                placeholder="e.g., Karachi Airport"
+                placeholder="e.g., Karachi Airport, Pakistan"
                 className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.pickupLocation ? 'border-red-500' : 'border-gray-300'
                 }`}
@@ -152,7 +149,7 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
                 type="text"
                 value={formData.dropoffLocation}
                 onChange={(e) => handleInputChange('dropoffLocation', e.target.value)}
-                placeholder="e.g., Lahore City Center"
+                placeholder="e.g., Lahore City Center, Pakistan"
                 className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.dropoffLocation ? 'border-red-500' : 'border-gray-300'
                 }`}
@@ -162,6 +159,18 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
               )}
             </div>
           </div>
+
+          {/* Route Map */}
+          {(formData.pickupLocation || formData.dropoffLocation) && (
+            <div className="mt-4">
+              <RouteMap
+                pickupLocation={formData.pickupLocation}
+                dropoffLocation={formData.dropoffLocation}
+                distance={calculatedDistance}
+                onDistanceCalculated={setCalculatedDistance}
+              />
+            </div>
+          )}
 
           {/* Date Selection */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -227,29 +236,6 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
             </div>
           </div>
 
-          {/* Distance Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Estimated Distance (km)
-            </label>
-            <input
-              type="number"
-              value={formData.estimatedDistance || ''}
-              onChange={(e) => handleInputChange('estimatedDistance', e.target.value ? parseFloat(e.target.value) : 0)}
-              placeholder="e.g., 1200"
-              min="0"
-              step="0.1"
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.estimatedDistance ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {errors.estimatedDistance && (
-              <p className="text-red-500 text-sm mt-1">{errors.estimatedDistance}</p>
-            )}
-            <p className="text-sm text-gray-500 mt-1">
-              Please provide the estimated distance for accurate pricing. This will be replaced by automatic calculation in the future.
-            </p>
-          </div>
 
           {/* Customer Notes */}
           <div>
@@ -276,14 +262,14 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
                 <span className="text-gray-600">Base Price per Day:</span>
                 <span className="font-medium">PKR {getCarPrice().toLocaleString()}</span>
               </div>
-              {formData.estimatedDistance && (
+              {calculatedDistance && (
                 <div className="flex justify-between">
                   <span className="text-gray-600">Estimated Distance:</span>
-                  <span className="font-medium">{formData.estimatedDistance} km</span>
+                  <span className="font-medium">{calculatedDistance.toFixed(1)} km</span>
                 </div>
               )}
               <div className="text-sm text-gray-500">
-                * Final pricing will be calculated after you submit the booking request
+                * Distance and final pricing will be calculated automatically when you submit the booking request
               </div>
             </div>
           )}

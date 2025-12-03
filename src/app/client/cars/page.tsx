@@ -46,12 +46,12 @@ export default function CarsPage() {
     sortBy: 'best_value',
   })
   
-  const [showRegionModal, setShowRegionModal] = useState(false)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [showAllCars, setShowAllCars] = useState(false)
   
   const { data: cars, isLoading } = useCarSearch({
     query: searchParams.pickupLocation,
-    city_id: user?.city?.id?.toString(),
+    city_id: showAllCars ? undefined : user?.city?.id?.toString(),
     start_date: searchParams.pickupDate,
     end_date: searchParams.dropoffDate,
     seats: filters.passengerCapacity || undefined,
@@ -61,13 +61,15 @@ export default function CarsPage() {
     max_price: filters.priceRange[1] || undefined,
   })
 
-  // Auto-load user's region cars on first visit
+  // Auto-load all cars on first visit if no user location
   useEffect(() => {
-    if (user?.city?.region && isInitialLoad) {
-      setSearchParams(prev => ({ ...prev, pickupLocation: user.city.region || '' }))
-      setIsInitialLoad(false)
-    } else if (!user?.city?.region && isInitialLoad) {
-      setShowRegionModal(true)
+    if (isInitialLoad) {
+      if (user?.city?.region) {
+        setSearchParams(prev => ({ ...prev, pickupLocation: user.city.region || '' }))
+        setShowAllCars(false)
+      } else {
+        setShowAllCars(true) // Show all cars if no user location
+      }
       setIsInitialLoad(false)
     }
   }, [user?.city?.region, isInitialLoad])
@@ -93,32 +95,6 @@ export default function CarsPage() {
     })
   }
 
-  const handleRegionSelect = (region: string) => {
-    setSearchParams(prev => ({ ...prev, pickupLocation: region }))
-    setShowRegionModal(false)
-  }
-
-  // Mock data with driver info
-  const mockCars = cars?.map(car => ({
-    ...car,
-    driver: {
-      id: 1,
-      email: 'ahmed.khan@example.com',
-      full_name: 'Ahmed Khan',
-      role: 'driver' as const,
-      status: 'active',
-      city: {
-        id: 1,
-        name: 'Karachi',
-        region: 'Sindh'
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      isVerified: true,
-      rating: 4.8,
-      totalTrips: 45,
-    }
-  })) || []
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
@@ -188,45 +164,59 @@ export default function CarsPage() {
       {/* Car Listings Section */}
       <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
-          {/* Auto-Region Message */}
-          {user?.city?.region && searchParams.pickupLocation === user.city.region ? (
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              className="mb-8"
-            >
-              <h3 className="text-2xl font-semibold text-white mb-2">
-                Recommended for you — Cars available in {user.city.region}
-              </h3>
-              <p className="text-gray-300">
-                Personalized recommendations based on your location
-              </p>
-            </motion.div>
-          ) : !user && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-2xl p-6 mb-8"
-            >
-              <div className="flex items-center justify-between">
+          {/* View Mode Toggle and Info */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 flex items-center justify-between flex-wrap gap-4"
+          >
+            <div className="flex-1">
+              {showAllCars ? (
                 <div>
-                  <h3 className="text-2xl font-bold text-blue-900 mb-2">
-                    🚗 Discover Cars in Your City
+                  <h3 className="text-2xl font-semibold text-white mb-2">
+                    All Available Cars
                   </h3>
-                  <p className="text-blue-700">
-                    Login to see personalized car recommendations in your area
+                  <p className="text-gray-300">
+                    Showing all active and listed cars from verified drivers
                   </p>
                 </div>
-                <Link 
-                  href="/auth/login" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-200"
-                >
-                  Login
-                </Link>
-              </div>
-            </motion.div>
-          )}
+              ) : user?.city?.region ? (
+                <div>
+                  <h3 className="text-2xl font-semibold text-white mb-2">
+                    Cars available in {user.city.region}
+                  </h3>
+                  <p className="text-gray-300">
+                    Personalized recommendations based on your location
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="text-2xl font-semibold text-white mb-2">
+                    Available Cars
+                  </h3>
+                  <p className="text-gray-300">
+                    Browse all available cars from verified drivers
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            {/* Toggle Button */}
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setShowAllCars(!showAllCars)}
+                className={`
+                  px-6 py-3 rounded-xl font-semibold transition-all duration-300
+                  ${showAllCars 
+                    ? 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white' 
+                    : 'bg-gray-700 text-white hover:bg-gray-600'
+                  }
+                `}
+              >
+                {showAllCars ? '📍 Filter by Location' : '🌐 Show All Cars'}
+              </button>
+            </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Filters Sidebar */}
@@ -271,16 +261,16 @@ export default function CarsPage() {
                           brand: car.car.make,
                           model: car.car.model,
                           year: car.car.year,
-                          color: car.car.color,
-                          type: 'sedan', // Default type
+                          color: car.car.color || '',
+                          type: car.car.transmission || 'automatic',
                           seats: car.car.seats,
                           pricePerDay: car.pricing.base_price_per_day,
                           location: car.driver.city,
-                          images: car.images,
+                          images: car.images || [],
                           description: `${car.car.make} ${car.car.model} - ${car.car.year}`,
                           features: [`${car.car.seats} seats`, car.car.transmission, car.car.fuel_type],
                           driverId: car.driver.id,
-                          rating: 4.8, // Default rating for now
+                          rating: 0,
                           isAvailable: true,
                           createdAt: car.createdAt,
                           updatedAt: car.createdAt,
@@ -295,14 +285,25 @@ export default function CarsPage() {
                 <div className="text-center py-16">
                   <div className="text-6xl mb-4">🚗</div>
                   <h3 className="text-xl font-semibold text-white mb-2">
-                    No cars found in this area
+                    {showAllCars ? 'No cars available' : 'No cars found in this area'}
                   </h3>
                   <p className="text-gray-400 mb-6">
-                    Try adjusting your search criteria or explore other destinations
+                    {showAllCars 
+                      ? 'There are currently no active and listed cars available. Check back later!'
+                      : 'Try adjusting your search criteria, switching to "Show All Cars", or explore other destinations'
+                    }
                   </p>
+                  {!showAllCars && (
+                    <button 
+                      onClick={() => setShowAllCars(true)}
+                      className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 mr-3"
+                    >
+                      Show All Cars
+                    </button>
+                  )}
                   <button 
                     onClick={handleClearFilters}
-                    className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                    className="bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-600 transition-all duration-300"
                   >
                     Clear All Filters
                   </button>

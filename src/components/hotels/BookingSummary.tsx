@@ -10,10 +10,18 @@ interface BookingSummaryProps {
   hotel: Hotel
   roomType: RoomType | undefined
   onClose: () => void
-  onBooking: (data: any) => void
+  onBookingSubmit: (data: {
+    hotel_id: number
+    room_type_id: number
+    quantity: number
+    check_in: string
+    check_out: string
+    guest_notes?: string
+  }) => Promise<void>
+  isSubmitting?: boolean
 }
 
-export function BookingSummary({ hotel, roomType, onClose, onBooking }: BookingSummaryProps) {
+export function BookingSummary({ hotel, roomType, onClose, onBookingSubmit, isSubmitting = false }: BookingSummaryProps) {
   const [bookingData, setBookingData] = useState({
     checkIn: '',
     checkOut: '',
@@ -24,22 +32,76 @@ export function BookingSummary({ hotel, roomType, onClose, onBooking }: BookingS
     guestPhone: '',
     specialRequests: ''
   })
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+    
+    if (!bookingData.checkIn) {
+      newErrors.checkIn = 'Check-in date is required'
+    } else {
+      const checkInDate = new Date(bookingData.checkIn)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      if (checkInDate < today) {
+        newErrors.checkIn = 'Check-in date cannot be in the past'
+      }
+    }
+    
+    if (!bookingData.checkOut) {
+      newErrors.checkOut = 'Check-out date is required'
+    } else if (bookingData.checkIn) {
+      const checkInDate = new Date(bookingData.checkIn)
+      const checkOutDate = new Date(bookingData.checkOut)
+      if (checkOutDate <= checkInDate) {
+        newErrors.checkOut = 'Check-out date must be after check-in date'
+      }
+    }
+    
+    // Validate room quantity (max 10 rooms per booking as a reasonable limit)
+    const maxRooms = 10
+    if (bookingData.rooms < 1 || bookingData.rooms > maxRooms) {
+      newErrors.rooms = `Number of rooms must be between 1 and ${maxRooms}`
+    }
+    
+    if (!bookingData.guestName.trim()) {
+      newErrors.guestName = 'Guest name is required'
+    }
+    
+    if (!bookingData.guestEmail.trim()) {
+      newErrors.guestEmail = 'Email is required'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(bookingData.guestEmail)) {
+      newErrors.guestEmail = 'Please enter a valid email address'
+    }
+    
+    if (!bookingData.guestPhone.trim()) {
+      newErrors.guestPhone = 'Phone number is required'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsProcessing(true)
     
-    // Simulate booking process
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    if (!validateForm() || !roomType) {
+      return
+    }
     
-    onBooking({
-      hotelId: hotel.id,
-      roomTypeId: roomType?.id,
-      ...bookingData
-    })
-    
-    setIsProcessing(false)
+    try {
+      await onBookingSubmit({
+        hotel_id: parseInt(hotel.id),
+        room_type_id: parseInt(roomType.id),
+        quantity: bookingData.rooms,
+        check_in: bookingData.checkIn,
+        check_out: bookingData.checkOut,
+        guest_notes: bookingData.specialRequests || undefined
+      })
+    } catch (error) {
+      // Error handling is done in parent component
+      console.error('Booking submission error:', error)
+    }
   }
 
   const updateBookingData = (field: string, value: string | number) => {
@@ -116,21 +178,37 @@ export function BookingSummary({ hotel, roomType, onClose, onBooking }: BookingS
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <Input
-                      label="Check-in Date"
-                      type="date"
-                      value={bookingData.checkIn}
-                      onChange={(e) => updateBookingData('checkIn', e.target.value)}
-                      required
-                    />
-                    <Input
-                      label="Check-out Date"
-                      type="date"
-                      value={bookingData.checkOut}
-                      onChange={(e) => updateBookingData('checkOut', e.target.value)}
-                      min={bookingData.checkIn}
-                      required
-                    />
+                    <div>
+                      <Input
+                        label="Check-in Date"
+                        type="date"
+                        value={bookingData.checkIn}
+                        onChange={(e) => {
+                          updateBookingData('checkIn', e.target.value)
+                          setErrors(prev => ({ ...prev, checkIn: '' }))
+                        }}
+                        required
+                      />
+                      {errors.checkIn && (
+                        <p className="text-red-400 text-xs mt-1">{errors.checkIn}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Input
+                        label="Check-out Date"
+                        type="date"
+                        value={bookingData.checkOut}
+                        onChange={(e) => {
+                          updateBookingData('checkOut', e.target.value)
+                          setErrors(prev => ({ ...prev, checkOut: '' }))
+                        }}
+                        min={bookingData.checkIn}
+                        required
+                      />
+                      {errors.checkOut && (
+                        <p className="text-red-400 text-xs mt-1">{errors.checkOut}</p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -164,7 +242,10 @@ export function BookingSummary({ hotel, roomType, onClose, onBooking }: BookingS
                       <div className="flex items-center space-x-3">
                         <button
                           type="button"
-                          onClick={() => updateBookingData('rooms', Math.max(1, bookingData.rooms - 1))}
+                          onClick={() => {
+                            updateBookingData('rooms', Math.max(1, bookingData.rooms - 1))
+                            setErrors(prev => ({ ...prev, rooms: '' }))
+                          }}
                           className="w-8 h-8 rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors flex items-center justify-center"
                         >
                           −
@@ -172,12 +253,19 @@ export function BookingSummary({ hotel, roomType, onClose, onBooking }: BookingS
                         <span className="text-white w-8 text-center">{bookingData.rooms}</span>
                         <button
                           type="button"
-                          onClick={() => updateBookingData('rooms', Math.min(5, bookingData.rooms + 1))}
+                          onClick={() => {
+                            const maxRooms = 10
+                            updateBookingData('rooms', Math.min(maxRooms, bookingData.rooms + 1))
+                            setErrors(prev => ({ ...prev, rooms: '' }))
+                          }}
                           className="w-8 h-8 rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors flex items-center justify-center"
                         >
                           +
                         </button>
                       </div>
+                      {errors.rooms && (
+                        <p className="text-red-400 text-xs mt-1">{errors.rooms}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -188,28 +276,52 @@ export function BookingSummary({ hotel, roomType, onClose, onBooking }: BookingS
                 <h3 className="text-xl font-bold text-white mb-4">Guest Information</h3>
                 
                 <div className="space-y-4">
-                  <Input
-                    label="Full Name"
-                    placeholder="Enter your full name"
-                    value={bookingData.guestName}
-                    onChange={(e) => updateBookingData('guestName', e.target.value)}
-                    required
-                  />
-                  <Input
-                    label="Email Address"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={bookingData.guestEmail}
-                    onChange={(e) => updateBookingData('guestEmail', e.target.value)}
-                    required
-                  />
-                  <Input
-                    label="Phone Number"
-                    placeholder="Enter your phone number"
-                    value={bookingData.guestPhone}
-                    onChange={(e) => updateBookingData('guestPhone', e.target.value)}
-                    required
-                  />
+                  <div>
+                    <Input
+                      label="Full Name"
+                      placeholder="Enter your full name"
+                      value={bookingData.guestName}
+                      onChange={(e) => {
+                        updateBookingData('guestName', e.target.value)
+                        setErrors(prev => ({ ...prev, guestName: '' }))
+                      }}
+                      required
+                    />
+                    {errors.guestName && (
+                      <p className="text-red-400 text-xs mt-1">{errors.guestName}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Input
+                      label="Email Address"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={bookingData.guestEmail}
+                      onChange={(e) => {
+                        updateBookingData('guestEmail', e.target.value)
+                        setErrors(prev => ({ ...prev, guestEmail: '' }))
+                      }}
+                      required
+                    />
+                    {errors.guestEmail && (
+                      <p className="text-red-400 text-xs mt-1">{errors.guestEmail}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Input
+                      label="Phone Number"
+                      placeholder="Enter your phone number"
+                      value={bookingData.guestPhone}
+                      onChange={(e) => {
+                        updateBookingData('guestPhone', e.target.value)
+                        setErrors(prev => ({ ...prev, guestPhone: '' }))
+                      }}
+                      required
+                    />
+                    {errors.guestPhone && (
+                      <p className="text-red-400 text-xs mt-1">{errors.guestPhone}</p>
+                    )}
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       Special Requests (Optional)
@@ -264,15 +376,15 @@ export function BookingSummary({ hotel, roomType, onClose, onBooking }: BookingS
                   <Button
                     type="submit"
                     className="w-full bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e40af] hover:to-[#0f766e] text-white py-4 text-lg font-semibold"
-                    disabled={!bookingData.checkIn || !bookingData.checkOut || !bookingData.guestName || !bookingData.guestEmail || !bookingData.guestPhone || isProcessing}
+                    disabled={!bookingData.checkIn || !bookingData.checkOut || !bookingData.guestName || !bookingData.guestEmail || !bookingData.guestPhone || isSubmitting}
                   >
-                    {isProcessing ? (
+                    {isSubmitting ? (
                       <div className="flex items-center justify-center space-x-2">
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                         <span>Processing...</span>
                       </div>
                     ) : (
-                      `Pay PKR ${total.toLocaleString()}`
+                      `Request Booking`
                     )}
                   </Button>
                 </form>
