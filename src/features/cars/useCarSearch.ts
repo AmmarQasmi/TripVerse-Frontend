@@ -6,7 +6,7 @@ export function useCarSearch(params: CarSearchParams) {
   return useQuery({
     queryKey: ['cars', 'search', params],
     queryFn: () => carsApi.search(params),
-    enabled: !!(params.query || params.location),
+    enabled: true, // Allow fetching even without location for "All" option
     select: (data: { data: CarApiResponse[] }) => data.data, // Extract the data array from the response
   })
 }
@@ -31,6 +31,7 @@ export function useUserBookings(status?: string) {
   return useQuery({
     queryKey: ['cars', 'bookings', 'user', status],
     queryFn: () => carsApi.getUserBookings(status),
+    enabled: true, // Always enabled to fetch bookings
   })
 }
 

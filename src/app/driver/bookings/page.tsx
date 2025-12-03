@@ -1,16 +1,28 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { useDriverCarBookings } from '@/features/drivers/useDriverBookings'
 import { carsApi } from '@/lib/api/cars.api'
+import { useToast } from '@/components/ui/Toast'
+import { useQueryClient } from '@tanstack/react-query'
+import { ChatInterface } from '@/components/cars/ChatInterface'
 
 export default function DriverBookingsPage() {
+  const router = useRouter()
+  const { showToast } = useToast()
+  const queryClient = useQueryClient()
   const [statusFilter, setStatusFilter] = useState<'all' | 'PENDING_DRIVER_ACCEPTANCE' | 'ACCEPTED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'REJECTED'>('all')
+  const [selectedBooking, setSelectedBooking] = useState<number | null>(null)
   
   const { bookings, isLoading } = useDriverCarBookings()
+
+  const canChat = (status: string) => {
+    return ['ACCEPTED', 'CONFIRMED', 'IN_PROGRESS'].includes(status)
+  }
 
   const bookingsArray: any[] = Array.isArray(bookings) ? bookings : []
   const filteredBookings: any[] = bookingsArray.filter((booking: any) => 
@@ -20,40 +32,52 @@ export default function DriverBookingsPage() {
   const handleAcceptBooking = async (bookingId: number) => {
     try {
       await carsApi.respondToBooking(bookingId, 'accept')
-      window.location.reload()
-    } catch (error) {
+      queryClient.invalidateQueries({ queryKey: ['cars', 'bookings', 'driver'] })
+      queryClient.invalidateQueries({ queryKey: ['driver-car-bookings'] })
+      showToast('Booking accepted! Customer has been notified.', 'success')
+    } catch (error: any) {
       console.error('Failed to accept booking:', error)
-      alert('Failed to accept booking')
+      const errorMessage = error?.response?.data?.message || 'Failed to accept booking'
+      showToast(errorMessage, 'error')
     }
   }
 
   const handleRejectBooking = async (bookingId: number) => {
     try {
       await carsApi.respondToBooking(bookingId, 'reject')
-      window.location.reload()
-    } catch (error) {
+      queryClient.invalidateQueries({ queryKey: ['cars', 'bookings', 'driver'] })
+      queryClient.invalidateQueries({ queryKey: ['driver-car-bookings'] })
+      showToast('Booking rejected. Customer has been notified.', 'info')
+    } catch (error: any) {
       console.error('Failed to reject booking:', error)
-      alert('Failed to reject booking')
+      const errorMessage = error?.response?.data?.message || 'Failed to reject booking'
+      showToast(errorMessage, 'error')
     }
   }
 
   const handleStartTrip = async (bookingId: number) => {
     try {
       await carsApi.startTrip(bookingId)
-      window.location.reload()
-    } catch (error) {
+      queryClient.invalidateQueries({ queryKey: ['cars', 'bookings', 'driver'] })
+      queryClient.invalidateQueries({ queryKey: ['driver-car-bookings'] })
+      showToast('Trip started successfully!', 'success')
+    } catch (error: any) {
       console.error('Failed to start trip:', error)
-      alert('Failed to start trip')
+      const errorMessage = error?.response?.data?.message || 'Failed to start trip'
+      showToast(errorMessage, 'error')
     }
   }
 
   const handleCompleteTrip = async (bookingId: number) => {
     try {
       await carsApi.completeTrip(bookingId)
-      window.location.reload()
-    } catch (error) {
+      queryClient.invalidateQueries({ queryKey: ['cars', 'bookings', 'driver'] })
+      queryClient.invalidateQueries({ queryKey: ['driver-car-bookings'] })
+      showToast('Trip completed successfully!', 'success')
+    } catch (error: any) {
       console.error('Failed to complete trip:', error)
-      alert('Failed to complete trip')
+      const errorMessage = error?.response?.data?.message || 'Failed to complete trip'
+      showToast(errorMessage, 'error')
     }
   }
 
@@ -88,41 +112,77 @@ export default function DriverBookingsPage() {
     switch (booking.status) {
       case 'PENDING_DRIVER_ACCEPTANCE':
         return (
-          <div className="flex space-x-2">
-            <Button 
-              size="sm" 
-              onClick={() => handleAcceptBooking(booking.id)}
-            >
-              Accept
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => handleRejectBooking(booking.id)}
-            >
-              Reject
-            </Button>
+          <div className="flex flex-col space-y-2">
+            <div className="flex space-x-2">
+              <Button 
+                size="sm" 
+                onClick={() => handleAcceptBooking(booking.id)}
+              >
+                Accept
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handleRejectBooking(booking.id)}
+              >
+                Reject
+              </Button>
+            </div>
           </div>
         )
       case 'CONFIRMED':
         return (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleStartTrip(booking.id)}
-          >
-            Start Trip
-          </Button>
+          <div className="flex flex-col space-y-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => handleStartTrip(booking.id)}
+            >
+              Start Trip
+            </Button>
+            {canChat(booking.status) && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setSelectedBooking(booking.id)}
+              >
+                💬 Chat
+              </Button>
+            )}
+          </div>
         )
       case 'IN_PROGRESS':
         return (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleCompleteTrip(booking.id)}
-          >
-            Complete Trip
-          </Button>
+          <div className="flex flex-col space-y-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => handleCompleteTrip(booking.id)}
+            >
+              Complete Trip
+            </Button>
+            {canChat(booking.status) && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setSelectedBooking(booking.id)}
+              >
+                💬 Chat
+              </Button>
+            )}
+          </div>
+        )
+      case 'ACCEPTED':
+        return (
+          canChat(booking.status) && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setSelectedBooking(booking.id)}
+            >
+              💬 Chat
+            </Button>
+          )
         )
       default:
         return null
@@ -174,8 +234,10 @@ export default function DriverBookingsPage() {
         </div>
       </div>
 
-      {/* Bookings List */}
-      <div className="space-y-4">
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Bookings List */}
+        <div className="lg:col-span-2 space-y-4">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
             <Card key={i} className="animate-pulse bg-gray-50">
@@ -250,6 +312,30 @@ export default function DriverBookingsPage() {
             </CardContent>
           </Card>
         )}
+        </div>
+
+        {/* Chat Interface */}
+        <div className="lg:col-span-1">
+          {selectedBooking ? (
+            <ChatInterface
+              bookingId={selectedBooking}
+              driverName="You"
+              customerName="Customer"
+            />
+          ) : (
+            <Card className="bg-white">
+              <CardContent className="p-6 text-center">
+                <div className="text-4xl mb-4">💬</div>
+                <h3 className="text-lg font-semibold mb-2">
+                  Select a Booking
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Choose a booking from the list to start chatting with the customer
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
 
         {/* Summary Stats */}

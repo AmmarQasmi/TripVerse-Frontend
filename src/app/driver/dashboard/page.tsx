@@ -8,6 +8,7 @@ import { CircularStatsCard } from '@/components/driver/CircularStatsCard'
 import { SuspensionStatusCard } from '@/components/driver/SuspensionStatusCard'
 import { DisputeWarningBadge } from '@/components/shared/DisputeWarningBadge'
 import { DashboardHeader } from '@/components/shared/DashboardHeader'
+import { DriverBookingsModal } from '@/components/driver/DriverBookingsModal'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/features/auth/useAuth'
@@ -23,6 +24,7 @@ export default function DriverDashboard() {
   const [suspensionStatus, setSuspensionStatus] = useState<DriverSuspensionStatus | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showBookingsModal, setShowBookingsModal] = useState(false)
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -166,6 +168,7 @@ export default function DriverDashboard() {
               subtitle="Active bookings"
               delay={0.3}
               maxValue={Math.max(stats.confirmed_bookings, 10)}
+              onClick={() => setShowBookingsModal(true)}
             />
             <CircularStatsCard
               label="Car Listings"
@@ -297,7 +300,7 @@ export default function DriverDashboard() {
                     </Link>
                   ) : (
                     <div 
-                      className="relative w-full max-w-[200px] mx-auto aspect-square rounded-2xl overflow-hidden opacity-50 cursor-not-allowed backdrop-blur-md bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 opacity-50 shadow-2xl transition-all duration-300 flex flex-col items-center justify-center"
+                      className="relative w-full max-w-[200px] mx-auto aspect-square rounded-2xl overflow-hidden opacity-50 cursor-not-allowed backdrop-blur-md bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 shadow-2xl transition-all duration-300 flex flex-col items-center justify-center"
                       style={{
                         border: '2px solid transparent',
                         backgroundImage: `
@@ -639,6 +642,13 @@ export default function DriverDashboard() {
               </Card>
         </motion.div>
       </div>
+
+      {/* Driver Bookings Modal */}
+      <DriverBookingsModal
+        isOpen={showBookingsModal}
+        onClose={() => setShowBookingsModal(false)}
+        bookings={dashboard.recent_bookings}
+      />
     </div>
   )
 }

@@ -14,6 +14,9 @@ import { HotelReviews } from '@/components/hotels/HotelReviews'
 import { HotelMap } from '@/components/hotels/HotelMap'
 import { BookingSummary } from '@/components/hotels/BookingSummary'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
+import { hotelBookingsApi } from '@/lib/api/hotelBookings.api'
+import { useToast } from '@/components/ui/Toast'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function HotelDetailPage() {
   const params = useParams()
@@ -22,28 +25,67 @@ export default function HotelDetailPage() {
   
   const { data: hotel, isLoading, error } = useHotelById(hotelId)
   const { user, requireAuth, isAuthenticated } = useRequireAuth()
+  const { showToast } = useToast()
+  const queryClient = useQueryClient()
   
   const [activeTab, setActiveTab] = useState<'overview' | 'rooms' | 'reviews' | 'location'>('overview')
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null)
   const [showBookingModal, setShowBookingModal] = useState(false)
-  const [bookingData, setBookingData] = useState({
-    checkIn: '',
-    checkOut: '',
-    guests: 1,
-    roomTypeId: '',
-  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleBooking = (roomTypeId: string) => {
     // 🔒 REQUIRE LOGIN before booking
     if (!requireAuth()) {
-      console.log('🔐 Login required for hotel booking')
+      showToast('Please login to continue with your booking', 'warning')
       return // User will be redirected to login
     }
     
     // User is authenticated, proceed with booking
     setSelectedRoom(roomTypeId)
-    setBookingData(prev => ({ ...prev, roomTypeId }))
     setShowBookingModal(true)
+  }
+
+  const handleBookingSubmit = async (data: {
+    hotel_id: number
+    room_type_id: number
+    quantity: number
+    check_in: string
+    check_out: string
+    guest_notes?: string
+  }) => {
+    if (!requireAuth()) {
+      showToast('Please login to continue with your booking', 'warning')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      // API client handles transformation from snake_case to backend format
+      const response = await hotelBookingsApi.create(data as any)
+      
+      // Invalidate bookings queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['hotel-bookings', 'user'] })
+      queryClient.invalidateQueries({ queryKey: ['hotelBookings'] })
+      
+      setShowBookingModal(false)
+      setSelectedRoom(null)
+      
+      // Show success message
+      showToast('Booking request created! Please confirm with payment.', 'success')
+      
+      // Navigate to confirmation page after a short delay
+      setTimeout(() => {
+        router.push(`/client/hotels/booking/confirm?bookingId=${response.id}`)
+      }, 1500)
+      
+    } catch (error: any) {
+      console.error('Booking request failed:', error)
+      const errorMessage = error?.response?.data?.message || 'Failed to create booking request. Please try again.'
+      showToast(errorMessage, 'error')
+      throw error // Re-throw so BookingSummary can handle it
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const renderStars = (rating: number) => {
@@ -373,11 +415,12 @@ export default function HotelDetailPage() {
         <BookingSummary
           hotel={hotel}
           roomType={hotel.roomTypes?.find((r: any) => r.id === selectedRoom)}
-          onClose={() => setShowBookingModal(false)}
-          onBooking={(data) => {
-            console.log('Booking data:', data)
+          onClose={() => {
             setShowBookingModal(false)
+            setSelectedRoom(null)
           }}
+          onBookingSubmit={handleBookingSubmit}
+          isSubmitting={isSubmitting}
         />
       )}
     </div>

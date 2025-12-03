@@ -4,6 +4,7 @@ import './globals.css'
 import { QueryProvider } from '@/providers/QueryProvider'
 import { AuthProvider } from '@/features/auth/AuthProvider'
 import { ThemeProvider } from '@/providers/ThemeProvider'
+import { ClientToastProvider } from '@/providers/ToastProvider'
 
 const poppins = Poppins({ 
   subsets: ['latin'],
@@ -27,7 +28,9 @@ export default function RootLayout({
         <QueryProvider>
           <AuthProvider>
             <ThemeProvider>
-              {children}
+              <ClientToastProvider>
+                {children}
+              </ClientToastProvider>
             </ThemeProvider>
           </AuthProvider>
         </QueryProvider>

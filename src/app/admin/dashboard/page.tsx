@@ -330,7 +330,7 @@ export default function AdminDashboard() {
                     <p className="text-2xl font-bold text-white">{formatCurrency(stats.revenue.total)}</p>
                   </div>
                   <div className="p-4 bg-blue-500/20 rounded-lg border border-blue-500/30">
-                    <p className="text-sm text-gray-300 mb-1">Commission</p>
+                    <p className="text-sm text-gray-300 mb-1">Platform Fee (5%)</p>
                     <p className="text-2xl font-bold text-white">{formatCurrency(stats.revenue.commission)}</p>
                   </div>
                   <div className="p-4 bg-purple-500/20 rounded-lg border border-purple-500/30">

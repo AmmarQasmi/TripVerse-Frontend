@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { useUserHotelBookings } from '@/features/bookings/useHotelBooking'
@@ -15,13 +16,22 @@ export default function BookingsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'CONFIRMED':
+      case 'CHECKED_IN':
         return 'bg-green-100 text-green-800'
       case 'PENDING':
+      case 'PENDING_DRIVER_ACCEPTANCE':
+      case 'PENDING_PAYMENT':
         return 'bg-yellow-100 text-yellow-800'
+      case 'ACCEPTED':
+        return 'bg-blue-100 text-blue-800'
       case 'CANCELLED':
+      case 'REJECTED':
         return 'bg-red-100 text-red-800'
       case 'COMPLETED':
-        return 'bg-blue-100 text-blue-800'
+      case 'CHECKED_OUT':
+        return 'bg-gray-100 text-gray-800'
+      case 'IN_PROGRESS':
+        return 'bg-purple-100 text-purple-800'
       case 'REFUNDED':
         return 'bg-gray-100 text-gray-800'
       default:
@@ -106,7 +116,7 @@ export default function BookingsPage() {
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
                       <span className="text-lg font-semibold">
-                        {booking.hotel?.name || `${booking.car?.brand} ${booking.car?.model}`}
+                        {booking.hotel?.name || `${booking.car?.make || booking.car?.brand || 'Car'} ${booking.car?.model || ''}`.trim() || 'Car Booking'}
                       </span>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
                         {booking.status}
@@ -121,30 +131,49 @@ export default function BookingsPage() {
                         <span className="font-medium">Type:</span> {booking.hotel ? 'Hotel' : 'Car Rental'}
                       </div>
                       <div>
-                        <span className="font-medium">Amount:</span> ${booking.totalAmount}
+                        <span className="font-medium">Amount:</span> PKR {booking.total_amount?.toLocaleString() || booking.totalAmount?.toLocaleString() || '0'}
                       </div>
                       {booking.hotel ? (
                         <>
                           <div>
-                            <span className="font-medium">Check-in:</span> {formatDate(booking.checkInDate)}
+                            <span className="font-medium">Check-in:</span> {formatDate(booking.dates?.check_in || booking.check_in || booking.checkInDate || '')}
                           </div>
                           <div>
-                            <span className="font-medium">Check-out:</span> {formatDate(booking.checkOutDate)}
+                            <span className="font-medium">Check-out:</span> {formatDate(booking.dates?.check_out || booking.check_out || booking.checkOutDate || '')}
                           </div>
                           <div>
-                            <span className="font-medium">Guests:</span> {booking.guests}
+                            <span className="font-medium">Rooms:</span> {booking.quantity || 1}
                           </div>
+                          {booking.dates?.nights && (
+                            <div>
+                              <span className="font-medium">Nights:</span> {booking.dates.nights}
+                            </div>
+                          )}
+                          {booking.room_type && (
+                            <div>
+                              <span className="font-medium">Room Type:</span> {booking.room_type.name}
+                            </div>
+                          )}
                         </>
                       ) : (
                         <>
                           <div>
-                            <span className="font-medium">Pick-up:</span> {formatDate(booking.startDate)}
+                            <span className="font-medium">Pickup Location:</span> {booking.pickup_location || 'N/A'}
                           </div>
                           <div>
-                            <span className="font-medium">Return:</span> {formatDate(booking.endDate)}
+                            <span className="font-medium">Dropoff Location:</span> {booking.dropoff_location || 'N/A'}
                           </div>
                           <div>
-                            <span className="font-medium">Location:</span> {booking.car?.location}
+                            <span className="font-medium">Start Date:</span> {booking.start_date ? formatDate(booking.start_date) : formatDate(booking.startDate)}
+                          </div>
+                          <div>
+                            <span className="font-medium">End Date:</span> {booking.end_date ? formatDate(booking.end_date) : formatDate(booking.endDate)}
+                          </div>
+                          <div>
+                            <span className="font-medium">Driver:</span> {booking.driver?.name || 'N/A'}
+                          </div>
+                          <div>
+                            <span className="font-medium">Car:</span> {booking.car?.make || booking.car?.brand || ''} {booking.car?.model || ''} ({booking.car?.year || ''})
                           </div>
                         </>
                       )}
@@ -152,14 +181,54 @@ export default function BookingsPage() {
                   </div>
                   
                   <div className="flex flex-col space-y-2 ml-4">
-                    <Button variant="outline" size="sm">
-                      View Details
-                    </Button>
-                    {booking.status === 'PENDING' || booking.status === 'CONFIRMED' ? (
+                    <Link href={booking.hotel ? `/client/bookings/hotel/${booking.id}` : `/client/cars/bookings`}>
+                      <Button variant="outline" size="sm">
+                        View Details
+                      </Button>
+                    </Link>
+                    {!booking.hotel && booking.status === 'ACCEPTED' && (
+                      <Link href={`/client/cars/booking/confirm?bookingId=${booking.id}`}>
+                        <Button className="bg-green-600 hover:bg-green-700 text-white" size="sm">
+                          ✅ Confirm & Pay
+                        </Button>
+                      </Link>
+                    )}
+                    {booking.hotel && booking.status === 'PENDING_PAYMENT' && (
+                      <Link href={`/client/hotels/booking/confirm?bookingId=${booking.id}`}>
+                        <Button className="bg-green-600 hover:bg-green-700 text-white" size="sm">
+                          ✅ Confirm & Pay
+                        </Button>
+                      </Link>
+                    )}
+                    {booking.hotel && (booking.status === 'CONFIRMED' || booking.status === 'CHECKED_IN' || booking.status === 'CHECKED_OUT') && (
+                      <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <p className="text-xs font-semibold text-blue-900 mb-2">Contact Hotel:</p>
+                        {booking.hotel.email && (
+                          <a 
+                            href={`mailto:${booking.hotel.email}`} 
+                            className="text-xs text-blue-600 hover:text-blue-800 block mb-1"
+                          >
+                            ✉️ {booking.hotel.email}
+                          </a>
+                        )}
+                        {booking.hotel.phone && (
+                          <a 
+                            href={`tel:${booking.hotel.phone}`} 
+                            className="text-xs text-blue-600 hover:text-blue-800 block"
+                          >
+                            📱 {booking.hotel.phone}
+                          </a>
+                        )}
+                        {!booking.hotel.email && !booking.hotel.phone && (
+                          <p className="text-xs text-gray-500">Contact information not available</p>
+                        )}
+                      </div>
+                    )}
+                    {(booking.status === 'PENDING' || booking.status === 'CONFIRMED' || booking.status === 'PENDING_DRIVER_ACCEPTANCE' || booking.status === 'PENDING_PAYMENT') && (
                       <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
                         Cancel
                       </Button>
-                    ) : null}
+                    )}
                   </div>
                 </div>
               </CardContent>

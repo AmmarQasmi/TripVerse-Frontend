@@ -16,7 +16,7 @@ import { SupportCard } from '@/components/client/SupportCard'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/features/auth/useAuth'
 import { useUserHotelBookings } from '@/features/bookings/useHotelBooking'
-import { useUserCarBookings } from '@/features/bookings/useCarBooking'
+import { useUserBookings as useUserCarBookings } from '@/features/cars/useCarSearch'
 
 export default function ClientDashboard() {
   const { user } = useAuth()
@@ -43,8 +43,13 @@ export default function ClientDashboard() {
   // Combine and calculate stats
   const allBookings = [...(hotelBookings || []), ...(carBookings || [])]
   const totalBookings = allBookings.length
-  const completedTrips = allBookings.filter((b: any) => b.status === 'completed').length
-  const totalSpent = allBookings.reduce((sum: number, b: any) => sum + (b.totalAmount || 0), 0)
+  const completedTrips = allBookings.filter((b: any) => b.status === 'completed' || b.status === 'COMPLETED').length
+  
+  // Total Spent: Only count confirmed expenditures (exclude cancelled, rejected, pending)
+  const confirmedStatuses = ['CONFIRMED', 'CHECKED_IN', 'IN_PROGRESS', 'COMPLETED', 'confirmed', 'checked_in', 'in_progress', 'completed']
+  const totalSpent = allBookings
+    .filter((b: any) => confirmedStatuses.includes(b.status))
+    .reduce((sum: number, b: any) => sum + (b.totalAmount || b.total_amount || 0), 0)
   const flightBookings = 0 // TODO: Add flight bookings when flight feature is implemented
 
   // Get upcoming bookings
@@ -104,18 +109,21 @@ export default function ClientDashboard() {
           endDate: b.end_date,
         }))
       case 'Total Spent':
-        return allBookings.map((b: any) => ({
-          id: b.id,
-          type: (b.hotel ? 'hotel' : 'car') as 'hotel' | 'car',
-          name: b.hotel?.name || `${b.car?.make || ''} ${b.car?.model || ''}`.trim() || 'Booking',
-          date: b.created_at || new Date().toISOString(),
-          status: b.status,
-          amount: b.total_amount || 0,
-          checkInDate: b.dates?.check_in || b.start_date,
-          checkOutDate: b.dates?.check_out || b.end_date,
-          startDate: b.start_date,
-          endDate: b.end_date,
-        }))
+        // Only show confirmed expenditures in Total Spent modal
+        return allBookings
+          .filter((b: any) => confirmedStatuses.includes(b.status))
+          .map((b: any) => ({
+            id: b.id,
+            type: (b.hotel ? 'hotel' : 'car') as 'hotel' | 'car',
+            name: b.hotel?.name || `${b.car?.make || ''} ${b.car?.model || ''}`.trim() || 'Booking',
+            date: b.created_at || new Date().toISOString(),
+            status: b.status,
+            amount: b.total_amount || 0,
+            checkInDate: b.dates?.check_in || b.start_date,
+            checkOutDate: b.dates?.check_out || b.end_date,
+            startDate: b.start_date,
+            endDate: b.end_date,
+          }))
       default:
         return []
     }
@@ -629,6 +637,118 @@ export default function ClientDashboard() {
                     </Link>
                       </div>
                   </div>
+                  </motion.div>
+                )}
+              </div>
+            </motion.section>
+
+            {/* Car Bookings Section */}
+            <motion.section
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.7 }}
+            >
+              <div className="mb-4">
+                <h3 className="text-3xl md:text-4xl font-bold mb-4 text-center leading-tight overflow-visible">
+                  <motion.span
+                    className="animated-gradient-text inline-block"
+                    initial={{ backgroundPosition: '0% 50%' }}
+                    animate={{ backgroundPosition: '100% 50%' }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                    style={{
+                      background: 'linear-gradient(90deg, #000 40%, #0891b2 50%, #000 60%)',
+                      backgroundSize: '200% auto',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                      lineHeight: '1.2',
+                      paddingBottom: '0.1em',
+                    }}
+                  >
+                  My Car Bookings
+                  </motion.span>
+                </h3>
+                <div className="flex justify-center">
+                  <Link href="/client/bookings" className="text-blue-600 text-sm hover:text-blue-700 font-medium">
+                    View All →
+                  </Link>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {carBookings && carBookings.length > 0 ? (
+                  carBookings.slice(0, 3).map((booking: any, index: number) => (
+                    <motion.div
+                      key={booking.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="relative overflow-hidden rounded-xl bg-white border border-gray-200 p-4 hover:shadow-md transition-all duration-300"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <span className="text-2xl">🚗</span>
+                            <div>
+                              <h4 className="text-gray-900 font-semibold">
+                                {booking.car?.make || 'Car'} {booking.car?.model || ''} ({booking.car?.year || ''})
+                              </h4>
+                              <p className="text-sm text-gray-600">Driver: {booking.driver?.name || 'N/A'}</p>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 ml-11">
+                            <div>
+                              <span className="font-medium">Pickup:</span> {booking.pickup_location || 'N/A'}
+                            </div>
+                            <div>
+                              <span className="font-medium">Dropoff:</span> {booking.dropoff_location || 'N/A'}
+                            </div>
+                            <div>
+                              <span className="font-medium">Start:</span> {booking.start_date ? new Date(booking.start_date).toLocaleDateString() : 'N/A'}
+                            </div>
+                            <div>
+                              <span className="font-medium">End:</span> {booking.end_date ? new Date(booking.end_date).toLocaleDateString() : 'N/A'}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right ml-4">
+                          <div className={`px-3 py-1 rounded-full text-xs font-semibold border mb-2 ${
+                            booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-800 border-green-200' :
+                            booking.status === 'PENDING_DRIVER_ACCEPTANCE' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                            booking.status === 'ACCEPTED' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                            booking.status === 'IN_PROGRESS' ? 'bg-purple-100 text-purple-800 border-purple-200' :
+                            booking.status === 'COMPLETED' ? 'bg-gray-100 text-gray-800 border-gray-200' :
+                            booking.status === 'CANCELLED' || booking.status === 'REJECTED' ? 'bg-red-100 text-red-800 border-red-200' :
+                            'bg-gray-100 text-gray-800 border-gray-200'
+                          }`}>
+                            {booking.status === 'PENDING_DRIVER_ACCEPTANCE' ? 'Pending - Waiting for Driver' :
+                             booking.status === 'ACCEPTED' ? 'Accepted - Payment Pending' :
+                             booking.status === 'CONFIRMED' ? 'Booked' :
+                             booking.status?.replace(/_/g, ' ') || 'Unknown'}
+                          </div>
+                          {booking.total_amount && (
+                            <div className="text-lg font-bold text-gray-900">
+                              PKR {typeof booking.total_amount === 'number' ? booking.total_amount.toLocaleString() : parseFloat(booking.total_amount.toString()).toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="relative overflow-hidden rounded-xl bg-white border border-gray-200 p-8 text-center"
+                  >
+                    <div className="text-5xl mb-4">🚗</div>
+                    <p className="text-gray-600 mb-4">No car bookings found</p>
+                    <p className="text-sm text-gray-500 mb-6">You don't have any car bookings yet.</p>
+                    <Link href="/client/cars">
+                      <Button className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700">
+                        Start Booking
+                      </Button>
+                    </Link>
                   </motion.div>
                 )}
               </div>

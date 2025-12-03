@@ -14,47 +14,36 @@ import { useCarById, useCarPriceCalculation } from '@/features/cars/useCarSearch
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { carsApi } from '@/lib/api/cars.api'
 import { CarApiResponse } from '@/types'
+import { useToast } from '@/components/ui/Toast'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface BookingData {
   pickupLocation: string
   dropoffLocation: string
   pickupDate: string
   dropoffDate: string
-  estimatedDistance?: number
   customerNotes?: string
-}
-
-interface CarAvailability {
-  id: string
-  carId: string
-  date: string
-  isAvailable: boolean
 }
 
 export default function CarDetailPage() {
   const params = useParams()
   const router = useRouter()
   const carId = params.id as string
+  const { showToast } = useToast()
+  const queryClient = useQueryClient()
   
   const { data: car, isLoading, error } = useCarById(carId)
   const { user, requireAuth, isAuthenticated } = useRequireAuth()
   const [isBooking, setIsBooking] = useState(false)
+  const [isCalculatingPrice, setIsCalculatingPrice] = useState(false)
   const [bookingData, setBookingData] = useState<BookingData | null>(null)
   const [priceCalculation, setPriceCalculation] = useState<any>(null)
   const [showBookingForm, setShowBookingForm] = useState(false)
-  
-  // Mock availability data
-  const mockAvailability: CarAvailability[] = [
-    { id: '1', carId, date: '2024-01-15', isAvailable: false },
-    { id: '2', carId, date: '2024-01-16', isAvailable: false },
-    { id: '3', carId, date: '2024-01-20', isAvailable: false },
-    { id: '4', carId, date: '2024-01-25', isAvailable: false },
-  ]
 
   const handleBookingSubmit = async (data: BookingData) => {
     // 🔒 REQUIRE LOGIN before booking
     if (!requireAuth()) {
-      console.log('🔐 Login required for car booking')
+      showToast('Please login to continue with your booking', 'warning')
       return // User will be redirected to login
     }
     
@@ -70,36 +59,56 @@ export default function CarDetailPage() {
         customer_notes: data.customerNotes,
       })
       
-      setBookingData(data)
+      // Invalidate bookings queries to refresh data (both query key formats)
+      queryClient.invalidateQueries({ queryKey: ['cars', 'bookings', 'user'] })
+      queryClient.invalidateQueries({ queryKey: ['car-bookings', 'user'] })
+      
+      setBookingData(null)
+      setPriceCalculation(null)
       setShowBookingForm(false)
       
       // Show success message
-      alert('Booking request sent to driver! You will be notified when they respond.')
+      showToast('Booking request sent to driver! You will be notified when they respond.', 'success')
+      
+      // Navigate to bookings page after a short delay
+      setTimeout(() => {
+        router.push('/client/cars/bookings')
+      }, 1500)
       
     } catch (error: any) {
       console.error('Booking request failed:', error)
-      alert('Failed to send booking request. Please try again.')
+      const errorMessage = error?.response?.data?.message || 'Failed to send booking request. Please try again.'
+      showToast(errorMessage, 'error')
     } finally {
       setIsBooking(false)
     }
   }
 
   const handleCalculatePrice = async (data: BookingData) => {
+    if (!requireAuth()) {
+      showToast('Please login to calculate price', 'warning')
+      return
+    }
+    
+    setIsCalculatingPrice(true)
     try {
+      // Don't send estimatedDistance - let backend calculate it automatically
       const response = await carsApi.calculatePrice(
         carId,
         data.pickupLocation,
         data.dropoffLocation,
         data.pickupDate,
-        data.dropoffDate,
-        data.estimatedDistance
+        data.dropoffDate
       )
       setPriceCalculation(response)
       setBookingData(data)
       setShowBookingForm(true)
     } catch (error: any) {
       console.error('Price calculation failed:', error)
-      alert('Failed to calculate price. Please try again.')
+      const errorMessage = error?.response?.data?.message || 'Failed to calculate price. Please try again.'
+      showToast(errorMessage, 'error')
+    } finally {
+      setIsCalculatingPrice(false)
     }
   }
 
@@ -269,17 +278,22 @@ export default function CarDetailPage() {
               }} />
             </motion.div>
 
-            {/* Availability Calendar */}
+            {/* Availability Note */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
+              className="bg-blue-50 border border-blue-200 rounded-2xl p-6"
             >
-              <AvailabilityCalendar 
-                availability={mockAvailability}
-                selectedStartDate=""
-                selectedEndDate=""
-              />
+              <div className="flex items-start space-x-3">
+                <span className="text-blue-600 text-2xl">ℹ️</span>
+                <div>
+                  <h3 className="text-lg font-semibold text-blue-900 mb-1">Availability Check</h3>
+                  <p className="text-blue-700">
+                    Car availability will be checked when you submit your booking request. Only active and listed cars are shown in search results.
+                  </p>
+                </div>
+              </div>
             </motion.div>
           </div>
 
@@ -346,7 +360,7 @@ export default function CarDetailPage() {
               <CarBookingForm 
                 car={car}
                 onBookingSubmit={handleCalculatePrice}
-                isLoading={isBooking}
+                isLoading={isCalculatingPrice}
                 isAuthenticated={isAuthenticated()}
               />
             </motion.div>
