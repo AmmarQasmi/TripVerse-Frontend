@@ -11,7 +11,7 @@ const protectedRoutes: Record<string, string[]> = {
 // Routes that require authentication but no specific role
 const authRequiredRoutes = [
   '/client/dashboard',
-  '/client/bookings',
+  '/client/hotelbookings',
   '/driver/dashboard',
   '/driver/cars',
   '/driver/bookings',

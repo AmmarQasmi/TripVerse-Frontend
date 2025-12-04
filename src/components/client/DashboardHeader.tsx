@@ -49,7 +49,7 @@ export function DashboardHeader() {
               animate={{ opacity: 1, x: 0 }}
               className="text-lg md:text-xl font-semibold text-white"
             >
-              Welcome back, {user?.full_name || 'Traveler'} 👋
+              Welcome back, {user?.full_name || 'Traveler'}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0 }}
@@ -72,7 +72,6 @@ export function DashboardHeader() {
             >
               <div className="hidden md:flex flex-col items-end">
                 <span className="text-sm font-medium text-white">{user?.full_name || 'User'}</span>
-                <span className="text-xs text-gray-200">{user?.email || ''}</span>
               </div>
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center text-white font-semibold shadow-lg">
                 <span>{user?.full_name ? getInitials(user.full_name) : 'U'}</span>
@@ -99,7 +98,6 @@ export function DashboardHeader() {
                 >
                   <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-gray-200">
                     <p className="text-sm font-semibold text-gray-900">{user?.full_name || 'User'}</p>
-                    <p className="text-xs text-gray-600">{user?.email || ''}</p>
                   </div>
                   
                   <div className="py-2">
@@ -114,17 +112,6 @@ export function DashboardHeader() {
                       <span className="text-sm text-gray-700">My Profile</span>
                     </Link>
                     
-                    <Link
-                      href="/client/bookings"
-                      className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                      <span className="text-sm text-gray-700">My Bookings</span>
-                    </Link>
-
                     <Link
                       href="/client/settings"
                       className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
