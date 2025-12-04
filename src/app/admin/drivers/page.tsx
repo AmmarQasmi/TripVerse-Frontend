@@ -164,7 +164,7 @@ export default function AdminDriversPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <PageHeader 
         title="Driver Management"
         subtitle="Review and manage driver verifications"
@@ -180,10 +180,10 @@ export default function AdminDriversPage() {
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-4xl font-bold text-white mb-2">
+                <h1 className="text-4xl font-bold text-gray-900 mb-2">
                   Driver Management
                 </h1>
-                <p className="text-lg text-gray-300">
+                <p className="text-lg text-gray-600">
                   Review and manage driver verifications
                 </p>
               </div>
@@ -203,8 +203,8 @@ export default function AdminDriversPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 bg-red-500/20 border border-red-500 rounded-lg p-4">
-              <p className="text-red-200">{error}</p>
+            <div className="mb-6 bg-red-50 border border-red-300 rounded-lg p-4">
+              <p className="text-red-800">{error}</p>
               <Button
                 onClick={() => window.location.reload()}
                 variant="outline"
@@ -224,17 +224,17 @@ export default function AdminDriversPage() {
               transition={{ delay: 0.1 }}
             >
               <Card 
-                className={`shadow-lg cursor-pointer transition-all duration-300 ${
+                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-300 ${
                   filter === 'all' 
-                    ? 'bg-blue-500/20 border-2 border-blue-500' 
-                    : 'bg-white/10 backdrop-blur-md border-white/20'
+                    ? 'ring-4 ring-blue-400' 
+                    : ''
                 }`}
                 onClick={() => setFilter('all')}
               >
-                <CardContent className="p-6">
+                <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-300">Total Drivers</p>
+                      <p className="text-sm font-medium text-emerald-100/90">Total Drivers</p>
                       <p className="text-3xl font-bold text-white">{stats.total}</p>
                     </div>
                     <div className="text-4xl">👥</div>
@@ -249,17 +249,17 @@ export default function AdminDriversPage() {
               transition={{ delay: 0.2 }}
             >
               <Card 
-                className={`shadow-lg cursor-pointer transition-all duration-300 ${
+                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-300 ${
                   filter === 'pending' 
-                    ? 'bg-yellow-500/20 border-2 border-yellow-500' 
-                    : 'bg-white/10 backdrop-blur-md border-white/20'
+                    ? 'ring-4 ring-yellow-400' 
+                    : ''
                 }`}
                 onClick={() => setFilter('pending')}
               >
-                <CardContent className="p-6">
+                <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-300">Pending Review</p>
+                      <p className="text-sm font-medium text-emerald-100/90">Pending Review</p>
                       <p className="text-3xl font-bold text-white">{stats.pending}</p>
                     </div>
                     <div className="text-4xl">⏳</div>
@@ -274,17 +274,17 @@ export default function AdminDriversPage() {
               transition={{ delay: 0.3 }}
             >
               <Card 
-                className={`shadow-lg cursor-pointer transition-all duration-300 ${
+                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-300 ${
                   filter === 'verified' 
-                    ? 'bg-green-500/20 border-2 border-green-500' 
-                    : 'bg-white/10 backdrop-blur-md border-white/20'
+                    ? 'ring-4 ring-green-400' 
+                    : ''
                 }`}
                 onClick={() => setFilter('verified')}
               >
-                <CardContent className="p-6">
+                <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-300">Verified</p>
+                      <p className="text-sm font-medium text-emerald-100/90">Verified</p>
                       <p className="text-3xl font-bold text-white">{stats.verified}</p>
                     </div>
                     <div className="text-4xl">✅</div>
@@ -299,17 +299,17 @@ export default function AdminDriversPage() {
               transition={{ delay: 0.4 }}
             >
               <Card 
-                className={`shadow-lg cursor-pointer transition-all duration-300 ${
+                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-300 ${
                   filter === 'rejected' 
-                    ? 'bg-red-500/20 border-2 border-red-500' 
-                    : 'bg-white/10 backdrop-blur-md border-white/20'
+                    ? 'ring-4 ring-red-400' 
+                    : ''
                 }`}
                 onClick={() => setFilter('rejected')}
               >
-                <CardContent className="p-6">
+                <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-300">Rejected</p>
+                      <p className="text-sm font-medium text-emerald-100/90">Rejected</p>
                       <p className="text-3xl font-bold text-white">{stats.rejected}</p>
                     </div>
                     <div className="text-4xl">❌</div>
@@ -320,21 +320,22 @@ export default function AdminDriversPage() {
           </div>
 
           {/* Drivers List */}
-          <Card className="shadow-lg">
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>
-                  {filter === 'all' && 'All Drivers'}
-                  {filter === 'pending' && 'Pending Verifications'}
-                  {filter === 'verified' && 'Verified Drivers'}
-                  {filter === 'rejected' && 'Rejected Applications'}
-                </CardTitle>
-                <span className="text-sm text-gray-500">
-                  {filteredDrivers.length} driver{filteredDrivers.length !== 1 ? 's' : ''}
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent>
+          <div className="rounded-2xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg">
+            <Card className="shadow-lg bg-white rounded-2xl">
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-gray-900">
+                    {filter === 'all' && 'All Drivers'}
+                    {filter === 'pending' && 'Pending Verifications'}
+                    {filter === 'verified' && 'Verified Drivers'}
+                    {filter === 'rejected' && 'Rejected Applications'}
+                  </CardTitle>
+                  <span className="text-sm text-gray-500">
+                    {filteredDrivers.length} driver{filteredDrivers.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent>
               {isLoading ? (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4 animate-spin">⏳</div>
@@ -349,7 +350,8 @@ export default function AdminDriversPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
                   >
-                    <div className="p-6 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500">
+                      <div className="p-6 bg-white rounded-xl hover:bg-gray-50 transition-colors">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-start space-x-4">
                           <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
@@ -413,6 +415,7 @@ export default function AdminDriversPage() {
                           💬 Contact
                         </Button>
                       </div>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
@@ -430,8 +433,9 @@ export default function AdminDriversPage() {
                   )}
                 </div>
               )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </motion.div>
       </div>
     </div>

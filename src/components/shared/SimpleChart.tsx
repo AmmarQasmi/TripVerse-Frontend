@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { motion } from 'framer-motion'
 
 interface SimpleChartProps {
   data: Array<{ label: string; value: number; color?: string }>
@@ -53,9 +54,16 @@ export function SimpleChart({ data, type = 'bar', height = 200, showValues = tru
                     </span>
                   )}
                 </div>
-                <span className="text-xs text-gray-300 mt-2 text-center truncate w-full" title={item.label}>
+                <motion.span
+                  className="text-xs text-gray-300 mt-2 text-center w-full animated-gradient-text inline-block break-words"
+                  title={item.label}
+                  initial={{ backgroundPosition: '0% 50%' }}
+                  animate={{ backgroundPosition: '100% 50%' }}
+                  transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                  style={{ minHeight: '1.5rem' }}
+                >
                   {item.label}
-                </span>
+                </motion.span>
               </div>
             )
           })}
@@ -109,11 +117,19 @@ export function SimpleChart({ data, type = 'bar', height = 200, showValues = tru
             )
           })}
         </svg>
-        <div className="flex justify-between mt-2">
+        <div className="flex justify-between mt-2 gap-1">
           {data.map((item, index) => (
-            <span key={index} className="text-xs text-gray-300 truncate" title={item.label}>
+            <motion.span
+              key={index}
+              className="text-xs text-gray-300 animated-gradient-text inline-block break-words flex-1 text-center"
+              title={item.label}
+              initial={{ backgroundPosition: '0% 50%' }}
+              animate={{ backgroundPosition: '100% 50%' }}
+              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ minHeight: '1.5rem' }}
+            >
               {item.label}
-            </span>
+            </motion.span>
           ))}
         </div>
       </div>

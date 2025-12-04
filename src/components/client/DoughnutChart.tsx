@@ -68,7 +68,7 @@ export function DoughnutChart({
 
   // Format value
   const formatValue = (val: number) => {
-    if (label === 'Total Spent') {
+    if (label === 'Total Spent' || label === 'Total Revenue') {
       return `$${val.toLocaleString()}`
     }
     return val > 0 ? `${val.toLocaleString()}${value > 0 ? '+' : ''}` : val.toString()

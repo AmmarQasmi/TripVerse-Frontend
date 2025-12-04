@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -64,7 +65,7 @@ export default function AdminDisputesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <PageHeader 
         title="Dispute Management"
         subtitle="Review and resolve customer disputes"
@@ -103,59 +104,83 @@ export default function AdminDisputesPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Disputes</p>
-                <p className="text-2xl font-bold text-gray-900">{disputes?.length || 0}</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
+            <CardContent className="p-0">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-emerald-100/90">Total Disputes</p>
+                  <p className="text-3xl font-bold text-white">{disputes?.length || 0}</p>
+                </div>
+                <div className="text-4xl">⚠️</div>
               </div>
-              <div className="text-2xl">⚠️</div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Open Disputes</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {disputes?.filter((d: any) => d.status === 'OPEN').length || 0}
-                </p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
+            <CardContent className="p-0">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-emerald-100/90">Open Disputes</p>
+                  <p className="text-3xl font-bold text-white">
+                    {disputes?.filter((d: any) => d.status === 'OPEN').length || 0}
+                  </p>
+                </div>
+                <div className="text-4xl">🔴</div>
               </div>
-              <div className="text-2xl">🔴</div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">In Review</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {disputes?.filter((d: any) => d.status === 'IN_REVIEW').length || 0}
-                </p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
+            <CardContent className="p-0">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-emerald-100/90">In Review</p>
+                  <p className="text-3xl font-bold text-white">
+                    {disputes?.filter((d: any) => d.status === 'IN_REVIEW').length || 0}
+                  </p>
+                </div>
+                <div className="text-4xl">🟡</div>
               </div>
-              <div className="text-2xl">🟡</div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Resolved</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {disputes?.filter((d: any) => d.status === 'RESOLVED').length || 0}
-                </p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
+            <CardContent className="p-0">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-emerald-100/90">Resolved</p>
+                  <p className="text-3xl font-bold text-white">
+                    {disputes?.filter((d: any) => d.status === 'RESOLVED').length || 0}
+                  </p>
+                </div>
+                <div className="text-4xl">✅</div>
               </div>
-              <div className="text-2xl">✅</div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
       {/* Disputes List */}
@@ -171,8 +196,9 @@ export default function AdminDisputesPage() {
           ))
         ) : filteredDisputes.length > 0 ? (
           filteredDisputes.map((dispute: any) => (
-            <Card key={dispute.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
+            <div key={dispute.id} className="rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500">
+              <Card className="hover:shadow-md transition-shadow bg-white rounded-xl">
+                <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-3">
@@ -244,23 +270,26 @@ export default function AdminDisputesPage() {
                     </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           ))
         ) : (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <div className="text-gray-500 text-lg mb-4">
-                ⚠️ No disputes found
-              </div>
-              <p className="text-gray-400">
-                {searchQuery || statusFilter !== 'all' 
-                  ? "No disputes match your search criteria."
-                  : "No disputes have been reported yet."
-                }
-              </p>
-            </CardContent>
-          </Card>
+          <div className="rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500">
+            <Card className="bg-white rounded-xl">
+              <CardContent className="p-12 text-center">
+                <div className="text-gray-500 text-lg mb-4">
+                  ⚠️ No disputes found
+                </div>
+                <p className="text-gray-600">
+                  {searchQuery || statusFilter !== 'all' 
+                    ? "No disputes match your search criteria."
+                    : "No disputes have been reported yet."
+                  }
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
 

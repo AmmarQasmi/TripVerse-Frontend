@@ -101,15 +101,15 @@ export default function AdminHotelManagersPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading hotel managers...</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-gray-900 text-xl">Loading hotel managers...</div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-white">
         <PageHeader 
           title="Hotel Manager Management"
           subtitle="Review and manage hotel manager verifications"
@@ -117,9 +117,9 @@ export default function AdminHotelManagersPage() {
           backLabel="Back to Dashboard"
         />
         <div className="container mx-auto px-4 py-8">
-          <Card className="bg-red-500/20 border-red-500">
+          <Card className="bg-red-50 border-red-300">
             <CardContent className="p-6">
-              <p className="text-white">{error}</p>
+              <p className="text-red-800">{error}</p>
               <Button onClick={() => window.location.reload()} variant="outline" className="mt-4">
                 Retry
               </Button>
@@ -131,7 +131,7 @@ export default function AdminHotelManagersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <PageHeader 
         title="Hotel Manager Management"
         subtitle="Review and manage hotel manager verifications"
@@ -145,30 +145,105 @@ export default function AdminHotelManagersPage() {
         >
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6">
-                <div className="text-3xl font-bold text-white">{stats.total}</div>
-                <div className="text-gray-300 text-sm mt-1">Total Managers</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6">
-                <div className="text-3xl font-bold text-yellow-400">{stats.pending}</div>
-                <div className="text-gray-300 text-sm mt-1">Pending</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6">
-                <div className="text-3xl font-bold text-green-400">{stats.verified}</div>
-                <div className="text-gray-300 text-sm mt-1">Verified</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6">
-                <div className="text-3xl font-bold text-red-400">{stats.rejected}</div>
-                <div className="text-gray-300 text-sm mt-1">Rejected</div>
-              </CardContent>
-            </Card>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Card 
+                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-300 ${
+                  filter === 'all' 
+                    ? 'ring-4 ring-blue-400' 
+                    : ''
+                }`}
+                onClick={() => setFilter('all')}
+              >
+                <CardContent className="p-0">
+                  <div className="flex items-center">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-emerald-100/90">Total Managers</p>
+                      <p className="text-3xl font-bold text-white">{stats.total}</p>
+                    </div>
+                    <div className="text-4xl">👥</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Card 
+                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-300 ${
+                  filter === 'pending' 
+                    ? 'ring-4 ring-yellow-400' 
+                    : ''
+                }`}
+                onClick={() => setFilter('pending')}
+              >
+                <CardContent className="p-0">
+                  <div className="flex items-center">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-emerald-100/90">Pending</p>
+                      <p className="text-3xl font-bold text-white">{stats.pending}</p>
+                    </div>
+                    <div className="text-4xl">⏳</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Card 
+                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-300 ${
+                  filter === 'verified' 
+                    ? 'ring-4 ring-green-400' 
+                    : ''
+                }`}
+                onClick={() => setFilter('verified')}
+              >
+                <CardContent className="p-0">
+                  <div className="flex items-center">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-emerald-100/90">Verified</p>
+                      <p className="text-3xl font-bold text-white">{stats.verified}</p>
+                    </div>
+                    <div className="text-4xl">✅</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Card 
+                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-300 ${
+                  filter === 'rejected' 
+                    ? 'ring-4 ring-red-400' 
+                    : ''
+                }`}
+                onClick={() => setFilter('rejected')}
+              >
+                <CardContent className="p-0">
+                  <div className="flex items-center">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-emerald-100/90">Rejected</p>
+                      <p className="text-3xl font-bold text-white">{stats.rejected}</p>
+                    </div>
+                    <div className="text-4xl">❌</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
 
           {/* Filter Buttons */}
@@ -186,77 +261,82 @@ export default function AdminHotelManagersPage() {
           </div>
 
           {/* Hotel Managers List */}
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white">Hotel Managers</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {filteredManagers.length === 0 ? (
-                <div className="p-12 text-center">
-                  <div className="text-6xl mb-4">🏨</div>
-                  <h3 className="text-xl font-semibold text-white mb-2">No Hotel Managers Found</h3>
-                  <p className="text-gray-300">
-                    {filter === 'all' 
-                      ? 'No hotel managers registered yet.' 
-                      : `No hotel managers with status "${filter}"`}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {filteredManagers.map((manager) => (
-                    <motion.div
-                      key={manager.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="p-6 border border-white/20 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="text-xl font-semibold text-white">{manager.user.full_name}</h3>
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(manager.is_verified, !!manager.verification_notes, manager.has_pending_documents)}`}>
-                              {getStatusIcon(manager.is_verified, !!manager.verification_notes, manager.has_pending_documents)} {getStatusText(manager.is_verified, !!manager.verification_notes, manager.has_pending_documents)}
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300 mb-4">
-                            <div>
-                              <span className="font-semibold">Email:</span> {manager.user.email}
-                            </div>
-                            <div>
-                              <span className="font-semibold">City:</span> {manager.user.city.name}, {manager.user.city.region}
-                            </div>
-                            <div>
-                              <span className="font-semibold">Hotels:</span> {manager.active_hotels_count} active / {manager.hotels_count} total
-                            </div>
-                            <div>
-                              <span className="font-semibold">Documents:</span> {manager.documents.length} submitted
-                            </div>
-                            {manager.verified_at && (
-                              <div>
-                                <span className="font-semibold">Verified:</span> {new Date(manager.verified_at).toLocaleDateString()}
+          <div className="rounded-2xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg">
+            <Card className="shadow-lg bg-white rounded-2xl">
+              <CardHeader>
+                <CardTitle className="text-gray-900">Hotel Managers</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {filteredManagers.length === 0 ? (
+                  <div className="p-12 text-center">
+                    <div className="text-6xl mb-4">🏨</div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No Hotel Managers Found</h3>
+                    <p className="text-gray-600">
+                      {filter === 'all' 
+                        ? 'No hotel managers registered yet.' 
+                        : `No hotel managers with status "${filter}"`}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredManagers.map((manager) => (
+                      <motion.div
+                        key={manager.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                      >
+                        <div className="rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500">
+                          <div className="p-6 bg-white rounded-xl hover:bg-gray-50 transition-colors">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-3 mb-2">
+                                  <h3 className="text-xl font-semibold text-gray-900">{manager.user.full_name}</h3>
+                                  <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(manager.is_verified, !!manager.verification_notes, manager.has_pending_documents)}`}>
+                                    {getStatusIcon(manager.is_verified, !!manager.verification_notes, manager.has_pending_documents)} {getStatusText(manager.is_verified, !!manager.verification_notes, manager.has_pending_documents)}
+                                  </span>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
+                                  <div>
+                                    <span className="font-semibold">Email:</span> {manager.user.email}
+                                  </div>
+                                  <div>
+                                    <span className="font-semibold">City:</span> {manager.user.city.name}, {manager.user.city.region}
+                                  </div>
+                                  <div>
+                                    <span className="font-semibold">Hotels:</span> {manager.active_hotels_count} active / {manager.hotels_count} total
+                                  </div>
+                                  <div>
+                                    <span className="font-semibold">Documents:</span> {manager.documents.length} submitted
+                                  </div>
+                                  {manager.verified_at && (
+                                    <div>
+                                      <span className="font-semibold">Verified:</span> {new Date(manager.verified_at).toLocaleDateString()}
+                                    </div>
+                                  )}
+                                  {manager.verification_notes && (
+                                    <div className="col-span-2">
+                                      <span className="font-semibold">Notes:</span> {manager.verification_notes}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                            )}
-                            {manager.verification_notes && (
-                              <div className="col-span-2">
-                                <span className="font-semibold">Notes:</span> {manager.verification_notes}
+                              <div className="ml-4">
+                                <Link href={`/admin/hotel-managers/${manager.id}`}>
+                                  <Button variant="outline">
+                                    View Details
+                                  </Button>
+                                </Link>
                               </div>
-                            )}
+                            </div>
                           </div>
                         </div>
-                        <div className="ml-4">
-                          <Link href={`/admin/hotel-managers/${manager.id}`}>
-                            <Button variant="outline">
-                              View Details
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </motion.div>
       </div>
     </div>
