@@ -409,7 +409,7 @@ export default function FlightsPage() {
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 text-center px-4 max-w-7xl mx-auto w-full mt-8">
+        <div className="relative z-10 text-center px-4 max-w-7xl mx-auto w-full">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -449,7 +449,7 @@ export default function FlightsPage() {
 
       {/* Popular Routes Section */}
       <section className="py-16 px-4 bg-gray-900/70 backdrop-blur-md">
-        <div className="container mx-auto">
+        <div className="container mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -472,7 +472,7 @@ export default function FlightsPage() {
       <section className="py-16 px-4 bg-gradient-to-r from-blue-800/40 via-cyan-900/40 to-teal-900/40" data-flight-results>
         <div className="container mx-auto max-w-7xl">
           <div className="rounded-2xl bg-gray-900/60 backdrop-blur-lg border border-white/10 shadow-[0_10px_30px_rgba(2,132,199,0.15)] p-6 lg:p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Filters Sidebar */}
             <div className="lg:col-span-1">
               <FlightFilters />
@@ -480,7 +480,7 @@ export default function FlightsPage() {
 
             {/* Flight Results */}
             <div className="lg:col-span-3">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-8">
                 <h3 className="text-2xl font-bold text-white">
                   {isLoading ? 'Searching Flights...' : 
                    error ? 'Error Loading Flights' :
@@ -573,7 +573,7 @@ export default function FlightsPage() {
       {/* Major Airline Summary */}
       <section className="py-16 px-4 bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900">
         <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-10">
+          <div className="text-center mb-12">
             <div className="inline-flex items-center justify-center space-x-2">
               <Plane className="w-5 h-5 text-emerald-400 drop-shadow" />
               <h2 className="text-3xl font-semibold text-white tracking-wide">Major Domestic Airlines</h2>

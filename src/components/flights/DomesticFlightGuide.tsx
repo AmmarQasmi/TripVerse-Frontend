@@ -76,7 +76,7 @@ export function DomesticFlightGuide({ flights }: DomesticFlightGuideProps) {
 
   return (
     <section className="py-16 px-4 bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900">
-      <div className="container mx-auto max-w-[1400px]">
+      <div className="container mx-auto max-w-7xl">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -87,7 +87,7 @@ export function DomesticFlightGuide({ flights }: DomesticFlightGuideProps) {
         </motion.h2>
 
         {/* Province Filter */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+        <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
           {[
             { code: 'ALL', label: 'All' },
             { code: 'NA', label: 'Northern Areas' },
@@ -113,7 +113,7 @@ export function DomesticFlightGuide({ flights }: DomesticFlightGuideProps) {
         </div>
 
         {/* Premium Flight Cards - Two Column Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {visibleFlights.map((flight, index) => (
             <motion.div
               key={flight.key}

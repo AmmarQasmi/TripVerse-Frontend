@@ -23,8 +23,7 @@ export function SupportCard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         whileHover={{ 
-          scale: 1.05,
-          transition: { type: "spring", stiffness: 300, damping: 20 }
+          scale: 1.01,
         }}
         className="relative group overflow-hidden rounded-2xl backdrop-blur-md bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 opacity-95 shadow-2xl hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-300 p-8"
         style={{
@@ -131,8 +130,7 @@ export function SupportCard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.5 }}
         whileHover={{ 
-          scale: 1.05,
-          transition: { type: "spring", stiffness: 300, damping: 20 }
+          scale: 1.01,
         }}
         className="relative group overflow-hidden rounded-2xl backdrop-blur-md bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 opacity-95 shadow-2xl hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-300 p-8"
         style={{

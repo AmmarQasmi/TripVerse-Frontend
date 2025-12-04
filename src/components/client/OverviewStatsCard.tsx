@@ -52,8 +52,7 @@ export function OverviewStatsCard({
     >
       <motion.div 
         className="relative p-8 rounded-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 backdrop-blur-md opacity-95 shadow-2xl hover:scale-105 hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-300 overflow-hidden"
-        whileHover={{ scale: 1.05 }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        whileHover={{ scale: 1.02 }}
         style={{
           border: '2px solid transparent',
           backgroundImage: `

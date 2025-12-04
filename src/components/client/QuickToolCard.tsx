@@ -26,8 +26,7 @@ export function QuickToolCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5 }}
       whileHover={{ 
-        scale: 1.05,
-        transition: { type: "spring", stiffness: 300, damping: 20 }
+        scale: 1.01,
       }}
       className="group"
     >

@@ -53,14 +53,14 @@ export function TrustSection() {
   ]
 
   return (
-    <section className="py-20 px-4 bg-gradient-to-br from-gray-900/70 to-blue-900/30 backdrop-blur-md">
-      <div className="container mx-auto">
+    <section className="py-16 px-4 bg-gradient-to-br from-gray-900/70 to-blue-900/30 backdrop-blur-md">
+      <div className="container mx-auto max-w-7xl">
         {/* Main Trust Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-12"
         >
           <h2 className="text-4xl font-bold text-white mb-6">
             Why Book With Us?
@@ -71,7 +71,7 @@ export function TrustSection() {
         </motion.div>
 
         {/* Trust Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 items-stretch">
           {trustFeatures.map((feature, index) => (
             <motion.div
               key={feature.title}
@@ -108,9 +108,9 @@ export function TrustSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.4 }}
-          className="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 backdrop-blur-md rounded-2xl p-8 border border-cyan-700/40"
+          className="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 backdrop-blur-md rounded-2xl p-6 lg:p-8 border border-cyan-700/40"
         >
-          <h3 className="text-2xl font-bold text-white text-center mb-8">
+          <h3 className="text-2xl font-bold text-white text-center mb-6">
             Additional Benefits
           </h3>
           
@@ -146,9 +146,9 @@ export function TrustSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.6 }}
-          className="mt-16"
+          className="mt-12"
         >
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div>
               <div className="text-4xl font-bold text-cyan-300 mb-2">500K+</div>
               <div className="text-gray-300">Happy Travelers</div>

@@ -50,6 +50,8 @@ export default function ClientDashboard() {
     .reduce((sum: number, b: any) => sum + (b.totalAmount || b.total_amount || 0), 0)
   const flightBookings = 0 // TODO: Add flight bookings when flight feature is implemented
 
+  const isOverviewLoading = isClient && (hotelLoading || carLoading)
+
 
   // Prepare data for modals
   const prepareModalData = (type: string): Array<{
@@ -152,41 +154,55 @@ export default function ClientDashboard() {
             </span>
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-            <DoughnutChart
-              label="Total Trips"
-              value={totalBookings}
-              gradient="bg-gradient-to-br from-blue-500 to-cyan-500"
-              delay={0}
-              onClick={() => handleChartClick('Total Trips')}
-            />
-            <DoughnutChart
-              label="Hotel Bookings"
-              value={hotelBookings?.length || 0}
-              gradient="bg-gradient-to-br from-purple-500 to-pink-500"
-              delay={0.1}
-              onClick={() => handleChartClick('Hotel Bookings')}
-            />
-            <DoughnutChart
-              label="Flight Booking"
-              value={flightBookings}
-              gradient="bg-gradient-to-br from-cyan-500 to-blue-500"
-              delay={0.2}
-              onClick={() => handleChartClick('Flight Booking')}
-            />
-            <DoughnutChart
-              label="Car Booking"
-              value={carBookings?.length || 0}
-              gradient="bg-gradient-to-br from-orange-500 to-red-500"
-              delay={0.3}
-              onClick={() => handleChartClick('Car Booking')}
-            />
-            <DoughnutChart
-              label="Total Spent"
-              value={totalSpent}
-              gradient="bg-gradient-to-br from-green-500 to-emerald-500"
-              delay={0.4}
-              onClick={() => handleChartClick('Total Spent')}
-            />
+            {isOverviewLoading ? (
+              Array.from({ length: 5 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="flex flex-col items-center gap-4"
+                >
+                  <div className="relative w-full max-w-[200px] mx-auto aspect-square rounded-full bg-gray-200/60 dark:bg-gray-800/60 animate-pulse" />
+                  <div className="h-4 w-24 rounded-full bg-gray-200/60 dark:bg-gray-800/60 animate-pulse" />
+                </div>
+              ))
+            ) : (
+              <>
+                <DoughnutChart
+                  label="Total Trips"
+                  value={totalBookings}
+                  gradient="bg-gradient-to-br from-blue-500 to-cyan-500"
+                  delay={0}
+                  onClick={() => handleChartClick('Total Trips')}
+                />
+                <DoughnutChart
+                  label="Hotel Bookings"
+                  value={hotelBookings?.length || 0}
+                  gradient="bg-gradient-to-br from-purple-500 to-pink-500"
+                  delay={0.1}
+                  onClick={() => handleChartClick('Hotel Bookings')}
+                />
+                <DoughnutChart
+                  label="Flight Booking"
+                  value={flightBookings}
+                  gradient="bg-gradient-to-br from-cyan-500 to-blue-500"
+                  delay={0.2}
+                  onClick={() => handleChartClick('Flight Booking')}
+                />
+                <DoughnutChart
+                  label="Car Booking"
+                  value={carBookings?.length || 0}
+                  gradient="bg-gradient-to-br from-orange-500 to-red-500"
+                  delay={0.3}
+                  onClick={() => handleChartClick('Car Booking')}
+                />
+                <DoughnutChart
+                  label="Total Spent"
+                  value={totalSpent}
+                  gradient="bg-gradient-to-br from-green-500 to-emerald-500"
+                  delay={0.4}
+                  onClick={() => handleChartClick('Total Spent')}
+                />
+              </>
+            )}
           </div>
         </motion.section>
 
