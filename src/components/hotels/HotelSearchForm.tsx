@@ -186,7 +186,7 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
       <div className="flex justify-center pt-4">
         <motion.button
           type="submit"
-          whileHover={{ scale: 1.05 }}
+          whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.95 }}
           className="bg-gradient-to-r from-[#1e3a8a] via-[#0f4c75] to-[#0d9488] text-white px-12 py-4 rounded-2xl font-semibold text-lg hover:shadow-2xl transition-all duration-300 flex items-center space-x-3"
         >

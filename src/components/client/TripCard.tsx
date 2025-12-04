@@ -48,8 +48,7 @@ export function TripCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       whileHover={{ 
-        scale: 1.05,
-        transition: { type: "spring", stiffness: 300, damping: 20 }
+        scale: 1.02,
       }}
       className="relative group"
     >

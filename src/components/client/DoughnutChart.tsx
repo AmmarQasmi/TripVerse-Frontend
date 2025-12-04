@@ -62,7 +62,7 @@ export function DoughnutChart({
   const strokeWidth = 32
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
-  // Chart fills to 85% for visual appeal (not 100% to show it's a doughnut)
+  // Chart fills to 85% for visual appeal (not 100% to show it's a d1oughnut)
   const fillPercentage = 0.85
   const offset = circumference - (chartProgress * circumference * fillPercentage)
 
@@ -74,6 +74,10 @@ export function DoughnutChart({
     return val > 0 ? `${val.toLocaleString()}${value > 0 ? '+' : ''}` : val.toString()
   }
   const formattedValue = formatValue(displayValue)
+
+  // Use slightly smaller center text for large currency values so they stay inside the ring
+  const isCurrencyLabel = label === 'Total Spent'
+  const valueTextClass = isCurrencyLabel ? 'text-2xl md:text-3xl' : 'text-3xl'
 
   return (
     <motion.div
@@ -165,7 +169,7 @@ export function DoughnutChart({
         {/* Number in center */}
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div 
-            className="text-4xl font-bold"
+            className={`${valueTextClass} font-bold`}
             initial={{ scale: 0.5, opacity: 0, rotate: -180 }}
             animate={{ scale: 1, opacity: 1, rotate: 0 }}
             transition={{ 

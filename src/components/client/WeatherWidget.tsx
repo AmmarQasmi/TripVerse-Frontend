@@ -45,7 +45,7 @@ export function WeatherWidget({
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        whileHover={{ scale: 1.05 }}
+        whileHover={{ scale: 1.01 }}
         className="relative overflow-hidden rounded-xl backdrop-blur-md border-2 border-teal-400/50 shadow-lg px-4 py-2 bg-white/20 cursor-pointer"
       >
         <div className="flex items-center gap-3">
