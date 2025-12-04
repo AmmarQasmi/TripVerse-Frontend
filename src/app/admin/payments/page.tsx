@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -66,7 +67,7 @@ export default function AdminPaymentsPage() {
   const totalRefunds = payments?.filter((p: any) => p.status === 'REFUNDED').reduce((sum: number, p: any) => sum + (p.refundAmount || 0), 0) || 0
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <PageHeader 
         title="Payment Management"
         subtitle="Monitor and manage payment transactions"
@@ -75,7 +76,7 @@ export default function AdminPaymentsPage() {
       />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Payment Management
         </h1>
         <p className="text-lg text-gray-600">
@@ -123,63 +124,88 @@ export default function AdminPaymentsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Payments</p>
-                <p className="text-2xl font-bold text-gray-900">{payments?.length || 0}</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
+            <CardContent className="p-0">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-emerald-100/90">Total Payments</p>
+                  <p className="text-3xl font-bold text-white">{payments?.length || 0}</p>
+                </div>
+                <div className="text-4xl">💳</div>
               </div>
-              <div className="text-2xl">💳</div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold text-green-600">${totalRevenue.toLocaleString()}</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
+            <CardContent className="p-0">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-emerald-100/90">Total Revenue</p>
+                  <p className="text-3xl font-bold text-white">${totalRevenue.toLocaleString()}</p>
+                </div>
+                <div className="text-4xl">💰</div>
               </div>
-              <div className="text-2xl">💰</div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Pending Payments</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {payments?.filter((p: any) => p.status === 'PENDING').length || 0}
-                </p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
+            <CardContent className="p-0">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-emerald-100/90">Pending Payments</p>
+                  <p className="text-3xl font-bold text-white">
+                    {payments?.filter((p: any) => p.status === 'PENDING').length || 0}
+                  </p>
+                </div>
+                <div className="text-4xl">⏳</div>
               </div>
-              <div className="text-2xl">⏳</div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Refunds</p>
-                <p className="text-2xl font-bold text-red-600">${totalRefunds.toLocaleString()}</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
+            <CardContent className="p-0">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-emerald-100/90">Total Refunds</p>
+                  <p className="text-3xl font-bold text-white">${totalRefunds.toLocaleString()}</p>
+                </div>
+                <div className="text-4xl">🔄</div>
               </div>
-              <div className="text-2xl">🔄</div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
       {/* Payments List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Payment Transactions</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="rounded-2xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg">
+        <Card className="shadow-lg bg-white rounded-2xl">
+          <CardHeader>
+            <CardTitle className="text-gray-900">Payment Transactions</CardTitle>
+          </CardHeader>
+          <CardContent>
           {isLoading ? (
             <div className="space-y-4">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -193,7 +219,8 @@ export default function AdminPaymentsPage() {
           ) : filteredPayments.length > 0 ? (
             <div className="space-y-4">
               {filteredPayments.map((payment: any) => (
-                <div key={payment.id} className="flex justify-between items-center p-4 border rounded-lg hover:bg-gray-50">
+                <div key={payment.id} className="rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500">
+                  <div className="flex justify-between items-center p-4 bg-white rounded-xl hover:bg-gray-50">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
                       <span className="font-medium">#{payment.id}</span>
@@ -238,6 +265,7 @@ export default function AdminPaymentsPage() {
                       </Button>
                     )}
                   </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -248,8 +276,9 @@ export default function AdminPaymentsPage() {
               <p className="text-sm">No payments match your search criteria</p>
             </div>
           )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
       </div>
     </div>
   )

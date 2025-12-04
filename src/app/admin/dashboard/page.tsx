@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { StatsCard } from '@/components/shared/StatsCard'
+import { DoughnutChart } from '@/components/client/DoughnutChart'
 import { DashboardHeader } from '@/components/shared/DashboardHeader'
 import { SimpleChart } from '@/components/shared/SimpleChart'
 import Link from 'next/link'
@@ -49,18 +49,18 @@ export default function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading dashboard...</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-gray-900 text-xl">Loading dashboard...</div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <Card className="bg-red-500/20 border-red-500">
           <CardContent className="p-6">
-            <p className="text-white">{error}</p>
+            <p className="text-gray-900">{error}</p>
             <Button
               onClick={() => window.location.reload()}
               variant="outline"
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <DashboardHeader 
         title="Admin Dashboard"
         subtitle="Manage your platform and monitor system performance"
@@ -90,281 +90,377 @@ export default function AdminDashboard() {
           animate={{ opacity: 1, y: 0 }}
         >
 
-          {/* Primary Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <StatsCard
-              title="Total Drivers"
+          {/* Primary Stats Cards - Doughnut Charts */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <DoughnutChart
+              label="Total Drivers"
               value={stats.drivers.total}
-              subtitle={`${stats.drivers.verified} verified, ${stats.drivers.pending} pending`}
-              icon="👥"
+              gradient="bg-gradient-to-br from-blue-500 to-cyan-500"
               delay={0.1}
             />
-            <StatsCard
-              title="Hotel Managers"
+            <DoughnutChart
+              label="Hotel Managers"
               value={stats.hotel_managers?.total || 0}
-              subtitle={`${stats.hotel_managers?.verified || 0} verified, ${stats.hotel_managers?.pending || 0} pending`}
-              icon="🏨"
+              gradient="bg-gradient-to-br from-purple-500 to-pink-500"
               delay={0.15}
             />
-            <StatsCard
-              title="Total Bookings"
+            <DoughnutChart
+              label="Total Bookings"
               value={stats.bookings.total}
-              subtitle={`${stats.bookings.today} today, ${stats.bookings.this_week} this week`}
-              icon="📋"
+              gradient="bg-gradient-to-br from-cyan-500 to-blue-500"
               delay={0.2}
             />
-            <StatsCard
-              title="Total Revenue"
-              value={formatCurrency(stats.revenue.total)}
-              subtitle={`${formatCurrency(stats.revenue.commission)} commission`}
-              icon="💰"
+            <DoughnutChart
+              label="Total Revenue"
+              value={Math.round(stats.revenue.total)}
+              gradient="bg-gradient-to-br from-green-500 to-emerald-500"
               delay={0.3}
             />
-          </div>
-
-          {/* Secondary Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <StatsCard
-              title="Pending Disputes"
+            <DoughnutChart
+              label="Pending Disputes"
               value={stats.disputes.pending}
-              subtitle="Require attention"
-              icon="⚠️"
+              gradient="bg-gradient-to-br from-teal-500 to-emerald-500"
               delay={0.4}
             />
           </div>
 
-          {/* Alert Cards */}
+          {/* Alert Cards - Styled similar to homepage feature cards (no animations, unified gradient) */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Card className="border-2 border-yellow-500 bg-yellow-500/20 backdrop-blur-md shadow-lg">
-                <CardContent className="p-6">
+            {/* Driver Verifications */}
+            <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
+              <CardContent className="p-0">
+                <div className="flex flex-col space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="text-3xl">⏳</div>
-                      <div>
-                        <h3 className="font-semibold text-white">Driver Verifications</h3>
-                        <p className="text-gray-200">{stats.drivers.pending} pending review</p>
+                      <div className="text-3xl text-white">
+                        {/* Car SVG icon */} 
+                        <svg
+                          className="w-8 h-8"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M3 13h18l-1.2-3.6a2 2 0 0 0-1.9-1.4H6.1a2 2 0 0 0-1.9 1.4L3 13z" />
+                          <path d="M5 13v4a1.5 1.5 0 0 0 1.5 1.5H7" />
+                          <path d="M19 13v4a1.5 1.5 0 0 1-1.5 1.5H17" />
+                          <circle cx="7.5" cy="17.5" r="1.4" fill="currentColor" />
+                          <circle cx="16.5" cy="17.5" r="1.4" fill="currentColor" />
+                          <path d="M7 9.5l1-3h8l1 3" />
+                        </svg>
                       </div>
+                      <h3 className="font-semibold text-white text-lg">Driver Verifications</h3>
                     </div>
+                    <div className="text-3xl font-bold text-white">
+                      {stats.drivers.pending}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-emerald-100/90">
+                      Pending review
+                    </p>
                     <Link href="/admin/drivers">
-                      <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700 text-white">
+                      <Button size="sm" className="bg-white/90 text-emerald-700 hover:bg-white">
                         Review
                       </Button>
                     </Link>
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                </div>
+              </CardContent>
+            </Card>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.55 }}
-            >
-              <Card className="border-2 border-cyan-500 bg-cyan-500/20 backdrop-blur-md shadow-lg">
-                <CardContent className="p-6">
+            {/* Hotel Manager Requests */}
+            <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
+              <CardContent className="p-0">
+                <div className="flex flex-col space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="text-3xl">🏨</div>
-                      <div>
-                        <h3 className="font-semibold text-white">Hotel Manager Requests</h3>
-                        <p className="text-gray-200">{stats.hotel_managers?.pending || 0} pending review</p>
+                      <div className="text-3xl text-white">
+                        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <rect x="4" y="3" width="16" height="18" rx="2" />
+                          <path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2" />
+                          <path d="M10 21v-3h4v3" />
+                        </svg>
                       </div>
+                      <h3 className="font-semibold text-white text-lg">Hotel Manager Requests</h3>
                     </div>
+                    <div className="text-3xl font-bold text-white">
+                      {stats.hotel_managers?.pending || 0}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-emerald-100/90">
+                      Pending review
+                    </p>
                     <Link href="/admin/hotel-managers">
-                      <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white">
+                      <Button size="sm" className="bg-white/90 text-emerald-700 hover:bg-white">
                         Review
                       </Button>
                     </Link>
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                </div>
+              </CardContent>
+            </Card>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-            >
-              <Card className="border-2 border-blue-500 bg-blue-500/20 backdrop-blur-md shadow-lg">
-                <CardContent className="p-6">
+            {/* Bookings Today */}
+            <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
+              <CardContent className="p-0">
+                <div className="flex flex-col space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="text-3xl">📊</div>
-                      <div>
-                        <h3 className="font-semibold text-white">Bookings Today</h3>
-                        <p className="text-gray-200">{stats.bookings.today} new bookings</p>
+                      <div className="text-3xl text-white">
+                        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path d="M4 19V5" />
+                          <rect x="6" y="10" width="3" height="9" rx="0.5" />
+                          <rect x="11" y="7" width="3" height="12" rx="0.5" />
+                          <rect x="16" y="4" width="3" height="15" rx="0.5" />
+                        </svg>
                       </div>
+                      <h3 className="font-semibold text-white text-lg">Bookings Today</h3>
                     </div>
+                    <div className="text-3xl font-bold text-white">
+                      {stats.bookings.today}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-emerald-100/90">
+                      New bookings today
+                    </p>
                     <Link href="/admin/payments">
-                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                      <Button size="sm" className="bg-white/90 text-emerald-700 hover:bg-white">
                         View
                       </Button>
                     </Link>
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                </div>
+              </CardContent>
+            </Card>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
-            >
-              <Card className="border-2 border-red-500 bg-red-500/20 backdrop-blur-md shadow-lg">
-                <CardContent className="p-6">
+            {/* Active Disputes */}
+            <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
+              <CardContent className="p-0">
+                <div className="flex flex-col space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="text-3xl">⚠️</div>
-                      <div>
-                        <h3 className="font-semibold text-white">Active Disputes</h3>
-                        <p className="text-gray-200">{stats.disputes.pending} require attention</p>
+                      <div className="text-3xl text-white">
+                        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path d="M12 3L2 21h20L12 3z" />
+                          <path d="M12 9v5" />
+                          <circle cx="12" cy="17" r="1" fill="currentColor" />
+                        </svg>
                       </div>
+                      <h3 className="font-semibold text-white text-lg">Active Disputes</h3>
                     </div>
+                    <div className="text-3xl font-bold text-white">
+                      {stats.disputes.pending}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-emerald-100/90">
+                      Require attention
+                    </p>
                     <Link href="/admin/disputes">
-                      <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white">
+                      <Button size="sm" className="bg-white/90 text-emerald-700 hover:bg-white">
                         Resolve
                       </Button>
                     </Link>
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-stretch">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8 }}
+              className="h-full flex flex-col"
             >
-              <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-white">Bookings Trend (Last 7 Days)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <SimpleChart
-                    data={[
-                      { label: 'Mon', value: Math.floor(stats.bookings.this_week * 0.15) },
-                      { label: 'Tue', value: Math.floor(stats.bookings.this_week * 0.20) },
-                      { label: 'Wed', value: Math.floor(stats.bookings.this_week * 0.18) },
-                      { label: 'Thu', value: Math.floor(stats.bookings.this_week * 0.22) },
-                      { label: 'Fri', value: Math.floor(stats.bookings.this_week * 0.15) },
-                      { label: 'Sat', value: Math.floor(stats.bookings.this_week * 0.08) },
-                      { label: 'Sun', value: Math.floor(stats.bookings.this_week * 0.02) },
-                    ]}
-                    type="area"
-                    height={250}
-                  />
-                </CardContent>
-              </Card>
+              <div className="h-full flex flex-col rounded-2xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg">
+                <Card className="rounded-2xl bg-white h-full flex flex-col">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-gray-900 text-base leading-tight">
+                      <motion.span
+                        className="animated-gradient-text inline-block"
+                        initial={{ backgroundPosition: '0% 50%' }}
+                        animate={{ backgroundPosition: '100% 50%' }}
+                        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                      >
+                        Bookings Trend (Last 7 Days)
+                      </motion.span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex-1 pb-6">
+                    <SimpleChart
+                      data={[
+                        { label: 'Mon', value: Math.floor(stats.bookings.this_week * 0.15) },
+                        { label: 'Tue', value: Math.floor(stats.bookings.this_week * 0.20) },
+                        { label: 'Wed', value: Math.floor(stats.bookings.this_week * 0.18) },
+                        { label: 'Thu', value: Math.floor(stats.bookings.this_week * 0.22) },
+                        { label: 'Fri', value: Math.floor(stats.bookings.this_week * 0.15) },
+                        { label: 'Sat', value: Math.floor(stats.bookings.this_week * 0.08) },
+                        { label: 'Sun', value: Math.floor(stats.bookings.this_week * 0.02) },
+                      ]}
+                      type="area"
+                      height={250}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9 }}
+              className="h-full flex flex-col"
             >
-              <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-white">Driver Status Distribution</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <SimpleChart
-                    data={[
-                      { label: 'Verified', value: stats.drivers.verified, color: 'rgba(16, 185, 129, 0.8)' },
-                      { label: 'Pending', value: stats.drivers.pending, color: 'rgba(245, 158, 11, 0.8)' },
-                      { label: 'Suspended', value: stats.drivers.total - stats.drivers.verified - stats.drivers.pending, color: 'rgba(239, 68, 68, 0.8)' },
-                    ]}
-                    type="bar"
-                    height={250}
-                  />
-                </CardContent>
-              </Card>
+              <div className="h-full flex flex-col rounded-2xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg">
+                <Card className="rounded-2xl bg-white h-full flex flex-col">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-gray-900 text-base leading-tight">
+                      <motion.span
+                        className="animated-gradient-text inline-block"
+                        initial={{ backgroundPosition: '0% 50%' }}
+                        animate={{ backgroundPosition: '100% 50%' }}
+                        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                      >
+                        Driver Status Distribution
+                      </motion.span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex-1 pb-6">
+                    <SimpleChart
+                      data={[
+                        { label: 'Verified', value: stats.drivers.verified, color: 'rgba(16, 185, 129, 0.8)' },
+                        { label: 'Pending', value: stats.drivers.pending, color: 'rgba(245, 158, 11, 0.8)' },
+                        { label: 'Suspended', value: stats.drivers.total - stats.drivers.verified - stats.drivers.pending, color: 'rgba(239, 68, 68, 0.8)' },
+                      ]}
+                      type="bar"
+                      height={250}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.0 }}
+              className="h-full flex flex-col"
             >
-              <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-white">Hotel Manager Status Distribution</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <SimpleChart
-                    data={[
-                      { label: 'Verified', value: stats.hotel_managers.verified, color: 'rgba(16, 185, 129, 0.8)' },
-                      { label: 'Pending', value: stats.hotel_managers.pending, color: 'rgba(245, 158, 11, 0.8)' },
-                      { label: 'Rejected', value: stats.hotel_managers.total - stats.hotel_managers.verified - stats.hotel_managers.pending, color: 'rgba(239, 68, 68, 0.8)' },
-                    ]}
-                    type="bar"
-                    height={250}
-                  />
-                </CardContent>
-              </Card>
+              <div className="h-full flex flex-col rounded-2xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg">
+                <Card className="rounded-2xl bg-white h-full flex flex-col">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-gray-900 text-base leading-tight">
+                      <motion.span
+                        className="animated-gradient-text inline-block"
+                        initial={{ backgroundPosition: '0% 50%' }}
+                        animate={{ backgroundPosition: '100% 50%' }}
+                        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                      >
+                        Hotel Manager Status Distribution
+                      </motion.span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex-1 pb-6">
+                    <SimpleChart
+                      data={[
+                        { label: 'Verified', value: stats.hotel_managers.verified, color: 'rgba(16, 185, 129, 0.8)' },
+                        { label: 'Pending', value: stats.hotel_managers.pending, color: 'rgba(245, 158, 11, 0.8)' },
+                        { label: 'Rejected', value: stats.hotel_managers.total - stats.hotel_managers.verified - stats.hotel_managers.pending, color: 'rgba(239, 68, 68, 0.8)' },
+                      ]}
+                      type="bar"
+                      height={250}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
             </motion.div>
           </div>
 
           {/* Revenue Breakdown */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.0 }}
-            className="mb-8"
-          >
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-white">Revenue Breakdown</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="p-4 bg-green-500/20 rounded-lg border border-green-500/30">
-                    <p className="text-sm text-gray-300 mb-1">Total Revenue</p>
-                    <p className="text-2xl font-bold text-white">{formatCurrency(stats.revenue.total)}</p>
-                  </div>
-                  <div className="p-4 bg-blue-500/20 rounded-lg border border-blue-500/30">
-                    <p className="text-sm text-gray-300 mb-1">Platform Fee (5%)</p>
-                    <p className="text-2xl font-bold text-white">{formatCurrency(stats.revenue.commission)}</p>
-                  </div>
-                  <div className="p-4 bg-purple-500/20 rounded-lg border border-purple-500/30">
-                    <p className="text-sm text-gray-300 mb-1">Net Revenue</p>
-                    <p className="text-2xl font-bold text-white">{formatCurrency(stats.revenue.total - stats.revenue.commission)}</p>
-                  </div>
-                </div>
-                <SimpleChart
-                  data={[
-                    { label: 'Revenue', value: stats.revenue.total, color: 'rgba(16, 185, 129, 0.8)' },
-                    { label: 'Commission', value: stats.revenue.commission, color: 'rgba(59, 130, 246, 0.8)' },
-                  ]}
-                  type="bar"
-                  height={200}
-                />
-              </CardContent>
-            </Card>
-          </motion.div>
+           <motion.div
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ delay: 1.0 }}
+             className="mb-8"
+           >
+             <div className="rounded-2xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg">
+               <Card className="rounded-2xl bg-white">
+                 <CardHeader>
+                   <CardTitle className="text-gray-900">
+                     <motion.span
+                       className="animated-gradient-text inline-block"
+                       initial={{ backgroundPosition: '0% 50%' }}
+                       animate={{ backgroundPosition: '100% 50%' }}
+                       transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                     >
+                       Revenue Breakdown
+                     </motion.span>
+                   </CardTitle>
+                 </CardHeader>
+                 <CardContent>
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                     <div className="p-4 rounded-xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white shadow-md flex flex-col space-y-1">
+                       <p className="text-sm text-emerald-100/90">Total Revenue</p>
+                       <p className="text-2xl font-bold">
+                         {formatCurrency(stats.revenue.total)}
+                       </p>
+                     </div>
+                     <div className="p-4 rounded-xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white shadow-md flex flex-col space-y-1">
+                       <p className="text-sm text-emerald-100/90">Platform Fee (5%)</p>
+                       <p className="text-2xl font-bold">
+                         {formatCurrency(stats.revenue.commission)}
+                       </p>
+                     </div>
+                     <div className="p-4 rounded-xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white shadow-md flex flex-col space-y-1">
+                       <p className="text-sm text-emerald-100/90">Net Revenue</p>
+                       <p className="text-2xl font-bold">
+                         {formatCurrency(stats.revenue.total - stats.revenue.commission)}
+                       </p>
+                     </div>
+                   </div>
+                   <SimpleChart
+                     data={[
+                       { label: 'Revenue', value: stats.revenue.total, color: 'rgba(16, 185, 129, 0.8)' },
+                       { label: 'Commission', value: stats.revenue.commission, color: 'rgba(59, 130, 246, 0.8)' },
+                     ]}
+                     type="bar"
+                     height={200}
+                   />
+                 </CardContent>
+               </Card>
+             </div>
+           </motion.div>
 
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+         {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8 items-stretch">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8 }}
+              className="h-full"
             >
               <Link href="/admin/drivers">
-                <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/10 backdrop-blur-md border-white/20 hover:border-white/40">
-                  <CardContent className="p-6 text-center">
-                    <div className="text-5xl mb-3">👤</div>
-                    <h3 className="font-semibold text-white text-lg">Manage Drivers</h3>
-                    <p className="text-sm text-gray-300">Verify and manage driver accounts</p>
-                  </CardContent>
-                </Card>
+                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-300">
+                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col">
+                    <CardContent className="p-6 text-center flex flex-col justify-between h-full">
+                      <div className="flex justify-center mb-3">
+                        <svg className="w-12 h-12 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-gray-900 text-lg">Manage Drivers</h3>
+                      <p className="text-sm text-gray-600">Verify and manage driver accounts</p>
+                    </CardContent>
+                  </Card>
+                </div>
               </Link>
             </motion.div>
 
@@ -372,15 +468,22 @@ export default function AdminDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.85 }}
+              className="h-full"
             >
               <Link href="/admin/hotel-managers">
-                <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/10 backdrop-blur-md border-white/20 hover:border-white/40">
-                  <CardContent className="p-6 text-center">
-                    <div className="text-5xl mb-3">🏨</div>
-                    <h3 className="font-semibold text-white text-lg">Hotel Managers</h3>
-                    <p className="text-sm text-gray-300">Verify and manage hotel managers</p>
-                  </CardContent>
-                </Card>
+                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-300">
+                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col">
+                    <CardContent className="p-6 text-center flex flex-col justify-between h-full">
+                      <div className="flex justify-center mb-3">
+                        <svg className="w-12 h-12 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-gray-900 text-lg">Hotel Managers</h3>
+                      <p className="text-sm text-gray-600">Verify and manage hotel managers</p>
+                    </CardContent>
+                  </Card>
+                </div>
               </Link>
             </motion.div>
 
@@ -388,15 +491,22 @@ export default function AdminDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9 }}
+              className="h-full"
             >
               <Link href="/admin/payments">
-                <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/10 backdrop-blur-md border-white/20 hover:border-white/40">
-                  <CardContent className="p-6 text-center">
-                    <div className="text-5xl mb-3">💳</div>
-                    <h3 className="font-semibold text-white text-lg">Payments</h3>
-                    <p className="text-sm text-gray-300">Monitor transactions</p>
-                  </CardContent>
-                </Card>
+                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-300">
+                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col">
+                    <CardContent className="p-6 text-center flex flex-col justify-between h-full">
+                      <div className="flex justify-center mb-3">
+                        <svg className="w-12 h-12 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-gray-900 text-lg">Payments</h3>
+                      <p className="text-sm text-gray-600">Monitor transactions</p>
+                    </CardContent>
+                  </Card>
+                </div>
               </Link>
             </motion.div>
 
@@ -404,15 +514,22 @@ export default function AdminDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.0 }}
+              className="h-full"
             >
               <Link href="/admin/disputes">
-                <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/10 backdrop-blur-md border-white/20 hover:border-white/40">
-                  <CardContent className="p-6 text-center">
-                    <div className="text-5xl mb-3">⚠️</div>
-                    <h3 className="font-semibold text-white text-lg">Disputes</h3>
-                    <p className="text-sm text-gray-300">Resolve customer disputes</p>
-                  </CardContent>
-                </Card>
+                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-300">
+                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col">
+                    <CardContent className="p-6 text-center flex flex-col justify-between h-full">
+                      <div className="flex justify-center mb-3">
+                        <svg className="w-12 h-12 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-gray-900 text-lg">Disputes</h3>
+                      <p className="text-sm text-gray-600">Resolve customer disputes</p>
+                    </CardContent>
+                  </Card>
+                </div>
               </Link>
             </motion.div>
 
@@ -420,15 +537,22 @@ export default function AdminDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.1 }}
+              className="h-full"
             >
               <Link href="/admin/reports">
-                <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/10 backdrop-blur-md border-white/20 hover:border-white/40">
-                  <CardContent className="p-6 text-center">
-                    <div className="text-5xl mb-3">📊</div>
-                    <h3 className="font-semibold text-white text-lg">Analytics</h3>
-                    <p className="text-sm text-gray-300">View detailed reports</p>
-                  </CardContent>
-                </Card>
+                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-300">
+                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col">
+                    <CardContent className="p-6 text-center flex flex-col justify-between h-full">
+                      <div className="flex justify-center mb-3">
+                        <svg className="w-12 h-12 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-gray-900 text-lg">Analytics</h3>
+                      <p className="text-sm text-gray-600">View detailed reports</p>
+                    </CardContent>
+                  </Card>
+                </div>
               </Link>
             </motion.div>
           </div>
