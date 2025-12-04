@@ -59,7 +59,7 @@ export function canAccessRoute(role: UserRole, route: string): boolean {
   const routePermissions: Record<string, string[]> = {
     '/client/hotels': ['hotel:read'],
     '/client/cars': ['car:read'],
-    '/client/bookings': ['booking:read:own'],
+    '/client/hotelbookings': ['booking:read:own'],
     '/client/monuments': ['monument:read', 'monument:recognize'],
     '/client/weather': ['weather:read'],
     '/driver/dashboard': ['car:read'],

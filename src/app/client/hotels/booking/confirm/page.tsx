@@ -40,12 +40,12 @@ export default function HotelBookingConfirmationPage() {
           setBooking(foundBooking)
         } else {
           showToast('Booking not found', 'error')
-          router.push('/client/bookings')
+          router.push('/client/hotelbookings')
         }
       } catch (error: any) {
         console.error('Failed to fetch booking:', error)
         showToast('Failed to load booking details', 'error')
-        router.push('/client/bookings')
+        router.push('/client/hotelbookings')
       } finally {
         setIsLoading(false)
       }
@@ -72,7 +72,7 @@ export default function HotelBookingConfirmationPage() {
         setCountdown((prev) => {
           if (prev <= 1) {
             clearInterval(timer)
-            router.push('/client/bookings')
+            router.push('/client/hotelbookings')
             return 0
           }
           return prev - 1
@@ -110,7 +110,7 @@ export default function HotelBookingConfirmationPage() {
         <div className="text-center">
           <div className="text-6xl mb-4">❌</div>
           <h1 className="text-2xl font-bold text-white mb-4">Booking not found</h1>
-          <Button onClick={() => router.push('/client/bookings')}>
+          <Button onClick={() => router.push('/client/hotelbookings')}>
             Go to Bookings
           </Button>
         </div>
@@ -126,7 +126,7 @@ export default function HotelBookingConfirmationPage() {
           <div className="text-6xl mb-4">✅</div>
           <h1 className="text-2xl font-bold text-white mb-4">Booking Already Confirmed</h1>
           <p className="text-gray-300 mb-6">This booking has already been confirmed.</p>
-          <Button onClick={() => router.push('/client/bookings')}>
+          <Button onClick={() => router.push('/client/hotelbookings')}>
             View Bookings
           </Button>
         </div>
@@ -144,7 +144,7 @@ export default function HotelBookingConfirmationPage() {
           <p className="text-gray-300 mb-6">
             This booking cannot be confirmed at this time. Current status: {booking.status}
           </p>
-          <Button onClick={() => router.push('/client/bookings')}>
+          <Button onClick={() => router.push('/client/hotelbookings')}>
             View Bookings
           </Button>
         </div>
@@ -388,7 +388,7 @@ export default function HotelBookingConfirmationPage() {
               {isConfirming ? 'Confirming...' : '✅ Confirm Booking & Pay'}
             </Button>
             <Button
-              onClick={() => router.push('/client/bookings')}
+              onClick={() => router.push('/client/hotelbookings')}
               variant="outline"
               className="flex-1 border-white/30 text-white hover:bg-white/10 py-4 rounded-xl"
             >

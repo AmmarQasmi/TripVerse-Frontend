@@ -149,7 +149,7 @@ export function TripCard({
 
             {/* Action Buttons */}
             <div className="flex gap-2">
-              <Link href={`/client/bookings/${id}`} className="flex-1">
+              <Link href={type === 'hotel' ? `/client/hotelbookings/hotel/${id}` : `/client/cars/bookings`} className="flex-1">
                 <Button 
                   className="w-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white"
                   size="sm"

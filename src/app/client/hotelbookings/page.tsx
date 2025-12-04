@@ -111,7 +111,7 @@ export default function BookingsPage() {
                   </div>
                   
                   <div className="flex flex-col space-y-2 ml-4">
-                    <Link href={`/client/bookings/hotel/${booking.id}`}>
+                    <Link href={`/client/hotelbookings/hotel/${booking.id}`}>
                       <Button variant="outline" size="sm">
                         View Details
                       </Button>
@@ -176,3 +176,4 @@ export default function BookingsPage() {
     </div>
   )
 }
+

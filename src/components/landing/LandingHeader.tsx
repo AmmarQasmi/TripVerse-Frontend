@@ -77,52 +77,44 @@ export function LandingHeader() {
                   <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border z-50">
                     <Link 
                       href="/client/dashboard" 
-                      className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
+                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      🏠 Dashboard
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                      </svg>
+                      <span>Dashboard</span>
                     </Link>
                     <Link 
                       href="/client/hotels" 
-                      className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
+                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      🏨 Hotels
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                      <span>Hotels</span>
                     </Link>
                     <Link 
                       href="/client/cars" 
-                      className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
+                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      🚗 Car Rentals
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                      </svg>
+                      <span>Car Rentals</span>
                     </Link>
                     <Link 
                       href="/client/flights" 
-                      className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
+                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      ✈️ Flights
-                    </Link>
-                    <Link 
-                      href="/client/monuments" 
-                      className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      🏛️ Monuments
-                    </Link>
-                    <Link 
-                      href="/client/weather" 
-                      className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      🌤️ Weather
-                    </Link>
-                    <Link 
-                      href="/client/bookings" 
-                      className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      📋 My Bookings
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                      </svg>
+                      <span>Flights</span>
                     </Link>
                   </div>
                 )}
@@ -198,10 +190,9 @@ export function LandingHeader() {
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                       className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors"
                     >
-                      <div className="hidden md:flex flex-col items-end">
-                        <span className="text-sm font-medium text-white">{user?.full_name || 'User'}</span>
-                        <span className="text-xs text-gray-200">{user?.email || ''}</span>
-                      </div>
+              <div className="hidden md:flex flex-col items-end">
+                <span className="text-sm font-medium text-white">{user?.full_name || 'User'}</span>
+              </div>
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center text-white font-semibold shadow-lg">
                         <span>{user?.full_name ? getInitials(user.full_name) : 'U'}</span>
                       </div>
@@ -227,7 +218,6 @@ export function LandingHeader() {
                         >
                           <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-gray-200">
                             <p className="text-sm font-semibold text-gray-900">{user?.full_name || 'User'}</p>
-                            <p className="text-xs text-gray-600">{user?.email || ''}</p>
                           </div>
                           
                           <div className="py-2">
@@ -265,16 +255,6 @@ export function LandingHeader() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                   </svg>
                                   <span className="text-sm text-gray-700">Dashboard</span>
-                                </Link>
-                                <Link
-                                  href="/client/bookings"
-                                  className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
-                                  onClick={() => setIsDropdownOpen(false)}
-                                >
-                                  <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                  </svg>
-                                  <span className="text-sm text-gray-700">My Bookings</span>
                                 </Link>
                               </>
                             )}
