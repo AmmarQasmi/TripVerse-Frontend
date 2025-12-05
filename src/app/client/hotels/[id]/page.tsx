@@ -200,11 +200,11 @@ export default function HotelDetailPage() {
             </div>
 
             <div className="flex items-center space-x-4">
-              <button className="bg-gray-800/50 hover:bg-gray-700/50 text-white px-6 py-3 rounded-xl transition-all duration-300 backdrop-blur-sm border border-gray-700/50">
+              <button className="bg-gray-800/50 hover:bg-gray-700/50 text-white px-6 py-3 rounded-xl transition-all duration-75 backdrop-blur-sm border border-gray-700/50">
                 <span className="mr-2">🤍</span>
                 Save
               </button>
-              <button className="bg-gray-800/50 hover:bg-gray-700/50 text-white px-6 py-3 rounded-xl transition-all duration-300 backdrop-blur-sm border border-gray-700/50">
+              <button className="bg-gray-800/50 hover:bg-gray-700/50 text-white px-6 py-3 rounded-xl transition-all duration-75 backdrop-blur-sm border border-gray-700/50">
                 <span className="mr-2">📤</span>
                 Share
               </button>
@@ -238,7 +238,7 @@ export default function HotelDetailPage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-xl transition-all duration-300 ${
+                    className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-xl transition-all duration-75 ${
                       activeTab === tab.id
                         ? 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white'
                         : 'text-gray-400 hover:text-white hover:bg-gray-700/50'

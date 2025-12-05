@@ -235,7 +235,7 @@ export function FlightSearchForm({ onSearch, isLoading = false }: FlightSearchFo
                         key={airport.code}
                         type="button"
                         onClick={() => selectAirport(airport, 'origin')}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-700/50 transition-colors"
+                        className="w-full px-4 py-2 text-left hover:bg-gray-700/50 transition-colors duration-75"
                       >
                         <div className="text-white font-medium">{airport.city}</div>
                         <div className="text-sm text-gray-400">{airport.name} ({airport.code})</div>
@@ -282,7 +282,7 @@ export function FlightSearchForm({ onSearch, isLoading = false }: FlightSearchFo
                         key={airport.code}
                         type="button"
                         onClick={() => selectAirport(airport, 'destination')}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-700/50 transition-colors"
+                        className="w-full px-4 py-2 text-left hover:bg-gray-700/50 transition-colors duration-75"
                       >
                         <div className="text-white font-medium">{airport.city}</div>
                         <div className="text-sm text-gray-400">{airport.name} ({airport.code})</div>
@@ -304,7 +304,7 @@ export function FlightSearchForm({ onSearch, isLoading = false }: FlightSearchFo
                 value={searchParams.departureDate || getTomorrow()}
                 onChange={(e) => setSearchParams(prev => ({ ...prev, departureDate: e.target.value }))}
                 min={getTomorrow()}
-                className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-full text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors [color-scheme:dark]"
+                className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-full text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors duration-75 [color-scheme:dark]"
               />
             </div>
           </div>
@@ -353,7 +353,7 @@ export function FlightSearchForm({ onSearch, isLoading = false }: FlightSearchFo
                       value={leg.date || getTomorrow()}
                       onChange={(e) => setMultiLegs((legs) => legs.map((l, i) => i===idx ? { ...l, date: e.target.value } : l))}
                       min={getTomorrow()}
-                      className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-full text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors [color-scheme:dark]"
+                      className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-full text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors duration-75 [color-scheme:dark]"
                     />
                   </div>
                 </div>
@@ -393,7 +393,7 @@ export function FlightSearchForm({ onSearch, isLoading = false }: FlightSearchFo
                   value={searchParams.returnDate || getNextWeek()}
                   onChange={(e) => setSearchParams(prev => ({ ...prev, returnDate: e.target.value }))}
                   min={searchParams.departureDate || getTomorrow()}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-full text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors [color-scheme:dark]"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-full text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors duration-75 [color-scheme:dark]"
                 />
               </div>
             </div>
@@ -410,7 +410,7 @@ export function FlightSearchForm({ onSearch, isLoading = false }: FlightSearchFo
               <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <button
                 onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
-                className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-full text-white text-left hover:border-cyan-500 transition-colors"
+                className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-full text-white text-left hover:border-cyan-500 transition-colors duration-75"
               >
                 {searchParams.passengers.adults + searchParams.passengers.children + searchParams.passengers.infants} Traveller, {searchParams.cabinClass}
               </button>
@@ -429,14 +429,14 @@ export function FlightSearchForm({ onSearch, isLoading = false }: FlightSearchFo
                     <div className="flex items-center space-x-3">
                       <button
                         onClick={() => handlePassengerChange('adults', -1)}
-                        className="w-8 h-8 rounded-full bg-gray-700 text-white hover:bg-cyan-600 transition-colors"
+                        className="w-8 h-8 rounded-full bg-gray-700 text-white hover:bg-cyan-600 transition-colors duration-75"
                       >
                         -
                       </button>
                       <span className="text-white font-semibold w-8 text-center">{searchParams.passengers.adults}</span>
                       <button
                         onClick={() => handlePassengerChange('adults', 1)}
-                        className="w-8 h-8 rounded-full bg-gray-700 text-white hover:bg-cyan-600 transition-colors"
+                        className="w-8 h-8 rounded-full bg-gray-700 text-white hover:bg-cyan-600 transition-colors duration-75"
                       >
                         +
                       </button>
@@ -452,14 +452,14 @@ export function FlightSearchForm({ onSearch, isLoading = false }: FlightSearchFo
                     <div className="flex items-center space-x-3">
                       <button
                         onClick={() => handlePassengerChange('children', -1)}
-                        className="w-8 h-8 rounded-full bg-gray-700 text-white hover:bg-cyan-600 transition-colors"
+                        className="w-8 h-8 rounded-full bg-gray-700 text-white hover:bg-cyan-600 transition-colors duration-75"
                       >
                         -
                       </button>
                       <span className="text-white font-semibold w-8 text-center">{searchParams.passengers.children}</span>
                       <button
                         onClick={() => handlePassengerChange('children', 1)}
-                        className="w-8 h-8 rounded-full bg-gray-700 text-white hover:bg-cyan-600 transition-colors"
+                        className="w-8 h-8 rounded-full bg-gray-700 text-white hover:bg-cyan-600 transition-colors duration-75"
                       >
                         +
                       </button>
@@ -475,14 +475,14 @@ export function FlightSearchForm({ onSearch, isLoading = false }: FlightSearchFo
                     <div className="flex items-center space-x-3">
                       <button
                         onClick={() => handlePassengerChange('infants', -1)}
-                        className="w-8 h-8 rounded-full bg-gray-700 text-white hover:bg-cyan-600 transition-colors"
+                        className="w-8 h-8 rounded-full bg-gray-700 text-white hover:bg-cyan-600 transition-colors duration-75"
                       >
                         -
                       </button>
                       <span className="text-white font-semibold w-8 text-center">{searchParams.passengers.infants}</span>
                       <button
                         onClick={() => handlePassengerChange('infants', 1)}
-                        className="w-8 h-8 rounded-full bg-gray-700 text-white hover:bg-cyan-600 transition-colors"
+                        className="w-8 h-8 rounded-full bg-gray-700 text-white hover:bg-cyan-600 transition-colors duration-75"
                       >
                         +
                       </button>

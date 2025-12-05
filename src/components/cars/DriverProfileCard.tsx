@@ -106,7 +106,7 @@ export function DriverProfileCard({ driver, carCount = 1 }: DriverProfileCardPro
 
         {/* Action Buttons */}
         <div className="space-y-3">
-          <Button className="w-full bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold py-3 rounded-xl transition-all duration-300">
+          <Button className="w-full bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold py-3 rounded-xl transition-all duration-75">
             <span className="mr-2">💬</span>
             Contact Driver
           </Button>

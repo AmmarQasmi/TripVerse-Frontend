@@ -64,7 +64,7 @@ export function LandingHeader() {
               <div className="relative">
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-75"
                   aria-label="Menu"
                 >
                   <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -77,7 +77,7 @@ export function LandingHeader() {
                   <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border z-50">
                     <Link 
                       href="/client/dashboard" 
-                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
+                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -87,7 +87,7 @@ export function LandingHeader() {
                     </Link>
                     <Link 
                       href="/client/hotels" 
-                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
+                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -97,7 +97,7 @@ export function LandingHeader() {
                     </Link>
                     <Link 
                       href="/client/cars" 
-                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
+                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -108,7 +108,7 @@ export function LandingHeader() {
                     </Link>
                     <Link 
                       href="/client/flights" 
-                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
+                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -145,34 +145,11 @@ export function LandingHeader() {
               )}
             </div>
 
-            {/* Right: Message, Chatbot, Camera Icon, Login/Sign Up or Profile Dropdown */}
+            {/* Right: Camera Icon, Login/Sign Up or Profile Dropdown */}
             <div className="flex items-center space-x-4 ml-auto pr-4">
               <button
-                className="p-2 hover:bg-white/10 rounded-lg transition-all duration-200 group relative"
-                aria-label="Messages"
-              >
-                <svg className="w-6 h-6 text-white group-hover:text-cyan-300 transition-colors" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="m22 6-10 7L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-
-              <button
-                className="p-2 hover:bg-white/10 rounded-lg transition-all duration-200 group relative"
-                aria-label="Chatbot"
-              >
-                <svg className="w-6 h-6 text-white group-hover:text-cyan-300 transition-colors" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <circle cx="8.5" cy="9.5" r="1" fill="currentColor" className="opacity-80"/>
-                  <circle cx="15.5" cy="9.5" r="1" fill="currentColor" className="opacity-80"/>
-                  <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M12 2v2M12 20v2M22 12h-2M4 12H2" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="opacity-40"/>
-                </svg>
-              </button>
-
-              <button
                 onClick={() => setIsModalOpen(true)}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-75"
                 aria-label="Upload monument photo"
               >
                 <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -188,7 +165,7 @@ export function LandingHeader() {
                   <div className="relative" ref={dropdownRef}>
                     <button
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors"
+                      className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors duration-75"
                     >
               <div className="hidden md:flex flex-col items-end">
                 <span className="text-sm font-medium text-white">{user?.full_name || 'User'}</span>
@@ -225,7 +202,7 @@ export function LandingHeader() {
                               <>
                                 <Link
                                   href="/hotel-manager/dashboard"
-                                  className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
+                                  className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors duration-75"
                                   onClick={() => setIsDropdownOpen(false)}
                                 >
                                   <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -235,7 +212,7 @@ export function LandingHeader() {
                                 </Link>
                                 <Link
                                   href="/hotel-manager/hotels"
-                                  className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
+                                  className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors duration-75"
                                   onClick={() => setIsDropdownOpen(false)}
                                 >
                                   <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -248,7 +225,7 @@ export function LandingHeader() {
                               <>
                                 <Link
                                   href="/client/dashboard"
-                                  className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
+                                  className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors duration-75"
                                   onClick={() => setIsDropdownOpen(false)}
                                 >
                                   <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -286,7 +263,7 @@ export function LandingHeader() {
                           <div className="border-t border-gray-200">
                             <button
                               onClick={handleLogout}
-                              className="flex items-center space-x-3 px-4 py-3 w-full hover:bg-red-50 transition-colors text-left"
+                              className="flex items-center space-x-3 px-4 py-3 w-full hover:bg-red-50 transition-colors duration-75 text-left"
                             >
                               <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

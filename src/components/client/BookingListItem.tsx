@@ -45,9 +45,9 @@ export function BookingListItem({
       className="group"
     >
       <Link href={type === 'hotel' ? `/client/hotelbookings/hotel/${id}` : `/client/cars/bookings`}>
-        <div className="relative overflow-hidden rounded-xl bg-white border border-gray-200 p-4 hover:shadow-md hover:border-blue-300 transition-all duration-300">
+        <div className="relative overflow-hidden rounded-xl bg-white border border-gray-200 p-4 hover:shadow-md hover:border-blue-300 transition-all duration-75">
           {/* Hover Glow */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-75">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-transparent" />
           </div>
 

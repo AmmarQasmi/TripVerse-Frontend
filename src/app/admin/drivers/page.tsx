@@ -224,7 +224,7 @@ export default function AdminDriversPage() {
               transition={{ delay: 0.1 }}
             >
               <Card 
-                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-300 ${
+                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-75 ${
                   filter === 'all' 
                     ? 'ring-4 ring-blue-400' 
                     : ''
@@ -249,7 +249,7 @@ export default function AdminDriversPage() {
               transition={{ delay: 0.2 }}
             >
               <Card 
-                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-300 ${
+                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-75 ${
                   filter === 'pending' 
                     ? 'ring-4 ring-yellow-400' 
                     : ''
@@ -274,7 +274,7 @@ export default function AdminDriversPage() {
               transition={{ delay: 0.3 }}
             >
               <Card 
-                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-300 ${
+                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-75 ${
                   filter === 'verified' 
                     ? 'ring-4 ring-green-400' 
                     : ''
@@ -299,7 +299,7 @@ export default function AdminDriversPage() {
               transition={{ delay: 0.4 }}
             >
               <Card 
-                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-300 ${
+                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-75 ${
                   filter === 'rejected' 
                     ? 'ring-4 ring-red-400' 
                     : ''

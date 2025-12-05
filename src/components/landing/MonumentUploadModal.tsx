@@ -66,7 +66,7 @@ export function MonumentUploadModal({ isOpen, onClose }: MonumentUploadModalProp
             </h2>
             <button
               onClick={handleClose}
-              className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full p-1 transition-all duration-200"
+              className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full p-1 transition-all duration-75"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -82,7 +82,7 @@ export function MonumentUploadModal({ isOpen, onClose }: MonumentUploadModalProp
             {!previewUrl ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer hover:bg-gradient-to-br hover:from-blue-50 hover:to-green-50 transition-all duration-300 group"
+                className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer hover:bg-gradient-to-br hover:from-blue-50 hover:to-green-50 transition-all duration-75 group"
                 style={{
                   borderImage: 'linear-gradient(90deg, #3b82f6, #10b981) 1',
                   borderImageSlice: 1,

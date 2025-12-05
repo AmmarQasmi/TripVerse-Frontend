@@ -137,7 +137,7 @@ export function PopularDestinationsCarousel() {
                   </span>
                   <Link
                     href={`/client/hotels?location=${cityData[cityIndex].name.split(',')[0]}`}
-                    className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+                    className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-75 transform hover:scale-105"
                   >
                     Explore
                   </Link>
@@ -150,7 +150,7 @@ export function PopularDestinationsCarousel() {
         {/* Navigation Arrows */}
         <button
           onClick={prevCity}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm"
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-75 backdrop-blur-sm"
           onMouseEnter={() => setIsAutoPlaying(false)}
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,7 +160,7 @@ export function PopularDestinationsCarousel() {
 
         <button
           onClick={nextCity}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm"
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-75 backdrop-blur-sm"
           onMouseEnter={() => setIsAutoPlaying(false)}
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -175,7 +175,7 @@ export function PopularDestinationsCarousel() {
           <motion.button
             key={c.key}
             onClick={() => goToCity(i)}
-            className={`px-3 py-1 rounded-full text-sm border transition-all duration-300 ${i===cityIndex ? 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white border-transparent' : 'bg-gray-800/50 text-gray-200 border-gray-700 hover:bg-gray-700/50'}`}
+            className={`px-3 py-1 rounded-full text-sm border transition-all duration-75 ${i===cityIndex ? 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white border-transparent' : 'bg-gray-800/50 text-gray-200 border-gray-700 hover:bg-gray-700/50'}`}
             animate={i === cityIndex ? {
               boxShadow: [
                 '0 0 10px rgba(21, 94, 117, 0.4)',
@@ -203,7 +203,7 @@ export function PopularDestinationsCarousel() {
           <button
             key={i}
             onClick={() => goToImage(i)}
-            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${i===imgIndex ? 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] scale-125' : 'bg-gray-600 hover:bg-gray-400'}`}
+            className={`w-2.5 h-2.5 rounded-full transition-all duration-75 ${i===imgIndex ? 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] scale-125' : 'bg-gray-600 hover:bg-gray-400'}`}
           />
         ))}
       </div>
@@ -212,7 +212,7 @@ export function PopularDestinationsCarousel() {
       <div className="flex justify-center mt-4">
         <button
           onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-          className="bg-gray-800/50 hover:bg-gray-700/50 text-white px-4 py-2 rounded-lg transition-all duration-300 backdrop-blur-sm flex items-center space-x-2"
+          className="bg-gray-800/50 hover:bg-gray-700/50 text-white px-4 py-2 rounded-lg transition-all duration-75 backdrop-blur-sm flex items-center space-x-2"
         >
           <span>{isAutoPlaying ? '⏸️' : '▶️'}</span>
           <span className="text-sm">

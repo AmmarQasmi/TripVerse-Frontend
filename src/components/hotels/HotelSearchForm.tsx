@@ -59,7 +59,7 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
               placeholder="City, country"
               value={params.location}
               onChange={(e) => updateParam('location', e.target.value)}
-              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:border-[#38bdf8] focus:ring-2 focus:ring-[#38bdf8]/20 focus:outline-none transition-all duration-300"
+              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:border-[#38bdf8] focus:ring-2 focus:ring-[#38bdf8]/20 focus:outline-none transition-all duration-75"
               list="destinations"
             />
             <datalist id="destinations">
@@ -83,7 +83,7 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
             value={params.checkIn}
             onChange={(e) => updateParam('checkIn', e.target.value)}
             min={new Date().toISOString().split('T')[0]}
-            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white focus:border-[#38bdf8] focus:ring-2 focus:ring-[#38bdf8]/20 focus:outline-none transition-all duration-300"
+            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white focus:border-[#38bdf8] focus:ring-2 focus:ring-[#38bdf8]/20 focus:outline-none transition-all duration-75"
           />
         </div>
 
@@ -97,7 +97,7 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
             value={params.checkOut}
             onChange={(e) => updateParam('checkOut', e.target.value)}
             min={params.checkIn || new Date().toISOString().split('T')[0]}
-            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white focus:border-[#38bdf8] focus:ring-2 focus:ring-[#38bdf8]/20 focus:outline-none transition-all duration-300"
+            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white focus:border-[#38bdf8] focus:ring-2 focus:ring-[#38bdf8]/20 focus:outline-none transition-all duration-75"
           />
         </div>
 
@@ -109,7 +109,7 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
           <button
             type="button"
             onClick={() => setShowGuestsDropdown(!showGuestsDropdown)}
-            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-left focus:border-[#38bdf8] focus:ring-2 focus:ring-[#38bdf8]/20 focus:outline-none transition-all duration-300 flex items-center justify-between"
+            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-left focus:border-[#38bdf8] focus:ring-2 focus:ring-[#38bdf8]/20 focus:outline-none transition-all duration-75 flex items-center justify-between"
           >
             <span>
               {params.guests} guest{params.guests > 1 ? 's' : ''}, {params.rooms} room{params.rooms > 1 ? 's' : ''}
@@ -172,7 +172,7 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
                 <button
                   type="button"
                   onClick={() => setShowGuestsDropdown(false)}
-                  className="w-full bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white py-2 rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white py-2 rounded-lg font-semibold hover:shadow-lg transition-all duration-75"
                 >
                   Done
                 </button>
@@ -188,7 +188,7 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
           type="submit"
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.95 }}
-          className="bg-gradient-to-r from-[#1e3a8a] via-[#0f4c75] to-[#0d9488] text-white px-12 py-4 rounded-2xl font-semibold text-lg hover:shadow-2xl transition-all duration-300 flex items-center space-x-3"
+          className="bg-gradient-to-r from-[#1e3a8a] via-[#0f4c75] to-[#0d9488] text-white px-12 py-4 rounded-2xl font-semibold text-lg hover:shadow-2xl transition-all duration-75 flex items-center space-x-3"
         >
           <span>🔍</span>
           <span>Search Hotels</span>

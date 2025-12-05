@@ -312,7 +312,7 @@ export function ChatInterface({ bookingId, driverName, customerName, onClose }: 
             <button
               type="submit"
               disabled={!newMessage.trim() || isSending}
-              className="bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 text-white p-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+              className="bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 text-white p-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-75 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
               title="Send message"
             >
               {isSending ? (

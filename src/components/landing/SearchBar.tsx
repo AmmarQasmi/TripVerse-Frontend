@@ -16,20 +16,44 @@ export function SearchBar() {
   const [checkOutDate, setCheckOutDate] = useState('')
   const [pickupDate, setPickupDate] = useState('')
   const [returnCarDate, setReturnCarDate] = useState('')
+  
+  // Form state for all inputs
+  const [flightFrom, setFlightFrom] = useState('')
+  const [flightTo, setFlightTo] = useState('')
+  const [travelers, setTravelers] = useState('1')
+  const [hotelDestination, setHotelDestination] = useState('')
+  const [hotelGuests, setHotelGuests] = useState('2')
+  const [carPickupLocation, setCarPickupLocation] = useState('')
+  const [carVehicleType, setCarVehicleType] = useState('Any')
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Navigate to the appropriate page based on search type
+    // Build query parameters based on search type
+    const params = new URLSearchParams()
+    
     switch (searchType) {
       case 'flight':
-        router.push('/client/flights')
+        if (flightFrom) params.set('from', flightFrom)
+        if (flightTo) params.set('to', flightTo)
+        if (departureDate) params.set('departure', departureDate)
+        if (returnDate) params.set('return', returnDate)
+        if (travelers) params.set('travelers', travelers)
+        router.push(`/client/flights?${params.toString()}`)
         break
       case 'hotel':
-        router.push('/client/hotels')
+        if (hotelDestination) params.set('location', hotelDestination)
+        if (checkInDate) params.set('checkIn', checkInDate)
+        if (checkOutDate) params.set('checkOut', checkOutDate)
+        if (hotelGuests) params.set('guests', hotelGuests)
+        router.push(`/client/hotels?${params.toString()}`)
         break
       case 'rental':
-        router.push('/client/cars')
+        if (carPickupLocation) params.set('pickupLocation', carPickupLocation)
+        if (pickupDate) params.set('pickupDate', pickupDate)
+        if (returnCarDate) params.set('returnDate', returnCarDate)
+        if (carVehicleType && carVehicleType !== 'Any') params.set('vehicleType', carVehicleType)
+        router.push(`/client/cars?${params.toString()}`)
         break
       default:
         break
@@ -66,20 +90,63 @@ export function SearchBar() {
         {/* Tabs */}
         <div className="flex space-x-2 mb-6 border-b">
           {[
-            { key: 'flight', label: '✈️ Flight', icon: '✈️' },
-            { key: 'hotel', label: '🏨 Hotel', icon: '🏨' },
-            { key: 'rental', label: '🚗 Rental', icon: '🚗' }
+            { 
+              key: 'flight', 
+              label: 'Flight', 
+              icon: (
+                <div className="relative w-10 h-10 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-600 p-[2px]">
+                    <div className="w-full h-full rounded-full bg-white"></div>
+                  </div>
+                  <svg className="w-5 h-5 relative z-10 text-teal-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                  </svg>
+                  <div className="absolute inset-0 rounded-full shadow-md pointer-events-none"></div>
+                </div>
+              )
+            },
+            { 
+              key: 'hotel', 
+              label: 'Hotel', 
+              icon: (
+                <div className="relative w-10 h-10 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-600 p-[2px]">
+                    <div className="w-full h-full rounded-full bg-white"></div>
+                  </div>
+                  <svg className="w-5 h-5 relative z-10 text-teal-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 7V3H2v18h20V7H12zm-2 12H4v-2h6v2zm0-4H4v-2h6v2zm0-4H4V9h6v2zm10 8h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
+                  </svg>
+                  <div className="absolute inset-0 rounded-full shadow-md pointer-events-none"></div>
+                </div>
+              )
+            },
+            { 
+              key: 'rental', 
+              label: 'Rental', 
+              icon: (
+                <div className="relative w-10 h-10 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-600 p-[2px]">
+                    <div className="w-full h-full rounded-full bg-white"></div>
+                  </div>
+                  <svg className="w-5 h-5 relative z-10 text-teal-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                  </svg>
+                  <div className="absolute inset-0 rounded-full shadow-md pointer-events-none"></div>
+                </div>
+              )
+            }
           ].map((tab) => (
             <button
               key={tab.key}
               onClick={() => setSearchType(tab.key as SearchType)}
-              className={`px-6 py-3 font-medium transition-colors relative ${
+              className={`flex items-center space-x-3 px-6 py-3 font-medium transition-colors relative ${
                 searchType === tab.key
                   ? 'text-white'
                   : 'text-gray-300 hover:text-white'
               }`}
             >
-              {tab.label}
+              {tab.icon}
+              <span>{tab.label}</span>
               {searchType === tab.key && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-600 to-teal-600"></div>
               )}
@@ -96,6 +163,8 @@ export function SearchBar() {
                 <input
                   type="text"
                   placeholder="Departure city"
+                  value={flightFrom}
+                  onChange={(e) => setFlightFrom(e.target.value)}
                   className={inputClasses}
                 />
               </div>
@@ -104,6 +173,8 @@ export function SearchBar() {
                 <input
                   type="text"
                   placeholder="Destination city"
+                  value={flightTo}
+                  onChange={(e) => setFlightTo(e.target.value)}
                   className={inputClasses}
                 />
               </div>
@@ -132,7 +203,8 @@ export function SearchBar() {
                 <input
                   type="number"
                   min="1"
-                  defaultValue="1"
+                  value={travelers}
+                  onChange={(e) => setTravelers(e.target.value)}
                   className={inputClasses}
                 />
               </div>
@@ -146,6 +218,8 @@ export function SearchBar() {
                 <input
                   type="text"
                   placeholder="City or hotel name"
+                  value={hotelDestination}
+                  onChange={(e) => setHotelDestination(e.target.value)}
                   className={inputClasses}
                 />
               </div>
@@ -174,7 +248,8 @@ export function SearchBar() {
                 <input
                   type="number"
                   min="1"
-                  defaultValue="2"
+                  value={hotelGuests}
+                  onChange={(e) => setHotelGuests(e.target.value)}
                   className={inputClasses}
                 />
               </div>
@@ -188,6 +263,8 @@ export function SearchBar() {
                 <input
                   type="text"
                   placeholder="City or address"
+                  value={carPickupLocation}
+                  onChange={(e) => setCarPickupLocation(e.target.value)}
                   className={inputClasses}
                 />
               </div>
@@ -213,7 +290,11 @@ export function SearchBar() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium leading-none text-white">Vehicle Type</label>
-                <select className={inputClasses}>
+                <select 
+                  value={carVehicleType}
+                  onChange={(e) => setCarVehicleType(e.target.value)}
+                  className={inputClasses}
+                >
                   <option className="bg-gray-800 text-white">Any</option>
                   <option className="bg-gray-800 text-white">Sedan</option>
                   <option className="bg-gray-800 text-white">SUV</option>
@@ -227,7 +308,7 @@ export function SearchBar() {
           <div className="mt-6 flex justify-center">
             <Button 
               type="submit" 
-              className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 hover:from-blue-700 hover:via-cyan-700 hover:to-teal-700 text-white px-12 py-3 text-lg rounded-full transition-all duration-300 shadow-lg"
+              className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 hover:from-blue-700 hover:via-cyan-700 hover:to-teal-700 text-white px-12 py-3 text-lg rounded-full transition-all duration-75 shadow-lg"
             >
               Search Now
             </Button>

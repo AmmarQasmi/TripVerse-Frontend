@@ -171,7 +171,7 @@ export function CarSearchForm({ onSearch, initialParams }: CarSearchFormProps) {
         <div className="flex justify-center pt-4">
           <Button 
             type="submit" 
-            className="bg-gradient-to-r from-[#1e3a8a] via-[#0f4c75] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:via-[#0f4c75]/90 hover:to-[#0d9488]/90 text-white px-12 py-4 text-lg rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="bg-gradient-to-r from-[#1e3a8a] via-[#0f4c75] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:via-[#0f4c75]/90 hover:to-[#0d9488]/90 text-white px-12 py-4 text-lg rounded-2xl transition-all duration-75 shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             <span className="mr-2">🔍</span>
             Search Cars

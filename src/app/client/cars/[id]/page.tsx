@@ -158,7 +158,7 @@ export default function CarDetailPage() {
           </p>
           <button
             onClick={() => router.push('/client/cars')}
-            className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+            className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-75"
           >
             Browse All Cars
           </button>
@@ -343,7 +343,7 @@ export default function CarDetailPage() {
                   </div>
                   <Link 
                     href="/auth/login" 
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors duration-200"
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors duration-75"
                   >
                     Login
                   </Link>
@@ -396,7 +396,7 @@ export default function CarDetailPage() {
                 <button
                   onClick={() => handleBookingSubmit(bookingData!)}
                   disabled={isBooking}
-                  className="w-full mt-4 bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+                  className="w-full mt-4 bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-75 disabled:opacity-50"
                 >
                   {isBooking ? 'Sending Request...' : 'Send Booking Request'}
                 </button>

@@ -31,7 +31,7 @@ export function HotelMap({ location, address }: HotelMapProps) {
               <div className="text-6xl mb-4">🗺️</div>
               <h3 className="text-xl font-bold text-white mb-2">Interactive Map</h3>
               <p className="text-gray-400 mb-4">Map integration would go here</p>
-              <button className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300">
+              <button className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-75">
                 View on Google Maps
               </button>
             </div>
@@ -69,7 +69,7 @@ export function HotelMap({ location, address }: HotelMapProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="flex items-center space-x-3 p-3 bg-gray-700/30 rounded-xl hover:bg-gray-700/50 transition-colors cursor-pointer"
+              className="flex items-center space-x-3 p-3 bg-gray-700/30 rounded-xl hover:bg-gray-700/50 transition-colors duration-75 cursor-pointer"
             >
               <span className="text-2xl">{attraction.icon}</span>
               <div>

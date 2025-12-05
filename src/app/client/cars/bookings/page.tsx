@@ -166,7 +166,7 @@ export default function CarBookingsPage() {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setStatusFilter('')}
-              className={`px-4 py-2 rounded-xl font-semibold transition-all duration-300 ${
+              className={`px-4 py-2 rounded-xl font-semibold transition-all duration-75 ${
                 statusFilter === ''
                   ? 'bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 text-white shadow-md'
                   : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
@@ -178,7 +178,7 @@ export default function CarBookingsPage() {
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`px-4 py-2 rounded-xl font-semibold transition-all duration-300 ${
+                className={`px-4 py-2 rounded-xl font-semibold transition-all duration-75 ${
                   statusFilter === status
                     ? 'bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 text-white shadow-md'
                     : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
@@ -246,7 +246,7 @@ export default function CarBookingsPage() {
                       <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
                         {booking.status === 'ACCEPTED' && (
                           <Link href={`/client/cars/booking/confirm?bookingId=${booking.id}`}>
-                            <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300">
+                            <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-75">
                               ✅ Confirm & Pay
                             </button>
                           </Link>
@@ -257,14 +257,14 @@ export default function CarBookingsPage() {
                               setSelectedBooking(booking.id)
                               setSelectedBookingData(booking)
                             }}
-                            className="bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-md transition-all duration-300"
+                            className="bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-md transition-all duration-75"
                           >
                             💬 Chat
                           </button>
                         )}
                         <button
                           onClick={() => {/* TODO: View details */}}
-                          className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-50 transition-all duration-300"
+                          className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-50 transition-all duration-75"
                         >
                           View Details
                         </button>
@@ -284,7 +284,7 @@ export default function CarBookingsPage() {
                     {statusFilter ? `No bookings with status "${getStatusText(statusFilter)}"` : 'You haven\'t made any car bookings yet'}
                   </p>
                   <Link href="/client/cars">
-                    <button className="bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300">
+                    <button className="bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-75">
                       Browse Cars
                     </button>
                   </Link>

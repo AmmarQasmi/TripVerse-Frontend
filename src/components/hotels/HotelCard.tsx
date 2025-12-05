@@ -51,7 +51,7 @@ export function HotelCard({ hotel }: HotelCardProps) {
     <motion.div
       whileHover={{ y: -5 }}
       transition={{ duration: 0.2 }}
-      className="bg-gray-800/50 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 cursor-pointer group"
+      className="bg-gray-800/50 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-700/50 hover:border-gray-600/50 transition-all duration-75 cursor-pointer group"
     >
       {/* Image Section */}
       <div className="relative aspect-video overflow-hidden">
@@ -59,7 +59,7 @@ export function HotelCard({ hotel }: HotelCardProps) {
           <img
             src={hotel.images[0]}
             alt={hotel.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-75"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
@@ -75,7 +75,7 @@ export function HotelCard({ hotel }: HotelCardProps) {
         </div>
 
         {/* Favorite Button */}
-        <button className="absolute top-4 left-4 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-all duration-300 backdrop-blur-sm">
+        <button className="absolute top-4 left-4 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-all duration-75 backdrop-blur-sm">
           <span className="text-lg">🤍</span>
         </button>
       </div>
@@ -84,7 +84,7 @@ export function HotelCard({ hotel }: HotelCardProps) {
       <div className="p-6">
         {/* Hotel Name & Location */}
         <div className="mb-3">
-          <h3 className="text-xl font-bold text-white mb-1 group-hover:text-[#38bdf8] transition-colors">
+          <h3 className="text-xl font-bold text-white mb-1 group-hover:text-[#38bdf8] transition-colors duration-75">
             {hotel.name}
           </h3>
           <p className="text-gray-400 flex items-center">

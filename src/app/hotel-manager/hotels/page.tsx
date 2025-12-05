@@ -178,7 +178,7 @@ export default function HotelManagerHotelsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * index }}
               >
-                <Card className="shadow-lg hover:shadow-xl transition-all duration-300 bg-white overflow-hidden border border-gray-200">
+                <Card className="shadow-lg hover:shadow-xl transition-all duration-75 bg-white overflow-hidden border border-gray-200">
                   {/* Hotel Image */}
                   <div className="relative h-48 bg-gray-200">
                     {hotel.images && hotel.images.length > 0 ? (
