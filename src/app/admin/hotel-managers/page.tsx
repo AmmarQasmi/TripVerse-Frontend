@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PageLoader } from '@/components/shared/PageLoader'
 import { adminApi } from '@/lib/api/admin.api'
 
 interface HotelManager {
@@ -100,11 +101,7 @@ export default function AdminHotelManagersPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-gray-900 text-xl">Loading hotel managers...</div>
-      </div>
-    )
+    return <PageLoader message="Loading hotel managers..." />
   }
 
   if (error) {

@@ -193,6 +193,14 @@ export const carsApi = {
     }>(`/cars/bookings/${bookingId}/chat/messages`, { message })
   },
 
+  // Mark all unread messages in a chat as read
+  markMessagesAsRead: async (bookingId: number) => {
+    return httpClient.patch<{
+      message: string
+      marked_count: number
+    }>(`/cars/bookings/${bookingId}/chat/read`)
+  },
+
   // Upload car images
   uploadCarImages: async (carId: string, files: File[]) => {
     const formData = new FormData()

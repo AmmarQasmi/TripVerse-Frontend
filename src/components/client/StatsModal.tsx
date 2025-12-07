@@ -123,7 +123,7 @@ export function StatsModal({ isOpen, onClose, title, data, totalAmount }: StatsM
                         transition={{ delay: 0.1 }}
                         className="group"
                       >
-                        <Link href={item.type === 'hotel' ? `/client/hotelbookings/hotel/${item.id}` : `/client/cars/bookings`}>
+                        <Link href={item.type === 'hotel' ? `/client/bookings/hotel/${item.id}` : `/client/cars/bookings`}>
                           <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-50 via-cyan-50 to-teal-50 border-2 border-transparent hover:border-blue-300 transition-all duration-75 p-5">
                             {/* Hover gradient effect */}
                             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-cyan-500/0 to-teal-500/0 group-hover:from-blue-500/5 group-hover:via-cyan-500/5 group-hover:to-teal-500/5 transition-all duration-75" />
@@ -195,7 +195,7 @@ export function StatsModal({ isOpen, onClose, title, data, totalAmount }: StatsM
                             ? 'Start planning your next adventure!'
                             : 'Begin your travel journey to see your spending here.'}
                         </p>
-                        <Link href="/client/hotelbookings">
+                        <Link href="/client/bookings">
                           <Button className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white hover:opacity-90 px-6 py-2">
                             View All Bookings
                           </Button>

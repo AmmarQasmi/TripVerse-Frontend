@@ -2,21 +2,17 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { LandingHeader } from '@/components/landing/LandingHeader'
 import { HeroCarousel } from '@/components/landing/HeroCarousel'
 import { SearchBar } from '@/components/landing/SearchBar'
 import { FAQSection } from '@/components/landing/FAQSection'
-import { Footer } from '@/components/landing/Footer'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlane, faBuilding, faCar } from '@fortawesome/free-solid-svg-icons'
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
-      <LandingHeader />
-      
       {/* Hero Section with Carousel and Search */}
-      <section className="relative pt-16">
+      <section className="relative pt-0">
         <HeroCarousel />
         <SearchBar />
       </section>
@@ -374,9 +370,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <Footer />
     </div>
   )
 }

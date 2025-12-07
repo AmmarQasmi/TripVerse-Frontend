@@ -44,7 +44,7 @@ export function BookingListItem({
       whileHover={{ x: 4 }}
       className="group"
     >
-      <Link href={type === 'hotel' ? `/client/hotelbookings/hotel/${id}` : `/client/cars/bookings`}>
+      <Link href={type === 'hotel' ? `/client/bookings/hotel/${id}` : `/client/cars/bookings`}>
         <div className="relative overflow-hidden rounded-xl bg-white border border-gray-200 p-4 hover:shadow-md hover:border-blue-300 transition-all duration-75">
           {/* Hover Glow */}
           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-75">

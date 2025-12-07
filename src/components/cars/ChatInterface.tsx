@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useChatMessages } from '@/features/cars/useCarSearch'
 import { carsApi } from '@/lib/api/cars.api'
 import { useAuth } from '@/features/auth/useAuth'
+import { getSocket } from '@/lib/socket'
+import type { Socket } from 'socket.io-client'
 
 interface ChatInterfaceProps {
   bookingId: number
@@ -21,27 +23,122 @@ export function ChatInterface({ bookingId, driverName, customerName, onClose }: 
   const [newMessage, setNewMessage] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [chatSize, setChatSize] = useState<ChatSize>('normal')
+  const [messages, setMessages] = useState(chatData?.messages || [])
+  const [hasInitialized, setHasInitialized] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const socketRef = useRef<Socket | null>(null)
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    // Scroll only the messages container, not the entire page
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+    }
   }
 
+  // Set initial messages from API on mount or when chatData loads
   useEffect(() => {
-    scrollToBottom()
-  }, [chatData?.messages])
+    if (chatData?.messages && !hasInitialized) {
+      setMessages(chatData.messages)
+      setHasInitialized(true)
+      
+      // Mark messages as read when chat opens
+      carsApi.markMessagesAsRead(bookingId).catch((error) => {
+        console.error('Failed to mark messages as read:', error)
+      })
+    }
+  }, [chatData?.messages, hasInitialized, bookingId])
+
+  // Set up socket connection for real-time messages
+  useEffect(() => {
+    if (!user?.id) return
+
+    // Socket uses httpOnly cookies for authentication, no token needed
+    const socket = getSocket(undefined, 'chat')
+    socketRef.current = socket
+
+    // Connect to chat namespace
+    if (!socket.connected) {
+      socket.connect()
+    }
+
+    // Join booking room
+    socket.emit('join_booking', bookingId)
+
+    // Listen for new messages
+    socket.on('new_message', (message: any) => {
+      setMessages(prev => {
+        // Check if message already exists (avoid duplicates)
+        const exists = prev.some(msg => msg.id === message.id)
+        if (exists) return prev
+        return [...prev, message]
+      })
+      setTimeout(() => scrollToBottom(), 100)
+    })
+
+    // Handle socket errors
+    socket.on('error', (error: any) => {
+      console.error('Socket error:', error)
+    })
+
+    // Listen for join confirmation
+    socket.on('joined_booking', () => {
+      console.log(`Joined booking ${bookingId} chat room`)
+    })
+
+    // Cleanup on unmount
+    return () => {
+      socket.emit('leave_booking', bookingId)
+      socket.off('new_message')
+      socket.off('joined_booking')
+      socket.off('error')
+    }
+  }, [bookingId, user?.id])
+
+  // Scroll when messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      setTimeout(() => scrollToBottom(), 50)
+    }
+  }, [messages.length])
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim() || isSending) return
 
+    const messageText = newMessage.trim()
     setIsSending(true)
+    
+    // Optimistically add message to UI
+    const tempMessage = {
+      id: Date.now(), // Temporary ID
+      sender: {
+        id: user?.id.toString() || '',
+        name: user?.full_name || 'You',
+      },
+      message: messageText,
+      sent_at: new Date().toISOString(),
+    }
+    setMessages(prev => [...prev, tempMessage])
+    setNewMessage('')
+    scrollToBottom()
+
     try {
-      await carsApi.sendMessage(bookingId, newMessage.trim())
-      setNewMessage('')
-      refetch() // Refresh messages
+      const response = await carsApi.sendMessage(bookingId, messageText)
+      // Replace temp message with real message from server
+      setMessages(prev => {
+        const filtered = prev.filter(msg => msg.id !== tempMessage.id)
+        // Check if message already exists from socket
+        const exists = filtered.some(msg => msg.id === response.id)
+        if (exists) return filtered
+        return [...filtered, response]
+      })
+      scrollToBottom()
     } catch (error) {
       console.error('Failed to send message:', error)
+      // Remove failed message from UI
+      setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id))
+      setNewMessage(messageText) // Restore message text
       alert('Failed to send message. Please try again.')
     } finally {
       setIsSending(false)
@@ -214,14 +311,17 @@ export function ChatInterface({ bookingId, driverName, customerName, onClose }: 
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3"
+      >
         <AnimatePresence>
-          {chatData?.messages && chatData.messages.length > 0 ? (
-            chatData.messages.map((message, index) => {
+          {messages && messages.length > 0 ? (
+            messages.map((message, index) => {
               const isUser = isCurrentUser(message.sender.id)
               const showAvatar = !isUser && (
                 index === 0 || 
-                chatData.messages[index - 1]?.sender.id !== message.sender.id
+                messages[index - 1]?.sender.id !== message.sender.id
               )
               
               return (

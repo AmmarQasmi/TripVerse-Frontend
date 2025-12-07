@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -13,12 +13,27 @@ import { ChatInterface } from '@/components/cars/ChatInterface'
 
 export default function DriverBookingsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { showToast } = useToast()
   const queryClient = useQueryClient()
   const [statusFilter, setStatusFilter] = useState<'all' | 'PENDING_DRIVER_ACCEPTANCE' | 'ACCEPTED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'REJECTED'>('all')
   const [selectedBooking, setSelectedBooking] = useState<number | null>(null)
   
   const { bookings, isLoading } = useDriverCarBookings()
+
+  // Auto-open chat from notification
+  useEffect(() => {
+    const openChatId = searchParams.get('openChat')
+    if (openChatId && bookings && Array.isArray(bookings) && bookings.length > 0) {
+      const bookingId = parseInt(openChatId, 10)
+      const booking = bookings.find((b: any) => b.id === bookingId)
+      if (booking && canChat(booking.status)) {
+        setSelectedBooking(bookingId)
+        // Remove query parameter from URL
+        router.replace('/driver/bookings', { scroll: false })
+      }
+    }
+  }, [searchParams, bookings, router])
 
   const canChat = (status: string) => {
     return ['ACCEPTED', 'CONFIRMED', 'IN_PROGRESS'].includes(status)
@@ -192,20 +207,12 @@ export default function DriverBookingsPage() {
   return (
     <div className="min-h-screen bg-white">
       <PageHeader 
-        title="My Bookings"
-        subtitle="Manage your car rental bookings"
+        title="My Car Bookings"
+        subtitle="Manage bookings for your cars and track your earnings"
         backUrl="/driver/dashboard"
         backLabel="Back to Dashboard"
       />
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          My Car Bookings
-        </h1>
-        <p className="text-lg text-gray-600">
-          Manage bookings for your cars and track your earnings.
-        </p>
-      </div>
 
       {/* Status Filter */}
       <div className="mb-6">
@@ -224,7 +231,7 @@ export default function DriverBookingsPage() {
               onClick={() => setStatusFilter(filter.value as any)}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 statusFilter === filter.value
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white shadow-sm'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -316,13 +323,18 @@ export default function DriverBookingsPage() {
 
         {/* Chat Interface */}
         <div className="lg:col-span-1">
-          {selectedBooking ? (
-            <ChatInterface
-              bookingId={selectedBooking}
-              driverName="You"
-              customerName="Customer"
-            />
-          ) : (
+          {selectedBooking ? (() => {
+            const booking = bookingsArray.find((b: any) => b.id === selectedBooking)
+            return (
+              <ChatInterface
+                key={selectedBooking}
+                bookingId={selectedBooking}
+                driverName="You"
+                customerName={booking?.customer?.name || 'Customer'}
+                onClose={() => setSelectedBooking(null)}
+              />
+            )
+          })() : (
             <Card className="bg-white">
               <CardContent className="p-6 text-center">
                 <div className="text-4xl mb-4">💬</div>

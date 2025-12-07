@@ -11,7 +11,6 @@ import { FlightDetailsModal } from '@/components/flights/FlightDetailsModal'
 import { TrustSection } from '@/components/flights/TrustSection'
 import { Plane } from 'lucide-react'
 import { DomesticFlightGuide } from '@/components/flights/DomesticFlightGuide'
-import { TransparentHeader } from '@/components/shared/TransparentHeader'
 import { flightsApi } from '@/lib/api/flights.api'
 import { FlightSearchParams } from '@/types'
 
@@ -419,11 +418,8 @@ export default function FlightsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-cyan-900 to-teal-900 relative">
-      {/* Transparent Header */}
-      <TransparentHeader />
-      
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-0">
         {/* Background Image (daytime plane) */}
         <div className="absolute inset-0">
           <div 

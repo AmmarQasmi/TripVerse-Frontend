@@ -10,6 +10,7 @@ import { DriverProfileCard } from '@/components/cars/DriverProfileCard'
 import { AvailabilityCalendar } from '@/components/cars/AvailabilityCalendar'
 import { CarBookingForm } from '@/components/cars/CarBookingForm'
 import { CommissionBreakdown } from '@/components/cars/CommissionBreakdown'
+import { PageLoader } from '@/components/shared/PageLoader'
 import { useCarById, useCarPriceCalculation } from '@/features/cars/useCarSearch'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { carsApi } from '@/lib/api/cars.api'
@@ -113,32 +114,7 @@ export default function CarDetailPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        <div className="container mx-auto px-4 py-8">
-          <div className="animate-pulse space-y-8">
-            {/* Header skeleton */}
-            <div className="h-8 bg-gray-700 rounded w-1/3"></div>
-            
-            {/* Image skeleton */}
-            <div className="h-96 bg-gray-700 rounded-2xl"></div>
-            
-            {/* Content skeleton */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              <div className="lg:col-span-3 space-y-6">
-                <div className="h-64 bg-gray-700 rounded-2xl"></div>
-                <div className="h-48 bg-gray-700 rounded-2xl"></div>
-                <div className="h-48 bg-gray-700 rounded-2xl"></div>
-              </div>
-              <div className="space-y-6">
-                <div className="h-96 bg-gray-700 rounded-2xl"></div>
-                <div className="h-64 bg-gray-700 rounded-2xl"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    return <PageLoader message="Loading car details..." variant="skeleton" />
   }
 
   if (error || !car) {

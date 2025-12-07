@@ -13,6 +13,7 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { HotelReviews } from '@/components/hotels/HotelReviews'
 import { HotelMap } from '@/components/hotels/HotelMap'
 import { BookingSummary } from '@/components/hotels/BookingSummary'
+import { PageLoader } from '@/components/shared/PageLoader'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { hotelBookingsApi } from '@/lib/api/hotelBookings.api'
 import { useToast } from '@/components/ui/Toast'
@@ -107,23 +108,7 @@ export default function HotelDetailPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        <div className="container mx-auto px-4 py-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-700 rounded w-1/3 mb-4"></div>
-            <div className="h-64 bg-gray-700 rounded mb-6"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-4">
-                <div className="h-4 bg-gray-700 rounded"></div>
-                <div className="h-4 bg-gray-700 rounded w-3/4"></div>
-              </div>
-              <div className="h-64 bg-gray-700 rounded"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    return <PageLoader message="Loading hotel details..." variant="skeleton" />
   }
 
   if (error || !hotel) {

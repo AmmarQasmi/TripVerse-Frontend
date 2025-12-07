@@ -1,14 +1,9 @@
 'use client'
 
-import { LandingHeader } from '@/components/landing/LandingHeader'
-
 export default function ClientLoading() {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Reuse existing header so the layout feels consistent while loading */}
-      <LandingHeader />
-
-      <div className="container mx-auto px-4 py-8 pt-24 space-y-12">
+      <div className="container mx-auto px-4 py-8 space-y-12">
         {/* Top stat doughnut skeletons (matches dashboard overview layout) */}
         <section>
           <div className="h-8 w-48 mx-auto mb-8 rounded-full bg-gray-200/80 animate-pulse" />

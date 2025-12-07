@@ -6,9 +6,10 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PageLoader } from '@/components/shared/PageLoader'
 import { useAuth } from '@/features/auth/useAuth'
 import { carsApi } from '@/lib/api/cars.api'
-import { CircularStatsCard } from '@/components/driver/CircularStatsCard'
+import { DoughnutChart } from '@/components/client/DoughnutChart'
 
 interface DriverCar {
   id: string
@@ -106,9 +107,7 @@ export default function DriverCarsPage() {
           backUrl="/driver/dashboard"
           backLabel="Back to Dashboard"
         />
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-gray-900 text-xl">Loading cars...</div>
-        </div>
+        <PageLoader message="Loading cars..." variant="skeleton" />
       </div>
     )
   }
@@ -140,57 +139,46 @@ export default function DriverCarsPage() {
     <div className="min-h-screen bg-white">
       <PageHeader 
         title="My Cars"
-        subtitle="Manage your car listings"
+        subtitle="Manage your fleet and track performance"
         backUrl="/driver/dashboard"
         backLabel="Back to Dashboard"
+        action={
+          <Link href="/driver/cars/new">
+            <Button className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white hover:opacity-90 font-semibold px-6 py-3 rounded-xl">
+              <span className="mr-2">➕</span>
+              Add New Car
+            </Button>
+          </Link>
+        }
       />
       <div className="container mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                My Cars
-              </h1>
-              <p className="text-lg text-gray-600">
-                Manage your fleet and track performance
-              </p>
-            </div>
-            <Link href="/driver/cars/new">
-              <Button className="mt-4 md:mt-0 bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold px-6 py-3 rounded-xl">
-                <span className="mr-2">➕</span>
-                Add New Car
-              </Button>
-            </Link>
-          </div>
-        </motion.div>
-
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-          <CircularStatsCard
+          <DoughnutChart
             label="Total Cars"
             value={totalCars}
+            gradient="bg-gradient-to-br from-blue-500 to-cyan-500"
             delay={0.1}
             maxValue={Math.max(totalCars, 10)}
           />
-          <CircularStatsCard
+          <DoughnutChart
             label="Active Cars"
             value={activeCars}
+            gradient="bg-gradient-to-br from-green-500 to-emerald-500"
             delay={0.2}
             maxValue={Math.max(totalCars, 1)}
           />
-          <CircularStatsCard
+          <DoughnutChart
             label="Total Bookings"
             value={totalBookings}
+            gradient="bg-gradient-to-br from-purple-500 to-pink-500"
             delay={0.3}
             maxValue={Math.max(totalBookings, 10)}
           />
-          <CircularStatsCard
+          <DoughnutChart
             label="Total Earnings"
             value={`PKR ${totalEarnings.toLocaleString()}`}
+            gradient="bg-gradient-to-br from-orange-500 to-red-500"
             delay={0.4}
             maxValue={Math.max(totalEarnings, 100000)}
           />

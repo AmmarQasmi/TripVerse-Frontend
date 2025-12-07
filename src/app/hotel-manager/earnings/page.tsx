@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { StatsCard } from '@/components/shared/StatsCard'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PageLoader } from '@/components/shared/PageLoader'
 import { hotelManagersApi, HotelManagerEarnings, HotelManagerEarningsBreakdown } from '@/lib/api/hotel-managers.api'
 import { useAuth } from '@/features/auth/useAuth'
 
@@ -64,19 +65,15 @@ export default function HotelManagerEarningsPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading earnings...</div>
-      </div>
-    )
+    return <PageLoader message="Loading earnings..." />
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <Card className="bg-red-500/20 border-red-500">
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Card className="bg-red-50 border-red-500">
           <CardContent className="p-6">
-            <p className="text-white">{error}</p>
+            <p className="text-red-900">{error}</p>
             <Button
               onClick={() => window.location.reload()}
               variant="outline"
@@ -98,7 +95,7 @@ export default function HotelManagerEarningsPage() {
   const netEarnings = earnings.total_earnings * 0.95
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <PageHeader 
         title="Earnings & Analytics"
         subtitle="View your earnings and performance analytics"
@@ -159,52 +156,52 @@ export default function HotelManagerEarningsPage() {
           {/* Earnings Breakdown */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* By Month */}
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card className="bg-white border border-gray-200">
               <CardHeader>
-                <CardTitle className="text-white">Earnings by Month</CardTitle>
+                <CardTitle className="text-gray-900">Earnings by Month</CardTitle>
               </CardHeader>
               <CardContent>
                 {breakdown.by_month.length > 0 ? (
                   <div className="space-y-3">
                     {breakdown.by_month.map((item, index) => (
-                      <div key={index} className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                        <span className="text-gray-300">{item.month}</span>
-                        <span className="text-white font-semibold">PKR {item.earnings.toLocaleString()}</span>
+                      <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="text-gray-700">{item.month}</span>
+                        <span className="text-gray-900 font-semibold">PKR {item.earnings.toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-400 text-center py-8">No earnings data available</p>
+                  <p className="text-gray-500 text-center py-8">No earnings data available</p>
                 )}
               </CardContent>
             </Card>
 
             {/* By Hotel */}
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card className="bg-white border border-gray-200">
               <CardHeader>
-                <CardTitle className="text-white">Earnings by Hotel</CardTitle>
+                <CardTitle className="text-gray-900">Earnings by Hotel</CardTitle>
               </CardHeader>
               <CardContent>
                 {breakdown.by_hotel.length > 0 ? (
                   <div className="space-y-3">
                     {breakdown.by_hotel.map((item, index) => (
-                      <div key={index} className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                        <span className="text-gray-300 truncate flex-1 mr-4">{item.hotel}</span>
-                        <span className="text-white font-semibold">PKR {item.earnings.toLocaleString()}</span>
+                      <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="text-gray-700 truncate flex-1 mr-4">{item.hotel}</span>
+                        <span className="text-gray-900 font-semibold">PKR {item.earnings.toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-400 text-center py-8">No earnings data available</p>
+                  <p className="text-gray-500 text-center py-8">No earnings data available</p>
                 )}
               </CardContent>
             </Card>
           </div>
 
           {/* Recent Bookings */}
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="bg-white border border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white">Recent Bookings</CardTitle>
+              <CardTitle className="text-gray-900">Recent Bookings</CardTitle>
             </CardHeader>
             <CardContent>
               {earnings.bookings.length > 0 ? (
@@ -212,27 +209,27 @@ export default function HotelManagerEarningsPage() {
                   {earnings.bookings.map((booking) => (
                     <div
                       key={booking.id}
-                      className="p-4 border border-white/20 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                      className="p-4 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <div className="font-semibold text-white">{booking.hotel}</div>
-                          <div className="text-sm text-gray-300">
+                          <div className="font-semibold text-gray-900">{booking.hotel}</div>
+                          <div className="text-sm text-gray-600">
                             {booking.customer_name} • {booking.room_type}
                           </div>
-                          <div className="text-xs text-gray-400 mt-1">
+                          <div className="text-xs text-gray-500 mt-1">
                             {formatDate(booking.created_at)}
                           </div>
                         </div>
                       </div>
                       <div className="mt-3 flex justify-between items-center">
                         <div>
-                          <p className="text-gray-300 text-sm">Total Amount</p>
-                          <p className="text-lg font-semibold text-white">PKR {booking.total_amount.toLocaleString()}</p>
+                          <p className="text-gray-600 text-sm">Total Amount</p>
+                          <p className="text-lg font-semibold text-gray-900">PKR {booking.total_amount.toLocaleString()}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-gray-300 text-sm">Your Earnings</p>
-                          <p className="text-lg font-semibold text-green-400">PKR {booking.manager_earnings.toLocaleString()}</p>
+                          <p className="text-gray-600 text-sm">Your Earnings</p>
+                          <p className="text-lg font-semibold text-green-600">PKR {booking.manager_earnings.toLocaleString()}</p>
                         </div>
                       </div>
                     </div>
@@ -241,8 +238,8 @@ export default function HotelManagerEarningsPage() {
               ) : (
                 <div className="p-12 text-center">
                   <div className="text-6xl mb-4">💳</div>
-                  <h3 className="text-xl font-semibold text-white mb-2">No Earnings Yet</h3>
-                  <p className="text-gray-300">Start receiving bookings to see your earnings here</p>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Earnings Yet</h3>
+                  <p className="text-gray-600">Start receiving bookings to see your earnings here</p>
                 </div>
               )}
             </CardContent>

@@ -7,9 +7,10 @@ export interface Notification {
   type: string
   title: string
   message: string
-  payload_json?: any
+  payload?: any
   read_at: string | null
   sent_at: string
+  is_read?: boolean
 }
 
 export const notificationsApi = {

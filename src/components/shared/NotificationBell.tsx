@@ -2,10 +2,15 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 import { notificationsApi, Notification } from '@/lib/api/notifications.api'
-import { Bell } from 'lucide-react'
+import { useAuth } from '@/features/auth/useAuth'
+import { Bell, Check } from 'lucide-react'
+import { getSocket, disconnectSocket } from '@/lib/socket'
 
 export function NotificationBell() {
+  const { user } = useAuth()
+  const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
@@ -44,6 +49,33 @@ export function NotificationBell() {
     return () => clearInterval(interval)
   }, [])
 
+  // Socket.io real-time notifications
+  useEffect(() => {
+    if (!user?.id) return
+
+    // Get JWT token from cookies (httpOnly cookie, so we'll get it from the API)
+    // For now, we'll connect without token and let the backend handle auth via cookies
+    const socket = getSocket()
+
+    // Listen for new notifications
+    socket.on('notification', (newNotification: Notification) => {
+      setNotifications(prev => [newNotification, ...prev])
+      if (!newNotification.read_at) {
+        setUnreadCount(prev => prev + 1)
+      }
+    })
+
+    // Listen for unread count updates
+    socket.on('unread_count', (data: { count: number }) => {
+      setUnreadCount(data.count)
+    })
+
+    return () => {
+      socket.off('notification')
+      socket.off('unread_count')
+    }
+  }, [user?.id])
+
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -57,7 +89,8 @@ export function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [isOpen])
 
-  const handleMarkAsRead = async (notificationId: number) => {
+  const handleMarkAsRead = async (e: React.MouseEvent, notificationId: number) => {
+    e.stopPropagation()
     try {
       await notificationsApi.markAsRead(notificationId)
       setNotifications(prev =>
@@ -78,6 +111,145 @@ export function NotificationBell() {
       setUnreadCount(0)
     } catch (error) {
       console.error('Failed to mark all as read:', error)
+    }
+  }
+
+  const getNotificationRedirectPath = (notification: Notification): string | null => {
+    const payload = notification.payload || {}
+    const role = user?.role
+
+    switch (notification.type) {
+      // CLIENT notifications
+      case 'booking_accepted':
+      case 'booking_rejected':
+      case 'trip_started':
+      case 'trip_completed':
+        if (payload.booking_id) {
+          return `/client/cars/bookings`
+        }
+        return '/client/cars/bookings'
+      
+      case 'booking_confirmed':
+        if (payload.booking_type === 'hotel' && payload.booking_id) {
+          return `/client/bookings/hotel/${payload.booking_id}`
+        }
+        if (payload.booking_type === 'car' && payload.booking_id) {
+          return `/client/cars/bookings`
+        }
+        return '/client/bookings'
+      
+      case 'dispute_raised':
+      case 'dispute_resolved':
+        if (payload.booking_type === 'hotel' && payload.booking_id) {
+          return `/client/bookings/hotel/${payload.booking_id}`
+        }
+        if (payload.booking_type === 'car' && payload.booking_id) {
+          return `/client/cars/bookings`
+        }
+        return '/client/bookings'
+
+      case 'chat_message':
+        // Check role to determine redirect path
+        if (role === 'driver') {
+          if (payload.booking_id) {
+            return `/driver/bookings?openChat=${payload.booking_id}`
+          }
+          return '/driver/bookings'
+        } else {
+          // Client or other roles
+          if (payload.booking_type === 'car' && payload.booking_id) {
+            return `/client/cars/bookings?openChat=${payload.booking_id}`
+          }
+          return '/client/cars/bookings'
+        }
+
+      // DRIVER notifications
+      case 'booking_request':
+        if (payload.booking_id) {
+          return '/driver/bookings'
+        }
+        return '/driver/bookings'
+      
+      case 'driver_verification':
+        return '/driver/verification'
+      
+      case 'dispute_raised':
+      case 'dispute_resolved':
+      case 'dispute_warning':
+        if (payload.booking_id) {
+          return '/driver/bookings'
+        }
+        return '/driver/bookings'
+
+      case 'suspension_scheduled':
+      case 'suspension_started':
+      case 'suspension_paused':
+      case 'suspension_resumed':
+      case 'ban_scheduled':
+      case 'ban_applied':
+        return '/driver/verification'
+
+      // HOTEL MANAGER notifications
+      case 'hotel_manager_verification_approved':
+      case 'hotel_manager_verification_rejected':
+        return '/hotel-manager/verification'
+      
+      case 'hotel_booking_created':
+      case 'hotel_booking_confirmed':
+        if (payload.booking_id) {
+          return '/hotel-manager/bookings'
+        }
+        return '/hotel-manager/bookings'
+
+      // ADMIN notifications
+      case 'driver_verification':
+        if (role === 'admin') {
+          return '/admin/drivers'
+        }
+        return null
+      
+      case 'hotel_manager_verification_approved':
+        if (role === 'admin' && payload.manager_id) {
+          return `/admin/hotel-managers/${payload.manager_id}`
+        }
+        return '/admin/hotel-managers'
+      
+      case 'hotel_listing_created':
+        if (payload.manager_id) {
+          return `/admin/hotel-managers/${payload.manager_id}`
+        }
+        return '/admin/hotel-managers'
+      
+      case 'dispute_raised':
+        if (payload.dispute_id) {
+          return '/admin/disputes'
+        }
+        return '/admin/disputes'
+      
+      case 'payment_received':
+      case 'hotel_booking_payment_received':
+        return '/admin/payments'
+
+      default:
+        return null
+    }
+  }
+
+  const handleNotificationClick = async (notification: Notification) => {
+    const path = getNotificationRedirectPath(notification)
+    if (path) {
+      // Mark notification as read when clicked and redirected
+      if (!notification.read_at) {
+        try {
+          await notificationsApi.markAsRead(notification.id)
+          setNotifications(prev => prev.map(n => n.id === notification.id ? { ...n, read_at: new Date().toISOString() } : n))
+          setUnreadCount(prev => Math.max(0, prev - 1))
+        } catch (error) {
+          console.error('Failed to mark notification as read:', error)
+        }
+      }
+      router.push(path)
+      setIsOpen(false)
     }
   }
 
@@ -105,10 +277,36 @@ export function NotificationBell() {
       case 'ban_scheduled':
       case 'ban_applied':
         return '🚫'
-      case 'verification_approved':
+      case 'driver_verification':
+      case 'hotel_manager_verification_approved':
         return '✅'
-      case 'verification_rejected':
+      case 'hotel_manager_verification_rejected':
         return '❌'
+      case 'booking_request':
+        return '📋'
+      case 'booking_accepted':
+      case 'booking_confirmed':
+        return '✅'
+      case 'booking_rejected':
+        return '❌'
+      case 'trip_started':
+        return '🚗'
+      case 'trip_completed':
+        return '🏁'
+      case 'payment_received':
+      case 'hotel_booking_payment_received':
+        return '💰'
+      case 'dispute_raised':
+        return '⚖️'
+      case 'dispute_resolved':
+        return '✅'
+      case 'hotel_listing_created':
+        return '🏨'
+      case 'hotel_booking_created':
+      case 'hotel_booking_confirmed':
+        return '📅'
+      case 'chat_message':
+        return '💬'
       default:
         return '📢'
     }
@@ -163,35 +361,54 @@ export function NotificationBell() {
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
-                        !notification.read_at ? 'bg-blue-50/50' : ''
-                      }`}
-                      onClick={() => !notification.read_at && handleMarkAsRead(notification.id)}
-                    >
-                      <div className="flex items-start space-x-3">
-                        <div className="text-2xl flex-shrink-0">
-                          {getNotificationIcon(notification.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between">
-                            <p className={`text-sm font-medium ${!notification.read_at ? 'text-gray-900' : 'text-gray-700'}`}>
-                              {notification.title}
-                            </p>
-                            {!notification.read_at && (
-                              <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1.5"></span>
-                            )}
+                  {notifications.map((notification) => {
+                    const redirectPath = getNotificationRedirectPath(notification)
+                    const isClickable = redirectPath !== null
+
+                    return (
+                      <div
+                        key={notification.id}
+                        className={`p-4 transition-colors ${
+                          !notification.read_at ? 'bg-blue-50/50' : 'bg-white'
+                        } ${
+                          isClickable ? 'cursor-pointer hover:bg-gray-50' : ''
+                        }`}
+                        onClick={() => isClickable && handleNotificationClick(notification)}
+                      >
+                        <div className="flex items-start space-x-3">
+                          <div className="text-2xl flex-shrink-0">
+                            {getNotificationIcon(notification.type)}
                           </div>
-                          <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
-                          <p className="text-xs text-gray-400 mt-2">
-                            {formatDate(notification.sent_at)}
-                          </p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className={`text-sm font-medium flex-1 ${!notification.read_at ? 'text-gray-900' : 'text-gray-700'}`}>
+                                {notification.title}
+                              </p>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                {!notification.read_at && (
+                                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                )}
+                                {!notification.read_at && (
+                                  <button
+                                    onClick={(e) => handleMarkAsRead(e, notification.id)}
+                                    className="p-1 rounded hover:bg-gray-200 transition-colors"
+                                    title="Mark as read"
+                                    aria-label="Mark as read"
+                                  >
+                                    <Check className="w-4 h-4 text-gray-600" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
+                            <p className="text-xs text-gray-400 mt-2">
+                              {formatDate(notification.sent_at)}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
@@ -201,4 +418,3 @@ export function NotificationBell() {
     </div>
   )
 }
-

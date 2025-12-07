@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { useRecognition } from '@/features/monuments/useRecognition'
 
@@ -61,9 +62,22 @@ export function MonumentUploadModal({ isOpen, onClose }: MonumentUploadModalProp
       <div className="bg-gradient-to-br from-white via-gray-50 to-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-200">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-              🏛️ Monument Recognition
-            </h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                🏛️ Monument Recognition
+              </h2>
+              <Link
+                href="/client/monuments"
+                onClick={handleClose}
+                className="text-sm font-semibold text-white bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all shadow-md hover:shadow-lg"
+                title="View History"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                History
+              </Link>
+            </div>
             <button
               onClick={handleClose}
               className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full p-1 transition-all duration-75"

@@ -5,10 +5,12 @@ import { useEffect, useState, useRef } from 'react'
 
 interface DoughnutChartProps {
   label: string
-  value: number
+  value: number | string
   gradient: string
   delay?: number
   onClick?: () => void
+  subtitle?: string
+  maxValue?: number // For percentage-based progress (used in listing pages)
 }
 
 export function DoughnutChart({ 
@@ -16,16 +18,28 @@ export function DoughnutChart({
   value, 
   gradient,
   delay = 0,
-  onClick
+  onClick,
+  subtitle,
+  maxValue // NEW: For percentage-based progress
 }: DoughnutChartProps) {
   const [displayValue, setDisplayValue] = useState(0)
   const [chartProgress, setChartProgress] = useState(0)
   const animationFrameRef = useRef<number>()
 
+  // Parse numeric value if string contains PKR
+  const numericValue = typeof value === 'string' 
+    ? parseFloat(value.replace(/[PKR,\s$]/g, '')) || 0
+    : value
+
+  // Calculate progress percentage if maxValue is provided
+  const progressPercentage = maxValue && maxValue > 0 
+    ? Math.min((numericValue / maxValue) * 100, 100) 
+    : 100 // Default to full if no maxValue
+
   // Animated counter and chart progress
   useEffect(() => {
     let start = 0
-    const end = value
+    const end = numericValue
     const duration = 1500 // 1.5 seconds
     const startTime = Date.now()
 
@@ -55,7 +69,7 @@ export function DoughnutChart({
         cancelAnimationFrame(animationFrameRef.current)
       }
     }
-  }, [value])
+  }, [numericValue])
 
   // Chart dimensions
   const size = 200
@@ -64,20 +78,33 @@ export function DoughnutChart({
   const circumference = 2 * Math.PI * radius
   // Chart fills to 85% for visual appeal (not 100% to show it's a d1oughnut)
   const fillPercentage = 0.85
-  const offset = circumference - (chartProgress * circumference * fillPercentage)
+  // If maxValue is provided, scale the progress by percentage
+  const effectiveProgress = maxValue ? (chartProgress * progressPercentage / 100) : chartProgress
+  const offset = circumference - (effectiveProgress * circumference * fillPercentage)
 
-  // Format value
+  // Format value - handle PKR strings and currency labels
   const formatValue = (val: number) => {
-    if (label === 'Total Spent' || label === 'Total Revenue') {
-      return `$${val.toLocaleString()}`
+    // Handle PKR string values
+    if (typeof value === 'string' && value.includes('PKR')) {
+      return { display: val > 0 ? Math.floor(val).toLocaleString() : '0', prefix: 'PKR', isCurrency: true }
     }
-    return val > 0 ? `${val.toLocaleString()}${value > 0 ? '+' : ''}` : val.toString()
+    
+    // Handle currency labels
+    if (label === 'Total Spent' || label === 'Total Revenue' || label.includes('Earnings') || label.includes('Revenue')) {
+      return { display: `$${val.toLocaleString()}`, prefix: '', isCurrency: true }
+    }
+    
+    // Regular numeric values
+    return { 
+      display: val > 0 ? `${val.toLocaleString()}${numericValue > 0 ? '+' : ''}` : val.toString(), 
+      prefix: '', 
+      isCurrency: false 
+    }
   }
-  const formattedValue = formatValue(displayValue)
+  const formatted = formatValue(displayValue)
 
   // Use slightly smaller center text for large currency values so they stay inside the ring
-  const isCurrencyLabel = label === 'Total Spent'
-  const valueTextClass = isCurrencyLabel ? 'text-2xl md:text-3xl' : 'text-3xl'
+  const valueTextClass = formatted.isCurrency ? 'text-2xl md:text-3xl' : 'text-3xl'
 
   return (
     <motion.div
@@ -183,14 +210,23 @@ export function DoughnutChart({
               transition: { duration: 0.2 }
             }}
           >
-            <span className="animated-gradient-text">
-              {formattedValue}
-            </span>
+            {formatted.prefix ? (
+              <>
+                <span className="animated-gradient-text">{formatted.prefix}</span>
+                <span className="animated-gradient-text">
+                  {formatted.display === '0' ? formatted.display : ` ${formatted.display}`}
+                </span>
+              </>
+            ) : (
+              <span className="animated-gradient-text">
+                {formatted.display}
+              </span>
+            )}
           </motion.div>
         </div>
       </motion.div>
       
-      {/* Label below */}
+      {/* Label and Subtitle below */}
       <motion.div 
         className="text-sm mt-4 text-center"
         initial={{ opacity: 0, y: 10 }}
@@ -204,6 +240,9 @@ export function DoughnutChart({
         <span className="animated-gradient-text font-semibold">
           {label}
         </span>
+        {subtitle && (
+          <p className="text-xs text-gray-600 mt-1">{subtitle}</p>
+        )}
       </motion.div>
     </motion.div>
   )

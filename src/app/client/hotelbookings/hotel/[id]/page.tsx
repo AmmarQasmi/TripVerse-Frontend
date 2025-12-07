@@ -78,7 +78,7 @@ export default function HotelBookingDetailPage() {
     try {
       await confirmBooking.mutateAsync(bookingId)
       alert('Booking confirmed successfully! You will receive a confirmation notification.')
-      router.push('/client/hotelbookings')
+      router.push('/client/bookings')
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Failed to confirm booking'
       alert(`Error: ${errorMessage}`)
@@ -96,7 +96,7 @@ export default function HotelBookingDetailPage() {
     try {
       await cancelBooking.mutateAsync(bookingId)
       alert('Booking cancelled successfully!')
-      router.push('/client/hotelbookings')
+      router.push('/client/bookings')
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Failed to cancel booking'
       alert(`Error: ${errorMessage}`)

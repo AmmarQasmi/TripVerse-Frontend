@@ -50,9 +50,25 @@ export function LandingHeader() {
   }
 
   const isLoggedIn = !!user
-  const isClientLoggedIn = user && user.role === 'client'
+  const isClient = user?.role === 'client'
   const cityName = user?.city?.name
   const { data: weather, isLoading: weatherLoading } = useCurrentWeatherByCity(cityName)
+
+  // Get dashboard path based on role
+  const getDashboardPath = () => {
+    if (!user) return '/client/dashboard'
+    switch (user.role) {
+      case 'admin':
+        return '/admin/dashboard'
+      case 'driver':
+        return '/driver/dashboard'
+      case 'hotel_manager':
+        return '/hotel-manager/dashboard'
+      default:
+        return '/client/dashboard'
+    }
+  }
+
 
   return (
     <>
@@ -72,62 +88,89 @@ export function LandingHeader() {
                   </svg>
                 </button>
 
-                {/* Dropdown Menu */}
+                {/* Dropdown Menu - Only show client routes for clients */}
                 {isMenuOpen && (
                   <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border z-50">
-                    <Link 
-                      href="/client/dashboard" 
-                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                      </svg>
-                      <span>Dashboard</span>
-                    </Link>
-                    <Link 
-                      href="/client/hotels" 
-                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                      <span>Hotels</span>
-                    </Link>
-                    <Link 
-                      href="/client/cars" 
-                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                      </svg>
-                      <span>Car Rentals</span>
-                    </Link>
-                    <Link 
-                      href="/client/flights" 
-                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                      </svg>
-                      <span>Flights</span>
-                    </Link>
+                    {isClient ? (
+                      <>
+                        <Link 
+                          href="/client/dashboard" 
+                          className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                          </svg>
+                          <span>Dashboard</span>
+                        </Link>
+                        <Link 
+                          href="/client/hotels" 
+                          className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                          </svg>
+                          <span>Hotels</span>
+                        </Link>
+                        <Link 
+                          href="/client/cars" 
+                          className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                          </svg>
+                          <span>Car Rentals</span>
+                        </Link>
+                        <Link 
+                          href="/client/flights" 
+                          className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                          </svg>
+                          <span>Flights</span>
+                        </Link>
+                      </>
+                    ) : (
+                      <Link 
+                        href={getDashboardPath()}
+                        className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        <span>Dashboard</span>
+                      </Link>
+                    )}
                   </div>
                 )}
               </div>
 
-              <Link href="/" className="flex items-center">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-300 via-teal-200 to-blue-300 bg-clip-text text-transparent">
-                  TripVerse
-                </h1>
-              </Link>
+              {/* Logo - Non-clients: link to dashboard, Clients: link to home */}
+              {isClient ? (
+                <Link href="/" className="flex items-center">
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-300 via-teal-200 to-blue-300 bg-clip-text text-transparent">
+                    TripVerse
+                  </h1>
+                </Link>
+              ) : (
+                <Link 
+                  href={getDashboardPath()}
+                  className="flex items-center"
+                >
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-300 via-teal-200 to-blue-300 bg-clip-text text-transparent">
+                    TripVerse
+                  </h1>
+                </Link>
+              )}
 
-              {/* Weather Display (only for logged-in clients) - Moved to left */}
-              {isClientLoggedIn && cityName && (
+              {/* Weather Display (only for logged-in clients) */}
+              {isClient && cityName && (
                 <div className="flex items-center space-x-2 px-3 py-1 rounded-lg bg-white/10 backdrop-blur-sm ml-4">
                   {weatherLoading ? (
                     <div className="flex items-center space-x-2">
@@ -145,22 +188,27 @@ export function LandingHeader() {
               )}
             </div>
 
-            {/* Right: Camera Icon, Login/Sign Up or Profile Dropdown */}
+            {/* Right: Camera Icon (only for clients), Login/Sign Up or Profile Dropdown */}
             <div className="flex items-center space-x-4 ml-auto pr-4">
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-75"
-                aria-label="Upload monument photo"
-              >
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </button>
+              {/* Monument Upload Button - Only for clients */}
+              {isClient && (
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-75"
+                  aria-label="Upload monument photo"
+                  title="Upload Monument"
+                >
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </button>
+              )}
 
               {isLoggedIn ? (
                 <>
-                  {isClientLoggedIn && <NotificationBell />}
+                  {/* Notifications - Visible to all logged-in users */}
+                  <NotificationBell />
                   
                   <div className="relative" ref={dropdownRef}>
                     <button
@@ -198,46 +246,19 @@ export function LandingHeader() {
                           </div>
                           
                           <div className="py-2">
-                            {user?.role === 'hotel_manager' ? (
-                              <>
-                                <Link
-                                  href="/hotel-manager/dashboard"
-                                  className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors duration-75"
-                                  onClick={() => setIsDropdownOpen(false)}
-                                >
-                                  <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                  </svg>
-                                  <span className="text-sm text-gray-700">Dashboard</span>
-                                </Link>
-                                <Link
-                                  href="/hotel-manager/hotels"
-                                  className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors duration-75"
-                                  onClick={() => setIsDropdownOpen(false)}
-                                >
-                                  <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                  </svg>
-                                  <span className="text-sm text-gray-700">My Hotels</span>
-                                </Link>
-                              </>
-                            ) : (
-                              <>
-                                <Link
-                                  href="/client/dashboard"
-                                  className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors duration-75"
-                                  onClick={() => setIsDropdownOpen(false)}
-                                >
-                                  <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                  </svg>
-                                  <span className="text-sm text-gray-700">Dashboard</span>
-                                </Link>
-                              </>
-                            )}
+                            <Link
+                              href={getDashboardPath()}
+                              className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors duration-75"
+                              onClick={() => setIsDropdownOpen(false)}
+                            >
+                              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                              </svg>
+                              <span className="text-sm text-gray-700">Dashboard</span>
+                            </Link>
                             
                             <Link
-                              href={user?.role === 'hotel_manager' ? "/hotel-manager/profile" : "/client/profile"}
+                              href={user?.role === 'hotel_manager' ? "/hotel-manager/profile" : user?.role === 'admin' ? "/admin/profile" : user?.role === 'driver' ? "/driver/profile" : "/client/profile"}
                               className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
                               onClick={() => setIsDropdownOpen(false)}
                             >
@@ -248,7 +269,7 @@ export function LandingHeader() {
                             </Link>
                             
                             <Link
-                              href={user?.role === 'hotel_manager' ? "/hotel-manager/settings" : "/client/settings"}
+                              href={user?.role === 'hotel_manager' ? "/hotel-manager/settings" : user?.role === 'admin' ? "/admin/settings" : user?.role === 'driver' ? "/driver/settings" : "/client/settings"}
                               className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
                               onClick={() => setIsDropdownOpen(false)}
                             >

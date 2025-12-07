@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PageLoader } from '@/components/shared/PageLoader'
 import { useDisputesAdmin } from '@/features/admin/useDisputesAdmin'
 
 export default function AdminDisputesPage() {
@@ -62,6 +63,20 @@ export default function AdminDisputesPage() {
       default:
         return 'bg-gray-100 text-gray-800'
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <PageHeader 
+          title="Dispute Management"
+          subtitle="Review and resolve customer disputes"
+          backUrl="/admin/dashboard"
+          backLabel="Back to Dashboard"
+        />
+        <PageLoader message="Loading disputes..." variant="skeleton" />
+      </div>
+    )
   }
 
   return (

@@ -11,6 +11,7 @@ import { HotelManagerProfile } from '@/lib/api/hotel-managers.api'
 import { SingleFileUpload } from '@/components/shared/SingleFileUpload'
 import { DocumentViewer } from '@/components/shared/DocumentViewer'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PageLoader } from '@/components/shared/PageLoader'
 
 // Required document types
 const REQUIRED_DOCUMENTS: HotelManagerDocumentType[] = ['hotel_registration', 'business_license']
@@ -241,16 +242,12 @@ export default function HotelManagerVerificationPage() {
   })
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    )
+    return <PageLoader message="Loading verification status..." />
   }
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-white">
         <PageHeader 
           title="Hotel Manager Verification"
           subtitle="Submit documents to verify your hotel manager account"
@@ -258,9 +255,9 @@ export default function HotelManagerVerificationPage() {
           backLabel="Back to Dashboard"
         />
         <div className="container mx-auto px-4 py-8">
-          <Card className="shadow-lg bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="shadow-lg bg-red-50 border-red-200">
             <CardContent className="p-6">
-              <p className="text-white">Failed to load profile. Please try again.</p>
+              <p className="text-red-900">Failed to load profile. Please try again.</p>
             </CardContent>
           </Card>
         </div>
@@ -269,10 +266,10 @@ export default function HotelManagerVerificationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <PageHeader 
         title="Hotel Manager Verification"
-        subtitle="Submit documents to verify your hotel manager account"
+        subtitle="Complete your verification to start listing hotels"
         backUrl="/hotel-manager/dashboard"
         backLabel="Back to Dashboard"
       />
@@ -282,41 +279,31 @@ export default function HotelManagerVerificationPage() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-4xl mx-auto"
         >
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">
-              Hotel Manager Verification
-            </h1>
-            <p className="text-lg text-gray-300">
-              Complete your verification to start listing hotels
-            </p>
-          </div>
-
           {/* Error Message */}
           {error && (
-            <div className="mb-6 bg-red-500/20 border border-red-500 rounded-lg p-4">
-              <p className="text-red-200">{error}</p>
+            <div className="mb-6 bg-red-50 border border-red-500 rounded-lg p-4">
+              <p className="text-red-800">{error}</p>
             </div>
           )}
 
           {/* Verification Status Card */}
-          <Card className="shadow-lg mb-8 bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="shadow-lg mb-8 bg-white border border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white">Verification Status</CardTitle>
+              <CardTitle className="text-gray-900">Verification Status</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-300">Progress</span>
-                  <span className="text-white font-semibold">{uploadedRequired}/{totalRequired} Required Documents</span>
+                  <span className="text-gray-700">Progress</span>
+                  <span className="text-gray-900 font-semibold">{uploadedRequired}/{totalRequired} Required Documents</span>
                 </div>
-                <div className="w-full bg-gray-700 rounded-full h-3">
+                <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
-                    className="bg-cyan-500 h-3 rounded-full transition-all duration-300"
+                    className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 h-3 rounded-full transition-all duration-300"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
-                <div className="flex justify-between text-sm text-gray-400">
+                <div className="flex justify-between text-sm text-gray-600">
                   <span>✅ Approved: {approvedCount}</span>
                   <span>⏳ Pending: {pendingCount}</span>
                   <span>❌ Rejected: {rejectedCount}</span>
@@ -326,10 +313,10 @@ export default function HotelManagerVerificationPage() {
           </Card>
 
           {/* Required Documents */}
-          <Card className="shadow-lg mb-8 bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="shadow-lg mb-8 bg-white border border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white">Required Documents</CardTitle>
-              <p className="text-gray-400 text-sm mt-2">
+              <CardTitle className="text-gray-900">Required Documents</CardTitle>
+              <p className="text-gray-600 text-sm mt-2">
                 Upload all required documents to complete verification
               </p>
             </CardHeader>
@@ -337,10 +324,10 @@ export default function HotelManagerVerificationPage() {
               {REQUIRED_DOCUMENTS.map((docType) => {
                 const doc = getDocumentByType(docType)
                 return (
-                  <div key={docType} className="border border-white/20 rounded-lg p-4 bg-white/5">
+                  <div key={docType} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <h3 className="text-white font-semibold">{getDocumentName(docType)}</h3>
+                        <h3 className="text-gray-900 font-semibold">{getDocumentName(docType)}</h3>
                         {doc && (
                           <span className={`text-xs px-2 py-1 rounded ${getStatusColor(doc.status)}`}>
                             {getStatusIcon(doc.status)} {doc.status.toUpperCase()}
@@ -384,8 +371,8 @@ export default function HotelManagerVerificationPage() {
                         )}
                         {/* Show replace option if not submitted and not approved */}
                         {!verificationSubmitted && doc.status !== 'approved' && (
-                          <div className="mt-2 p-3 bg-white/5 rounded-lg border border-white/10">
-                            <p className="text-gray-300 text-sm mb-2">💡 Replace this document:</p>
+                          <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <p className="text-gray-700 text-sm mb-2">💡 Replace this document:</p>
                             <SingleFileUpload
                               onUpload={(file) => handleDocumentUpload(docType, file)}
                               isLoading={uploadingDoc === docType}
@@ -410,10 +397,10 @@ export default function HotelManagerVerificationPage() {
           </Card>
 
           {/* Optional Documents */}
-          <Card className="shadow-lg mb-8 bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="shadow-lg mb-8 bg-white border border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white">Optional Documents</CardTitle>
-              <p className="text-gray-400 text-sm mt-2">
+              <CardTitle className="text-gray-900">Optional Documents</CardTitle>
+              <p className="text-gray-600 text-sm mt-2">
                 These documents are optional but may help with verification
               </p>
             </CardHeader>
@@ -421,10 +408,10 @@ export default function HotelManagerVerificationPage() {
               {OPTIONAL_DOCUMENTS.map((docType) => {
                 const doc = getDocumentByType(docType)
                 return (
-                  <div key={docType} className="border border-white/20 rounded-lg p-4 bg-white/5">
+                  <div key={docType} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <h3 className="text-white font-semibold">{getDocumentName(docType)}</h3>
+                        <h3 className="text-gray-900 font-semibold">{getDocumentName(docType)}</h3>
                         {doc && (
                           <span className={`text-xs px-2 py-1 rounded ${getStatusColor(doc.status)}`}>
                             {getStatusIcon(doc.status)} {doc.status.toUpperCase()}
@@ -462,8 +449,8 @@ export default function HotelManagerVerificationPage() {
                         )}
                         {/* Show replace option if not submitted and not approved */}
                         {!verificationSubmitted && doc.status !== 'approved' && (
-                          <div className="mt-2 p-3 bg-white/5 rounded-lg border border-white/10">
-                            <p className="text-gray-300 text-sm mb-2">💡 Replace this document:</p>
+                          <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <p className="text-gray-700 text-sm mb-2">💡 Replace this document:</p>
                             <SingleFileUpload
                               onUpload={(file) => handleDocumentUpload(docType, file)}
                               isLoading={uploadingDoc === docType}
@@ -493,7 +480,7 @@ export default function HotelManagerVerificationPage() {
               <Button
                 onClick={handleSubmitVerification}
                 disabled={submitting || hasRejectedRequired}
-                className="bg-cyan-600 hover:bg-cyan-700 text-white px-8 py-3"
+                className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white hover:opacity-90 px-8 py-3"
               >
                 {submitting ? 'Submitting...' : 'Submit for Verification'}
               </Button>
@@ -507,8 +494,8 @@ export default function HotelManagerVerificationPage() {
                 <div className="flex items-center space-x-3">
                   <span className="text-3xl">⏳</span>
                   <div>
-                    <h3 className="text-white font-semibold text-lg">Verification Submitted</h3>
-                    <p className="text-gray-300 mt-1">
+                    <h3 className="text-gray-900 font-semibold text-lg">Verification Submitted</h3>
+                    <p className="text-gray-700 mt-1">
                       Your documents have been submitted and are under review. You will be notified once the verification is complete.
                     </p>
                   </div>
