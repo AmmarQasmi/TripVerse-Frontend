@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -28,6 +28,20 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
     guests: 1,
     rooms: 1,
   })
+
+  // Sync internal state when initialParams changes
+  useEffect(() => {
+    if (initialParams) {
+      setParams(initialParams)
+    }
+  }, [
+    initialParams?.location,
+    initialParams?.checkIn,
+    initialParams?.checkOut,
+    initialParams?.guests,
+    initialParams?.rooms,
+    initialParams?.query
+  ])
 
   const [showGuestsDropdown, setShowGuestsDropdown] = useState(false)
 

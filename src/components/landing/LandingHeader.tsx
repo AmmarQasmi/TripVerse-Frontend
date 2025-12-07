@@ -56,7 +56,7 @@ export function LandingHeader() {
 
   // Get dashboard path based on role
   const getDashboardPath = () => {
-    if (!user) return '/client/dashboard'
+    if (!user) return '/' // CHANGE: Return home instead of dashboard
     switch (user.role) {
       case 'admin':
         return '/admin/dashboard'

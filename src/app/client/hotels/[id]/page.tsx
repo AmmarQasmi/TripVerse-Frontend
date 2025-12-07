@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
@@ -28,6 +28,14 @@ export default function HotelDetailPage() {
   const { user, requireAuth, isAuthenticated } = useRequireAuth()
   const { showToast } = useToast()
   const queryClient = useQueryClient()
+  
+  // Debug: Log hotel data to check images
+  useEffect(() => {
+    if (hotel) {
+      console.log('Hotel data:', hotel)
+      console.log('Hotel images:', hotel.images)
+    }
+  }, [hotel])
   
   const [activeTab, setActiveTab] = useState<'overview' | 'rooms' | 'reviews' | 'location'>('overview')
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null)
@@ -204,7 +212,7 @@ export default function HotelDetailPage() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="mb-12"
         >
-          <HotelImageCarousel images={hotel.images || []} />
+          <HotelImageCarousel images={hotel?.images || []} />
         </motion.div>
 
         {/* Main Content */}
@@ -260,42 +268,42 @@ export default function HotelDetailPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                     >
-                      <Card className={`hover:shadow-md transition-shadow ${selectedRoom === room.id ? 'ring-2 ring-blue-500' : ''}`}>
+                      <Card className={`bg-white hover:shadow-lg transition-all duration-200 ${selectedRoom === room.id ? 'ring-2 ring-blue-500 shadow-lg' : ''}`}>
                         <CardContent className="p-6">
                           <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h3 className="text-lg font-semibold text-white">{room.name}</h3>
+                            <div className="flex-1">
+                              <h3 className="text-lg font-semibold text-gray-900">{room.name}</h3>
                               {room.description && (
-                                <p className="text-sm text-gray-300 mt-1">{room.description}</p>
+                                <p className="text-sm text-gray-600 mt-1">{room.description}</p>
                               )}
                             </div>
-                            <div className="text-right">
-                              <p className="text-2xl font-bold text-white">PKR {room.pricePerNight?.toLocaleString() || '0'}</p>
-                              <p className="text-sm text-gray-300">per night</p>
+                            <div className="text-right ml-4">
+                              <p className="text-2xl font-bold text-gray-900">PKR {room.pricePerNight?.toLocaleString() || '0'}</p>
+                              <p className="text-sm text-gray-500">per night</p>
                             </div>
                           </div>
 
                           <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                             <div>
-                              <span className="text-gray-300">Max Occupancy:</span>
-                              <span className="ml-2 font-medium text-white">{room.capacity} guests</span>
+                              <span className="text-gray-600">Max Occupancy:</span>
+                              <span className="ml-2 font-medium text-gray-900">{room.capacity} guests</span>
                             </div>
                             {room.total_rooms !== undefined && (
                               <div>
-                                <span className="text-gray-300">Total Rooms:</span>
-                                <span className="ml-2 font-medium text-white">{room.total_rooms}</span>
+                                <span className="text-gray-600">Total Rooms:</span>
+                                <span className="ml-2 font-medium text-gray-900">{room.total_rooms}</span>
                               </div>
                             )}
                           </div>
 
                           {room.amenities && room.amenities.length > 0 && (
-                            <div className="mt-4 pt-4 border-t border-gray-600">
-                              <p className="text-sm text-gray-300 mb-2">Amenities:</p>
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                              <p className="text-sm font-medium text-gray-700 mb-2">Amenities:</p>
                               <div className="flex flex-wrap gap-2">
                                 {room.amenities.slice(0, 5).map((amenity: string, idx: number) => (
                                   <span
                                     key={idx}
-                                    className="px-2 py-1 bg-white/10 text-gray-200 text-xs rounded-full capitalize"
+                                    className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full capitalize"
                                   >
                                     {amenity.replace('_', ' ')}
                                   </span>
@@ -304,10 +312,10 @@ export default function HotelDetailPage() {
                             </div>
                           )}
 
-                          <div className="mt-4 pt-4 border-t border-gray-600">
+                          <div className="mt-4 pt-4 border-t border-gray-200">
                             <Button
                               onClick={() => handleBooking(room.id)}
-                              className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
+                              className="w-full bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 hover:from-blue-700 hover:via-cyan-700 hover:to-teal-700 text-white font-medium py-2.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
                               disabled={!isAuthenticated()}
                             >
                               {isAuthenticated() ? 'Select Room' : 'Login to Book'}

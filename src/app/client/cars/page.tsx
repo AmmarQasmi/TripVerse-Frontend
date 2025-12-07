@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -23,7 +24,8 @@ interface CarSearchFormData {
 }
 
 export default function CarsPage() {
-  const { user } = useAuth()
+  const router = useRouter()
+  const { user, isLoading: authLoading } = useAuth()
   const [searchParams, setSearchParams] = useState<CarSearchFormData>({
     pickupLocation: user?.city?.region || '',
     dropoffLocation: '',
@@ -33,27 +35,108 @@ export default function CarsPage() {
     dropoffTime: '10:00',
     carType: '',
   })
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
 
-  // Read query parameters from URL on mount
+  // Read URL params immediately on mount (before auth check)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search)
       const pickupLocation = urlParams.get('pickupLocation')
+      const dropoffLocation = urlParams.get('dropoffLocation')
       const pickupDate = urlParams.get('pickupDate')
       const returnDate = urlParams.get('returnDate')
+      const pickupTime = urlParams.get('pickupTime')
+      const dropoffTime = urlParams.get('dropoffTime')
       const vehicleType = urlParams.get('vehicleType')
 
       if (pickupLocation || pickupDate || returnDate) {
         setSearchParams(prev => ({
           ...prev,
           pickupLocation: pickupLocation || prev.pickupLocation,
+          dropoffLocation: dropoffLocation || prev.dropoffLocation,
           pickupDate: pickupDate || prev.pickupDate,
           dropoffDate: returnDate || prev.dropoffDate,
+          pickupTime: pickupTime || prev.pickupTime,
+          dropoffTime: dropoffTime || prev.dropoffTime,
           carType: vehicleType || prev.carType,
         }))
       }
     }
-  }, [])
+  }, []) // Run immediately on mount
+
+  // Check authentication and restore cached data on mount
+  useEffect(() => {
+    if (authLoading) return // Wait for auth to load
+    
+    if (!user) {
+      // User not authenticated - redirect to login with current URL as redirect
+      const currentUrl = window.location.pathname + window.location.search
+      router.push(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`)
+      return
+    }
+
+    // User is authenticated - proceed with restoring cached data
+    if (typeof window !== 'undefined' && !hasCheckedAuth) {
+      setHasCheckedAuth(true)
+      
+      // First, try to get data from URL params
+      const urlParams = new URLSearchParams(window.location.search)
+      const pickupLocation = urlParams.get('pickupLocation')
+      const dropoffLocation = urlParams.get('dropoffLocation')
+      const pickupDate = urlParams.get('pickupDate')
+      const returnDate = urlParams.get('returnDate')
+      const pickupTime = urlParams.get('pickupTime')
+      const dropoffTime = urlParams.get('dropoffTime')
+      const vehicleType = urlParams.get('vehicleType')
+
+      if (pickupLocation || pickupDate || returnDate) {
+        // Use URL params if available
+        setSearchParams(prev => ({
+          ...prev,
+          pickupLocation: pickupLocation || prev.pickupLocation,
+          dropoffLocation: dropoffLocation || prev.dropoffLocation,
+          pickupDate: pickupDate || prev.pickupDate,
+          dropoffDate: returnDate || prev.dropoffDate,
+          pickupTime: pickupTime || prev.pickupTime,
+          dropoffTime: dropoffTime || prev.dropoffTime,
+          carType: vehicleType || prev.carType,
+        }))
+      } else {
+        // Try to restore from cache
+        const cachedData = localStorage.getItem('cached_rental_search')
+        if (cachedData) {
+          try {
+            const cached = JSON.parse(cachedData)
+            if (cached.pickupLocation || cached.pickupDate) {
+              setSearchParams(prev => ({
+                ...prev,
+                pickupLocation: cached.pickupLocation || prev.pickupLocation,
+                dropoffLocation: cached.dropoffLocation || prev.dropoffLocation,
+                pickupDate: cached.pickupDate || prev.pickupDate,
+                dropoffDate: cached.returnDate || prev.dropoffDate,
+                pickupTime: cached.pickupTime || prev.pickupTime,
+                dropoffTime: cached.dropoffTime || prev.dropoffTime,
+                carType: cached.vehicleType || prev.carType,
+              }))
+              
+              // Update URL to reflect cached data
+              const newUrlParams = new URLSearchParams()
+              if (cached.pickupLocation) newUrlParams.set('pickupLocation', cached.pickupLocation)
+              if (cached.dropoffLocation) newUrlParams.set('dropoffLocation', cached.dropoffLocation)
+              if (cached.pickupDate) newUrlParams.set('pickupDate', cached.pickupDate)
+              if (cached.returnDate) newUrlParams.set('returnDate', cached.returnDate)
+              if (cached.pickupTime) newUrlParams.set('pickupTime', cached.pickupTime)
+              if (cached.dropoffTime) newUrlParams.set('dropoffTime', cached.dropoffTime)
+              if (cached.vehicleType) newUrlParams.set('vehicleType', cached.vehicleType)
+              window.history.replaceState({}, '', `${window.location.pathname}?${newUrlParams.toString()}`)
+            }
+          } catch (error) {
+            console.error('Error parsing cached rental search data:', error)
+          }
+        }
+      }
+    }
+  }, [user, authLoading, router, hasCheckedAuth])
   
   const [filters, setFilters] = useState<CarFilterState>({
     priceRange: [0, 10000],

@@ -44,7 +44,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Get the auth token from cookies or headers
-  const token = request.cookies.get('auth_token')?.value || 
+  const token = request.cookies.get('access_token')?.value ||  // CHANGE from 'auth_token' to 'access_token'
                 request.headers.get('authorization')?.replace('Bearer ', '')
 
   // If no token and route requires auth, redirect to login

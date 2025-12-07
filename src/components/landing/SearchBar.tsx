@@ -24,6 +24,9 @@ export function SearchBar() {
   const [hotelDestination, setHotelDestination] = useState('')
   const [hotelGuests, setHotelGuests] = useState('2')
   const [carPickupLocation, setCarPickupLocation] = useState('')
+  const [carDropoffLocation, setCarDropoffLocation] = useState('')
+  const [carPickupTime, setCarPickupTime] = useState('10:00')
+  const [carDropoffTime, setCarDropoffTime] = useState('10:00')
   const [carVehicleType, setCarVehicleType] = useState('Any')
 
   const handleSearch = (e: React.FormEvent) => {
@@ -34,6 +37,18 @@ export function SearchBar() {
     
     switch (searchType) {
       case 'flight':
+        // Cache flight search data
+        const flightSearchData = {
+          from: flightFrom,
+          to: flightTo,
+          departure: departureDate,
+          return: returnDate,
+          travelers: travelers,
+        }
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('cached_flight_search', JSON.stringify(flightSearchData))
+        }
+        
         if (flightFrom) params.set('from', flightFrom)
         if (flightTo) params.set('to', flightTo)
         if (departureDate) params.set('departure', departureDate)
@@ -42,6 +57,17 @@ export function SearchBar() {
         router.push(`/client/flights?${params.toString()}`)
         break
       case 'hotel':
+        // Cache hotel search data - use 'location' to match form field name
+        const hotelSearchData = {
+          location: hotelDestination, // This will be stored as 'location' in cache
+          checkIn: checkInDate,
+          checkOut: checkOutDate,
+          guests: hotelGuests,
+        }
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('cached_hotel_search', JSON.stringify(hotelSearchData))
+        }
+        
         if (hotelDestination) params.set('location', hotelDestination)
         if (checkInDate) params.set('checkIn', checkInDate)
         if (checkOutDate) params.set('checkOut', checkOutDate)
@@ -49,9 +75,26 @@ export function SearchBar() {
         router.push(`/client/hotels?${params.toString()}`)
         break
       case 'rental':
+        // Cache rental search data
+        const rentalSearchData = {
+          pickupLocation: carPickupLocation,
+          dropoffLocation: carDropoffLocation,
+          pickupDate: pickupDate,
+          returnDate: returnCarDate,
+          pickupTime: carPickupTime,
+          dropoffTime: carDropoffTime,
+          vehicleType: carVehicleType,
+        }
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('cached_rental_search', JSON.stringify(rentalSearchData))
+        }
+        
         if (carPickupLocation) params.set('pickupLocation', carPickupLocation)
+        if (carDropoffLocation) params.set('dropoffLocation', carDropoffLocation)
         if (pickupDate) params.set('pickupDate', pickupDate)
         if (returnCarDate) params.set('returnDate', returnCarDate)
+        if (carPickupTime) params.set('pickupTime', carPickupTime)
+        if (carDropoffTime) params.set('dropoffTime', carDropoffTime)
         if (carVehicleType && carVehicleType !== 'Any') params.set('vehicleType', carVehicleType)
         router.push(`/client/cars?${params.toString()}`)
         break
@@ -257,52 +300,84 @@ export function SearchBar() {
           )}
 
           {searchType === 'rental' && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none text-white">Pickup Location</label>
-                <input
-                  type="text"
-                  placeholder="City or address"
-                  value={carPickupLocation}
-                  onChange={(e) => setCarPickupLocation(e.target.value)}
-                  className={inputClasses}
-                />
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none text-white">Pickup Location</label>
+                  <input
+                    type="text"
+                    placeholder="City or address"
+                    value={carPickupLocation}
+                    onChange={(e) => setCarPickupLocation(e.target.value)}
+                    className={inputClasses}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none text-white">Drop-off Location</label>
+                  <input
+                    type="text"
+                    placeholder="Same as pickup (optional)"
+                    value={carDropoffLocation}
+                    onChange={(e) => setCarDropoffLocation(e.target.value)}
+                    className={inputClasses}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none text-white">Pickup Date</label>
+                  <input
+                    type="date"
+                    value={pickupDate}
+                    onChange={(e) => setPickupDate(e.target.value)}
+                    min={today}
+                    className={dateInputClasses}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none text-white">Drop-off Date</label>
+                  <input
+                    type="date"
+                    value={returnCarDate}
+                    onChange={(e) => setReturnCarDate(e.target.value)}
+                    min={pickupDate || today}
+                    className={dateInputClasses}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none text-white">Pickup Date</label>
-                <input
-                  type="date"
-                  value={pickupDate}
-                  onChange={(e) => setPickupDate(e.target.value)}
-                  min={today}
-                  className={dateInputClasses}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none text-white">Pickup Time</label>
+                  <input
+                    type="time"
+                    value={carPickupTime}
+                    onChange={(e) => setCarPickupTime(e.target.value)}
+                    className={inputClasses}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none text-white">Drop-off Time</label>
+                  <input
+                    type="time"
+                    value={carDropoffTime}
+                    onChange={(e) => setCarDropoffTime(e.target.value)}
+                    className={inputClasses}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none text-white">Vehicle Type</label>
+                  <select 
+                    value={carVehicleType}
+                    onChange={(e) => setCarVehicleType(e.target.value)}
+                    className={inputClasses}
+                  >
+                    <option className="bg-gray-800 text-white">Any</option>
+                    <option className="bg-gray-800 text-white">Sedan</option>
+                    <option className="bg-gray-800 text-white">SUV</option>
+                    <option className="bg-gray-800 text-white">Van</option>
+                    <option className="bg-gray-800 text-white">Luxury</option>
+                  </select>
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none text-white">Return Date</label>
-                <input
-                  type="date"
-                  value={returnCarDate}
-                  onChange={(e) => setReturnCarDate(e.target.value)}
-                  min={pickupDate || today}
-                  className={dateInputClasses}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none text-white">Vehicle Type</label>
-                <select 
-                  value={carVehicleType}
-                  onChange={(e) => setCarVehicleType(e.target.value)}
-                  className={inputClasses}
-                >
-                  <option className="bg-gray-800 text-white">Any</option>
-                  <option className="bg-gray-800 text-white">Sedan</option>
-                  <option className="bg-gray-800 text-white">SUV</option>
-                  <option className="bg-gray-800 text-white">Van</option>
-                  <option className="bg-gray-800 text-white">Luxury</option>
-                </select>
-              </div>
-            </div>
+            </>
           )}
 
           <div className="mt-6 flex justify-center">

@@ -8,7 +8,12 @@ export const hotelsApi = {
   },
 
   getById: async (id: string) => {
-    return httpClient.get<Hotel>(API_ENDPOINTS.HOTELS.BY_ID(id))
+    const response = await httpClient.get<any>(API_ENDPOINTS.HOTELS.BY_ID(id))
+    // Backend returns hotel object directly, but check if wrapped in data property
+    const hotel = response.data || response
+    console.log('API Response for hotel:', hotel)
+    console.log('Images in API response:', hotel?.images)
+    return hotel as Hotel
   },
 
   search: async (params: HotelSearchParams) => {

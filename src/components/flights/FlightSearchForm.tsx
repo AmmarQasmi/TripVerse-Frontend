@@ -1,25 +1,55 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { MapPin, Calendar, Users, Plane, RotateCcw } from 'lucide-react'
 
 interface FlightSearchFormProps {
   onSearch: (params: any) => void
   isLoading?: boolean
+  initialParams?: {
+    origin?: string
+    destination?: string
+    departureDate?: string
+    returnDate?: string
+    travelers?: number
+  }
 }
 
-export function FlightSearchForm({ onSearch, isLoading = false }: FlightSearchFormProps) {
+export function FlightSearchForm({ onSearch, isLoading = false, initialParams }: FlightSearchFormProps) {
   const [tripType, setTripType] = useState<'ONE_WAY' | 'ROUND_TRIP' | 'MULTI_CITY'>('ONE_WAY')
   const [searchParams, setSearchParams] = useState({
-    origin: '',
-    destination: '',
-    departureDate: '',
-    returnDate: '',
-    passengers: { adults: 1, children: 0, infants: 0 },
+    origin: initialParams?.origin || '',
+    destination: initialParams?.destination || '',
+    departureDate: initialParams?.departureDate || '',
+    returnDate: initialParams?.returnDate || '',
+    passengers: { adults: initialParams?.travelers || 1, children: 0, infants: 0 },
     cabinClass: 'ECONOMY'
   })
+
+  // Sync when initialParams changes
+  useEffect(() => {
+    if (initialParams) {
+      setSearchParams(prev => ({
+        ...prev,
+        origin: initialParams.origin || prev.origin,
+        destination: initialParams.destination || prev.destination,
+        departureDate: initialParams.departureDate || prev.departureDate,
+        returnDate: initialParams.returnDate || prev.returnDate,
+        passengers: {
+          ...prev.passengers,
+          adults: initialParams.travelers || prev.passengers.adults
+        }
+      }))
+    }
+  }, [
+    initialParams?.origin,
+    initialParams?.destination,
+    initialParams?.departureDate,
+    initialParams?.returnDate,
+    initialParams?.travelers
+  ])
   const [multiLegs, setMultiLegs] = useState<Array<{ origin: string; destination: string; date: string }>>([
     { origin: '', destination: '', date: '' },
   ])

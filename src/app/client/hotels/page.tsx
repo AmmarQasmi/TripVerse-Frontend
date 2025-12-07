@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -59,17 +60,19 @@ const pickHDImage = (location: string, name: string) => {
 }
 
 export default function HotelsPage() {
-  const { user } = useAuth()
+  const router = useRouter()
+  const { user, isLoading: authLoading } = useAuth()
   const [searchParams, setSearchParams] = useState({
     query: '',
-    location: user?.city?.region || '',
+    location: '',
     checkIn: '',
     checkOut: '',
     guests: 1,
     rooms: 1,
   })
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
 
-  // Read query parameters from URL on mount
+  // Read URL params immediately on mount (before auth check)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search)
@@ -81,17 +84,85 @@ export default function HotelsPage() {
       if (location || checkIn || checkOut) {
         const newParams = {
           query: '',
-          location: location || searchParams.location,
-          checkIn: checkIn || searchParams.checkIn,
-          checkOut: checkOut || searchParams.checkOut,
-          guests: guests ? parseInt(guests, 10) : searchParams.guests,
+          location: location || '',
+          checkIn: checkIn || '',
+          checkOut: checkOut || '',
+          guests: guests ? parseInt(guests, 10) : 1,
           rooms: 1,
         }
         setSearchParams(newParams)
         setShowAllHotels(false) // Filter by location when URL params are present
       }
     }
-  }, [])
+  }, []) // Run immediately on mount
+
+  // Check authentication and restore cached data on mount
+  useEffect(() => {
+    if (authLoading) return // Wait for auth to load
+    
+    if (!user) {
+      // User not authenticated - redirect to login with current URL as redirect
+      const currentUrl = window.location.pathname + window.location.search
+      router.push(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`)
+      return
+    }
+
+    // User is authenticated - proceed with restoring cached data
+    if (typeof window !== 'undefined' && !hasCheckedAuth) {
+      setHasCheckedAuth(true)
+      
+      // First, try to get data from URL params
+      const urlParams = new URLSearchParams(window.location.search)
+      const location = urlParams.get('location')
+      const checkIn = urlParams.get('checkIn')
+      const checkOut = urlParams.get('checkOut')
+      const guests = urlParams.get('guests')
+
+      if (location || checkIn || checkOut) {
+        // Use URL params if available
+        const newParams = {
+          query: '',
+          location: location || '',
+          checkIn: checkIn || '',
+          checkOut: checkOut || '',
+          guests: guests ? parseInt(guests, 10) : 1,
+          rooms: 1,
+        }
+        setSearchParams(newParams)
+        setShowAllHotels(false) // Filter by location when URL params are present
+      } else {
+        // Try to restore from cache
+        const cachedData = localStorage.getItem('cached_hotel_search')
+        if (cachedData) {
+          try {
+            const cached = JSON.parse(cachedData)
+            if (cached.location || cached.checkIn || cached.checkOut) {
+              const newParams = {
+                query: '',
+                location: cached.location || '',
+                checkIn: cached.checkIn || '',
+                checkOut: cached.checkOut || '',
+                guests: cached.guests ? parseInt(cached.guests, 10) : 1,
+                rooms: 1,
+              }
+              setSearchParams(newParams)
+              setShowAllHotels(false)
+              
+              // Update URL to reflect cached data
+              const newUrlParams = new URLSearchParams()
+              if (cached.location) newUrlParams.set('location', cached.location)
+              if (cached.checkIn) newUrlParams.set('checkIn', cached.checkIn)
+              if (cached.checkOut) newUrlParams.set('checkOut', cached.checkOut)
+              if (cached.guests) newUrlParams.set('guests', cached.guests)
+              window.history.replaceState({}, '', `${window.location.pathname}?${newUrlParams.toString()}`)
+            }
+          } catch (error) {
+            console.error('Error parsing cached hotel search data:', error)
+          }
+        }
+      }
+    }
+  }, [user, authLoading, router, hasCheckedAuth])
   const [filters, setFilters] = useState({
     priceRange: [5000, 25000] as [number, number],
     starRating: [] as number[],
@@ -127,18 +198,12 @@ export default function HotelsPage() {
     }
   })
 
-  // Auto-load user's region hotels on first visit
+  // Mark initial load as complete after auth check
   useEffect(() => {
-    if (isInitialLoad) {
-      if (user?.city?.region) {
-        setSearchParams(prev => ({ ...prev, location: user.city.region || '' }))
-        setShowAllHotels(false)
-      } else {
-        setShowAllHotels(true) // Show all hotels if no user location
-      }
+    if (hasCheckedAuth) {
       setIsInitialLoad(false)
     }
-  }, [user?.city?.region, isInitialLoad])
+  }, [hasCheckedAuth])
 
   const handleSearch = (newParams: typeof searchParams) => {
     setSearchParams(newParams)
