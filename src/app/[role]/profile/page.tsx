@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { DashboardHeader } from '@/components/shared/DashboardHeader'
-import { LandingHeader } from '@/components/landing/LandingHeader'
 import { ProfileForm } from '@/components/shared/ProfileForm'
 import { PasswordChangeForm } from '@/components/shared/PasswordChangeForm'
 import { EmailChangeForm } from '@/components/shared/EmailChangeForm'
@@ -14,7 +12,6 @@ import { Card, CardContent } from '@/components/ui/Card'
 
 export default function ProfilePage() {
   const { user } = useAuth()
-  const isClient = user?.role === 'client'
   const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -47,10 +44,9 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        {isClient ? <LandingHeader /> : <DashboardHeader title="Profile" />}
+      <div className="min-h-screen bg-white">
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-white text-xl">Loading profile...</div>
+          <div className="text-gray-900 text-xl">Loading profile...</div>
         </div>
       </div>
     )
@@ -58,12 +54,11 @@ export default function ProfilePage() {
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        {isClient ? <LandingHeader /> : <DashboardHeader title="Profile" />}
+      <div className="min-h-screen bg-white">
         <div className="container mx-auto px-4 py-8">
-          <Card className="bg-red-500/20 border-red-500">
+          <Card className="bg-red-50 border-red-200">
             <CardContent className="p-6">
-              <p className="text-white">{error || 'Profile not found'}</p>
+              <p className="text-red-600">{error || 'Profile not found'}</p>
             </CardContent>
           </Card>
         </div>
@@ -72,9 +67,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      {isClient ? <LandingHeader /> : <DashboardHeader title="My Profile" subtitle="Manage your personal information" />}
-      <div className={`container mx-auto px-4 py-8 ${isClient ? 'pt-24' : ''}`}>
+    <div className="min-h-screen bg-white">
+      <div className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

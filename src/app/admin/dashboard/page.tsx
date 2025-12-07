@@ -5,8 +5,9 @@ import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { DoughnutChart } from '@/components/client/DoughnutChart'
-import { DashboardHeader } from '@/components/shared/DashboardHeader'
 import { SimpleChart } from '@/components/shared/SimpleChart'
+import { StatsModal } from '@/components/client/StatsModal'
+import { PageLoader } from '@/components/shared/PageLoader'
 import Link from 'next/link'
 import { adminApi, AdminDashboardStats } from '@/lib/api/admin.api'
 
@@ -15,6 +16,8 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [pendingSuspensions, setPendingSuspensions] = useState<any>(null)
+  const [modalType, setModalType] = useState<string | null>(null)
+  const [modalData, setModalData] = useState<any[]>([])
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
@@ -47,12 +50,74 @@ export default function AdminDashboard() {
     }).format(amount)
   }
 
+  const handleChartClick = async (type: string) => {
+    setModalType(type)
+    try {
+      let data: any[] = []
+      switch (type) {
+        case 'Total Drivers':
+          const driversResponse = await adminApi.getAllDrivers({ limit: 100 }) as any
+          data = (driversResponse?.data || []).map((driver: any) => ({
+            id: driver.id,
+            type: 'car' as const,
+            name: driver.user?.full_name || `Driver #${driver.id}`,
+            date: driver.user?.created_at || new Date().toISOString(),
+            status: driver.is_verified ? 'verified' : 'pending',
+            amount: 0,
+          }))
+          break
+        case 'Hotel Managers':
+          // Note: This endpoint may need to be added to adminApi
+          const managersResponse = await adminApi.getAllUsers({ role: 'hotel_manager', limit: 100 }) as any
+          data = (managersResponse?.data || []).map((manager: any) => ({
+            id: manager.id,
+            type: 'hotel' as const,
+            name: manager.full_name || `Hotel Manager #${manager.id}`,
+            date: manager.created_at || new Date().toISOString(),
+            status: 'active',
+            amount: 0,
+          }))
+          break
+        case 'Total Bookings':
+          // Note: This endpoint may need to be added
+          const bookingsResponse = await adminApi.getAllPayments({ limit: 100 }) as any
+          data = (bookingsResponse?.data || []).map((payment: any) => ({
+            id: payment.id,
+            type: payment.booking_type || 'car' as const,
+            name: payment.description || `Booking #${payment.id}`,
+            date: payment.created_at || new Date().toISOString(),
+            status: payment.status || 'completed',
+            amount: payment.amount || 0,
+          }))
+          break
+        case 'Pending Disputes':
+          const disputesResponse = await adminApi.getAllDisputes({ status: 'pending', limit: 100 }) as any
+          data = (disputesResponse?.data || []).map((dispute: any) => ({
+            id: dispute.id,
+            type: dispute.booking_type || 'car' as const,
+            name: dispute.description || `Dispute #${dispute.id}`,
+            date: dispute.created_at || new Date().toISOString(),
+            status: dispute.status || 'pending',
+            amount: dispute.refund_amount || 0,
+          }))
+          break
+        default:
+          data = []
+      }
+      setModalData(data)
+    } catch (err) {
+      console.error('Error fetching modal data:', err)
+      setModalData([])
+    }
+  }
+
+  const closeModal = () => {
+    setModalType(null)
+    setModalData([])
+  }
+
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-gray-900 text-xl">Loading dashboard...</div>
-      </div>
-    )
+    return <PageLoader message="Loading dashboard..." />
   }
 
   if (error) {
@@ -80,35 +145,43 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-white">
-      <DashboardHeader 
-        title="Admin Dashboard"
-        subtitle="Manage your platform and monitor system performance"
-      />
       <div className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-
-          {/* Primary Stats Cards - Doughnut Charts */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          {/* Stats Overview Section */}
+          <motion.section 
+            className="mb-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center">
+              <span className="animated-gradient-text">
+                Dashboard Overview
+              </span>
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
             <DoughnutChart
               label="Total Drivers"
               value={stats.drivers.total}
               gradient="bg-gradient-to-br from-blue-500 to-cyan-500"
               delay={0.1}
+              onClick={() => handleChartClick('Total Drivers')}
             />
             <DoughnutChart
               label="Hotel Managers"
               value={stats.hotel_managers?.total || 0}
               gradient="bg-gradient-to-br from-purple-500 to-pink-500"
               delay={0.15}
+              onClick={() => handleChartClick('Hotel Managers')}
             />
             <DoughnutChart
               label="Total Bookings"
               value={stats.bookings.total}
               gradient="bg-gradient-to-br from-cyan-500 to-blue-500"
               delay={0.2}
+              onClick={() => handleChartClick('Total Bookings')}
             />
             <DoughnutChart
               label="Total Revenue"
@@ -121,6 +194,7 @@ export default function AdminDashboard() {
               value={stats.disputes.pending}
               gradient="bg-gradient-to-br from-teal-500 to-emerald-500"
               delay={0.4}
+              onClick={() => handleChartClick('Pending Disputes')}
             />
           </div>
 
@@ -438,9 +512,35 @@ export default function AdminDashboard() {
                </Card>
              </div>
            </motion.div>
+          </motion.section>
 
          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8 items-stretch">
+          <motion.section 
+            className="mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <div className="mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">
+                <motion.span
+                  className="animated-gradient-text"
+                  initial={{ backgroundPosition: '0% 50%' }}
+                  animate={{ backgroundPosition: '100% 50%' }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                  style={{
+                    background: 'linear-gradient(90deg, #000 40%, #0891b2 50%, #000 60%)',
+                    backgroundSize: '200% auto',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  Quick Actions
+                </motion.span>
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8 items-stretch">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -556,6 +656,7 @@ export default function AdminDashboard() {
               </Link>
             </motion.div>
           </div>
+          </motion.section>
 
           {/* Recent Pending Drivers */}
           {stats.recent_pending_drivers && stats.recent_pending_drivers.length > 0 && (
@@ -592,6 +693,14 @@ export default function AdminDashboard() {
           )}
         </motion.div>
       </div>
+
+      {/* Stats Modal */}
+      <StatsModal
+        isOpen={modalType !== null}
+        onClose={closeModal}
+        title={modalType || ''}
+        data={modalData}
+      />
     </div>
   )
 }

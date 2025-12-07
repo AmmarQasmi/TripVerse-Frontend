@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
-import { LandingHeader } from '@/components/landing/LandingHeader'
 import { useForecast, useCurrentWeatherByCity } from '@/features/weather/useForecast'
 import { useAuth } from '@/features/auth/useAuth'
 import { usersApi } from '@/lib/api/users.api'
@@ -112,8 +111,7 @@ export default function WeatherPage() {
   if (isLoading && !currentWeather) {
     return (
       <div className="min-h-screen relative overflow-hidden bg-gradient-to-b from-blue-700 via-cyan-700 to-teal-700">
-        <LandingHeader />
-        <div className="container mx-auto px-4 py-8 pt-24 relative z-10">
+        <div className="container mx-auto px-4 py-8 relative z-10">
           <div className="animate-pulse space-y-6">
             <div className="h-12 bg-white/20 backdrop-blur-lg rounded-xl w-1/3"></div>
             <div className="h-80 bg-white/10 backdrop-blur-lg rounded-2xl"></div>
@@ -174,8 +172,7 @@ export default function WeatherPage() {
         ))}
       </div>
 
-      <LandingHeader />
-      <div className="container mx-auto px-4 py-8 pt-24 relative z-10">
+      <div className="container mx-auto px-4 py-8 relative z-10">
         {/* City Selector */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}

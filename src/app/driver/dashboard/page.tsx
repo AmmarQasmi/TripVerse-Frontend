@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { CircularStatsCard } from '@/components/driver/CircularStatsCard'
+import { DoughnutChart } from '@/components/client/DoughnutChart'
 import { SuspensionStatusCard } from '@/components/driver/SuspensionStatusCard'
 import { DisputeWarningBadge } from '@/components/shared/DisputeWarningBadge'
-import { DashboardHeader } from '@/components/shared/DashboardHeader'
 import { DriverBookingsModal } from '@/components/driver/DriverBookingsModal'
+import { StatsModal } from '@/components/client/StatsModal'
+import { PageLoader } from '@/components/shared/PageLoader'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/features/auth/useAuth'
@@ -25,6 +26,8 @@ export default function DriverDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showBookingsModal, setShowBookingsModal] = useState(false)
+  const [modalType, setModalType] = useState<string | null>(null)
+  const [modalData, setModalData] = useState<any[]>([])
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -78,11 +81,7 @@ export default function DriverDashboard() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-gray-900 text-xl">Loading...</div>
-      </div>
-    )
+    return <PageLoader message="Loading dashboard..." />
   }
 
   if (error) {
@@ -112,10 +111,6 @@ export default function DriverDashboard() {
 
   return (
     <div className="min-h-screen bg-white">
-      <DashboardHeader 
-        title={`Welcome back, ${user?.full_name || 'Driver'}!`}
-        subtitle="Manage your car rentals and earnings"
-      />
       <div className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -146,38 +141,88 @@ export default function DriverDashboard() {
             </motion.div>
           )}
 
-          {/* Stats Cards - Circular Gauge Style */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <CircularStatsCard
-              label="Total Earnings"
-              value={`PKR ${stats.total_earnings.toLocaleString()}`}
-              subtitle="All time"
-              delay={0.1}
-              maxValue={Math.max(stats.total_earnings, 100000)}
-            />
-            <CircularStatsCard
-              label="Incoming Requests"
-              value={stats.incoming_requests}
-              subtitle="Awaiting your response"
-              delay={0.2}
-              maxValue={Math.max(stats.incoming_requests, 10)}
-            />
-            <CircularStatsCard
-              label="Confirmed Bookings"
-              value={stats.confirmed_bookings}
-              subtitle="Active bookings"
-              delay={0.3}
-              maxValue={Math.max(stats.confirmed_bookings, 10)}
-              onClick={() => setShowBookingsModal(true)}
-            />
-            <CircularStatsCard
-              label="Car Listings"
-              value={stats.car_listings_count}
-              subtitle={`${stats.active_cars_count} active`}
-              delay={0.4}
-              maxValue={Math.max(stats.car_listings_count, 10)}
-            />
-          </div>
+          {/* Stats Overview Section */}
+          <motion.section 
+            className="mb-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center">
+              <span className="animated-gradient-text">
+                Dashboard Overview
+              </span>
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <DoughnutChart
+                label="Total Earnings"
+                value={`PKR ${stats.total_earnings.toLocaleString()}`}
+                gradient="bg-gradient-to-br from-green-500 to-emerald-500"
+                delay={0.1}
+                subtitle="All time"
+                onClick={() => {
+                  if (!dashboard) return
+                  // Prepare earnings data from recent bookings
+                  const earningsData = (dashboard.recent_bookings || [])
+                    .filter((b: any) => b.driver_earnings > 0)
+                    .map((b: any) => ({
+                      id: b.id,
+                      type: 'car' as const,
+                      name: `${b.car?.make || ''} ${b.car?.model || ''}`.trim() || 'Car Booking',
+                      date: b.created_at || new Date().toISOString(),
+                      status: b.status,
+                      amount: b.driver_earnings || 0,
+                      startDate: b.start_date,
+                      endDate: b.end_date,
+                    }))
+                  setModalData(earningsData)
+                  setModalType('Total Earnings')
+                }}
+              />
+              <DoughnutChart
+                label="Incoming Requests"
+                value={stats.incoming_requests}
+                gradient="bg-gradient-to-br from-blue-500 to-cyan-500"
+                delay={0.2}
+                subtitle="Awaiting your response"
+                onClick={() => {
+                  if (!dashboard) return
+                  // Show pending bookings
+                  const pendingData = (dashboard.recent_bookings || [])
+                    .filter((b: any) => b.status === 'PENDING_DRIVER_ACCEPTANCE')
+                    .map((b: any) => ({
+                      id: b.id,
+                      type: 'car' as const,
+                      name: `${b.car?.make || ''} ${b.car?.model || ''}`.trim() || 'Car Booking',
+                      date: b.created_at || new Date().toISOString(),
+                      status: b.status,
+                      amount: b.total_amount || 0,
+                      startDate: b.start_date,
+                      endDate: b.end_date,
+                    }))
+                  setModalData(pendingData)
+                  setModalType('Incoming Requests')
+                }}
+              />
+              <DoughnutChart
+                label="Confirmed Bookings"
+                value={stats.confirmed_bookings}
+                gradient="bg-gradient-to-br from-purple-500 to-pink-500"
+                delay={0.3}
+                subtitle="Active bookings"
+                onClick={() => setShowBookingsModal(true)}
+              />
+              <DoughnutChart
+                label="Car Listings"
+                value={stats.car_listings_count}
+                gradient="bg-gradient-to-br from-orange-500 to-red-500"
+                delay={0.4}
+                subtitle={`${stats.active_cars_count} active`}
+                onClick={() => {
+                  router.push('/driver/cars')
+                }}
+              />
+            </div>
+          </motion.section>
 
           {/* Quick Actions - Plan Trips Style */}
           <motion.section 
@@ -648,6 +693,18 @@ export default function DriverDashboard() {
         isOpen={showBookingsModal}
         onClose={() => setShowBookingsModal(false)}
         bookings={dashboard.recent_bookings}
+      />
+
+      {/* Stats Modal for other charts */}
+      <StatsModal
+        isOpen={modalType !== null}
+        onClose={() => {
+          setModalType(null)
+          setModalData([])
+        }}
+        title={modalType || ''}
+        data={modalData}
+        totalAmount={modalType === 'Total Earnings' ? stats.total_earnings : undefined}
       />
     </div>
   )

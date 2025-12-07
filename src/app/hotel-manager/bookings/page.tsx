@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PageLoader } from '@/components/shared/PageLoader'
 import { useAuth } from '@/features/auth/useAuth'
 import { hotelBookingsApi } from '@/lib/api/hotelBookings.api'
 
@@ -97,11 +98,7 @@ export default function HotelManagerBookingsPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-gray-900 text-xl">Loading bookings...</div>
-      </div>
-    )
+    return <PageLoader message="Loading bookings..." />
   }
 
   if (error) {

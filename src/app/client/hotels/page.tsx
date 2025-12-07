@@ -9,7 +9,6 @@ import { HotelSearchForm } from '@/components/hotels/HotelSearchForm'
 import { PopularDestinationsCarousel } from '@/components/hotels/PopularDestinationsCarousel'
 import { useHotelSearch } from '@/features/hotels/useHotelSearch'
 import { useAuth } from '@/features/auth/useAuth'
-import { TransparentHeader } from '@/components/shared/TransparentHeader'
 
 // Helper functions for image fallbacks
 const hdCityImages = [
@@ -157,11 +156,8 @@ export default function HotelsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      {/* Transparent Header */}
-      <TransparentHeader />
-      
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden pt-16">
+      <section className="relative h-screen flex items-center justify-center overflow-hidden pt-0">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image

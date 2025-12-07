@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { CircularStatsCard } from '@/components/driver/CircularStatsCard'
-import { DashboardHeader } from '@/components/shared/DashboardHeader'
+import { DoughnutChart } from '@/components/client/DoughnutChart'
+import { StatsModal } from '@/components/client/StatsModal'
+import { PageLoader } from '@/components/shared/PageLoader'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/features/auth/useAuth'
@@ -20,6 +21,8 @@ export default function HotelManagerDashboard() {
   const [dashboard, setDashboard] = useState<HotelManagerDashboard | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [modalType, setModalType] = useState<string | null>(null)
+  const [modalData, setModalData] = useState<any[]>([])
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -65,11 +68,7 @@ export default function HotelManagerDashboard() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-gray-900 text-xl">Loading...</div>
-      </div>
-    )
+    return <PageLoader message="Loading dashboard..." />
   }
 
   if (error) {
@@ -99,46 +98,90 @@ export default function HotelManagerDashboard() {
 
   return (
     <div className="min-h-screen bg-white">
-      <DashboardHeader 
-        title={`Welcome back, ${user?.full_name || 'Hotel Manager'}!`}
-        subtitle="Manage your hotels and bookings"
-      />
       <div className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          {/* Stats Cards - Circular Gauge Style */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <CircularStatsCard
-              label="Total Earnings"
-              value={`PKR ${stats.total_earnings.toLocaleString()}`}
-              subtitle="All time"
-              delay={0.1}
-              maxValue={Math.max(stats.total_earnings, 100000)}
-            />
-            <CircularStatsCard
-              label="Total Hotels"
-              value={stats.total_hotels}
-              subtitle={`${stats.active_hotels} active`}
-              delay={0.2}
-              maxValue={Math.max(stats.total_hotels, 10)}
-            />
-            <CircularStatsCard
-              label="Total Bookings"
-              value={stats.total_bookings}
-              subtitle={`${stats.confirmed_bookings} confirmed`}
-              delay={0.3}
-              maxValue={Math.max(stats.total_bookings, 10)}
-            />
-            <CircularStatsCard
-              label="Rooms Available"
-              value={stats.rooms_available}
-              subtitle={`${stats.rooms_booked} booked`}
-              delay={0.4}
-              maxValue={Math.max(stats.rooms_available, 50)}
-            />
-          </div>
+          {/* Stats Overview Section */}
+          <motion.section 
+            className="mb-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center">
+              <span className="animated-gradient-text">
+                Dashboard Overview
+              </span>
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <DoughnutChart
+                label="Total Earnings"
+                value={`PKR ${stats.total_earnings.toLocaleString()}`}
+                gradient="bg-gradient-to-br from-green-500 to-emerald-500"
+                delay={0.1}
+                subtitle="All time"
+                onClick={() => {
+                  if (!dashboard) return
+                  // Prepare earnings data from recent bookings
+                  const earningsData = (dashboard.recent_bookings || [])
+                    .filter((b: any) => b.total_amount > 0)
+                    .map((b: any) => ({
+                      id: b.id,
+                      type: 'hotel' as const,
+                      name: b.hotel?.name || 'Hotel Booking',
+                      date: b.created_at || new Date().toISOString(),
+                      status: b.status,
+                      amount: b.total_amount || 0,
+                      checkInDate: b.dates?.check_in,
+                      checkOutDate: b.dates?.check_out,
+                    }))
+                  setModalData(earningsData)
+                  setModalType('Total Earnings')
+                }}
+              />
+              <DoughnutChart
+                label="Total Hotels"
+                value={stats.total_hotels}
+                gradient="bg-gradient-to-br from-blue-500 to-cyan-500"
+                delay={0.2}
+                subtitle={`${stats.active_hotels} active`}
+                onClick={() => {
+                  router.push('/hotel-manager/hotels')
+                }}
+              />
+              <DoughnutChart
+                label="Total Bookings"
+                value={stats.total_bookings}
+                gradient="bg-gradient-to-br from-purple-500 to-pink-500"
+                delay={0.3}
+                subtitle={`${stats.confirmed_bookings} confirmed`}
+                onClick={() => {
+                  if (!dashboard) return
+                  // Prepare bookings data
+                  const bookingsData = (dashboard.recent_bookings || []).map((b: any) => ({
+                    id: b.id,
+                    type: 'hotel' as const,
+                    name: b.hotel?.name || 'Hotel Booking',
+                    date: b.created_at || new Date().toISOString(),
+                    status: b.status,
+                    amount: b.total_amount || 0,
+                    checkInDate: b.dates?.check_in,
+                    checkOutDate: b.dates?.check_out,
+                  }))
+                  setModalData(bookingsData)
+                  setModalType('Total Bookings')
+                }}
+              />
+              <DoughnutChart
+                label="Rooms Available"
+                value={stats.rooms_available}
+                gradient="bg-gradient-to-br from-orange-500 to-red-500"
+                delay={0.4}
+                subtitle={`${stats.rooms_booked} booked`}
+              />
+            </div>
+          </motion.section>
 
           {/* Quick Actions - Plan Trips Style */}
           <motion.section 
@@ -602,6 +645,18 @@ export default function HotelManagerDashboard() {
           </Card>
         </motion.div>
       </div>
+
+      {/* Stats Modal */}
+      <StatsModal
+        isOpen={modalType !== null}
+        onClose={() => {
+          setModalType(null)
+          setModalData([])
+        }}
+        title={modalType || ''}
+        data={modalData}
+        totalAmount={modalType === 'Total Earnings' ? stats.total_earnings : undefined}
+      />
     </div>
   )
 }

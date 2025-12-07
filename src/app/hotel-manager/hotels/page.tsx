@@ -6,9 +6,10 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PageLoader } from '@/components/shared/PageLoader'
 import { useAuth } from '@/features/auth/useAuth'
 import { hotelsApi } from '@/lib/api/hotels.api'
-import { CircularStatsCard } from '@/components/driver/CircularStatsCard'
+import { DoughnutChart } from '@/components/client/DoughnutChart'
 
 interface ManagerHotel {
   id: string
@@ -79,9 +80,7 @@ export default function HotelManagerHotelsPage() {
           backUrl="/hotel-manager/dashboard"
           backLabel="Back to Dashboard"
         />
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-gray-900 text-xl">Loading hotels...</div>
-        </div>
+        <PageLoader message="Loading hotels..." variant="skeleton" />
       </div>
     )
   }
@@ -113,56 +112,45 @@ export default function HotelManagerHotelsPage() {
     <div className="min-h-screen bg-white">
       <PageHeader 
         title="My Hotels"
-        subtitle="Manage your hotel listings"
+        subtitle="Manage your properties and track performance"
         backUrl="/hotel-manager/dashboard"
         backLabel="Back to Dashboard"
+        action={
+          <Link href="/hotel-manager/hotels/new">
+            <Button className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white hover:opacity-90 font-semibold px-6 py-3 rounded-xl">
+              Add New Hotel
+            </Button>
+          </Link>
+        }
       />
       <div className="container mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                My Hotels
-              </h1>
-              <p className="text-lg text-gray-600">
-                Manage your properties and track performance
-              </p>
-            </div>
-            <Link href="/hotel-manager/hotels/new">
-              <Button className="mt-4 md:mt-0 bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold px-6 py-3 rounded-xl">
-                Add New Hotel
-              </Button>
-            </Link>
-          </div>
-        </motion.div>
-
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-          <CircularStatsCard
+          <DoughnutChart
             label="Total Hotels"
             value={totalHotels}
+            gradient="bg-gradient-to-br from-blue-500 to-cyan-500"
             delay={0.1}
             maxValue={Math.max(totalHotels, 10)}
           />
-          <CircularStatsCard
+          <DoughnutChart
             label="Active Hotels"
             value={activeHotels}
+            gradient="bg-gradient-to-br from-green-500 to-emerald-500"
             delay={0.2}
             maxValue={Math.max(totalHotels, 1)}
           />
-          <CircularStatsCard
+          <DoughnutChart
             label="Total Bookings"
             value={totalBookings}
+            gradient="bg-gradient-to-br from-purple-500 to-pink-500"
             delay={0.3}
             maxValue={Math.max(totalBookings, 10)}
           />
-          <CircularStatsCard
+          <DoughnutChart
             label="Total Earnings"
             value={`PKR ${totalEarnings.toLocaleString()}`}
+            gradient="bg-gradient-to-br from-orange-500 to-red-500"
             delay={0.4}
             maxValue={Math.max(totalEarnings, 100000)}
           />

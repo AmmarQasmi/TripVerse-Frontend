@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlane, faCar } from '@fortawesome/free-solid-svg-icons'
-import { LandingHeader } from '@/components/landing/LandingHeader'
 import { DoughnutChart } from '@/components/client/DoughnutChart'
 import { StatsModal } from '@/components/client/StatsModal'
 import { TripCard, NewTripCard } from '@/components/client/TripCard'
@@ -137,11 +136,8 @@ export default function ClientDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Official Website Header */}
-      <LandingHeader />
-
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8 pt-24">
+      <div className="container mx-auto px-4 py-8">
         {/* SECTION 2: Overview Cards - Quick Stats */}
         <motion.section 
           className="mb-12"

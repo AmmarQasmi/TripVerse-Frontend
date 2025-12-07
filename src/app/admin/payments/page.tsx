@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PageLoader } from '@/components/shared/PageLoader'
 import { usePaymentsAdmin } from '@/features/admin/usePaymentsAdmin'
 
 export default function AdminPaymentsPage() {
@@ -65,6 +66,20 @@ export default function AdminPaymentsPage() {
 
   const totalRevenue = payments?.filter((p: any) => p.status === 'COMPLETED').reduce((sum: number, p: any) => sum + p.amount, 0) || 0
   const totalRefunds = payments?.filter((p: any) => p.status === 'REFUNDED').reduce((sum: number, p: any) => sum + (p.refundAmount || 0), 0) || 0
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <PageHeader 
+          title="Payment Management"
+          subtitle="Monitor and manage payment transactions"
+          backUrl="/admin/dashboard"
+          backLabel="Back to Dashboard"
+        />
+        <PageLoader message="Loading payments..." variant="skeleton" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-white">

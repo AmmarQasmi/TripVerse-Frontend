@@ -22,6 +22,7 @@ export default function HotelBookingConfirmationPage() {
   const [isConfirming, setIsConfirming] = useState(false)
   const [countdown, setCountdown] = useState(5)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null) // Time remaining in seconds
 
   useEffect(() => {
     const fetchBooking = async () => {
@@ -40,7 +41,7 @@ export default function HotelBookingConfirmationPage() {
           setBooking(foundBooking)
         } else {
           showToast('Booking not found', 'error')
-          router.push('/client/hotelbookings')
+          router.push('/client/bookings')
         }
       } catch (error: any) {
         console.error('Failed to fetch booking:', error)
@@ -53,6 +54,33 @@ export default function HotelBookingConfirmationPage() {
 
     fetchBooking()
   }, [bookingId, router, showToast])
+
+  // Countdown timer for booking expiration
+  useEffect(() => {
+    if (!booking?.expires_at) return
+
+    const updateTimer = () => {
+      const expiresAt = new Date(booking.expires_at)
+      const now = new Date()
+      const remaining = Math.max(0, Math.floor((expiresAt.getTime() - now.getTime()) / 1000))
+      
+      setTimeRemaining(remaining)
+
+      if (remaining <= 0) {
+        // Booking expired, redirect
+        showToast('Your booking reservation has expired. Please create a new booking.', 'error')
+        router.push('/client/hotelbookings')
+      }
+    }
+
+    // Update immediately
+    updateTimer()
+
+    // Update every second
+    const interval = setInterval(updateTimer, 1000)
+
+    return () => clearInterval(interval)
+  }, [booking?.expires_at, router, showToast])
 
   const handlePaymentSuccess = async () => {
     if (!bookingId) return
@@ -72,7 +100,7 @@ export default function HotelBookingConfirmationPage() {
         setCountdown((prev) => {
           if (prev <= 1) {
             clearInterval(timer)
-            router.push('/client/hotelbookings')
+            router.push('/client/bookings')
             return 0
           }
           return prev - 1
@@ -191,6 +219,23 @@ export default function HotelBookingConfirmationPage() {
             <p className="text-xl text-gray-300">
               Please complete payment to finalize your hotel booking.
             </p>
+            {timeRemaining !== null && timeRemaining > 0 && (
+              <div className="mt-4 p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
+                <p className="text-yellow-300 font-semibold">
+                  ⏰ Room reserved for: {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}
+                </p>
+                <p className="text-yellow-200 text-sm mt-1">
+                  Complete payment within this time to secure your booking
+                </p>
+              </div>
+            )}
+            {timeRemaining !== null && timeRemaining <= 0 && (
+              <div className="mt-4 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
+                <p className="text-red-300 font-semibold">
+                  ⚠️ Booking reservation has expired
+                </p>
+              </div>
+            )}
           </motion.div>
 
           {/* Booking Details */}

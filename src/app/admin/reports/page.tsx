@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PageLoader } from '@/components/shared/PageLoader'
 import { SimpleChart } from '@/components/shared/SimpleChart'
 import { adminApi } from '@/lib/api/admin.api'
 
@@ -59,6 +60,20 @@ export default function AdminReportsPage() {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <PageHeader 
+          title="Reports & Analytics"
+          subtitle="View detailed platform statistics and performance metrics"
+          backUrl="/admin/dashboard"
+          backLabel="Back to Dashboard"
+        />
+        <PageLoader message="Loading reports..." variant="skeleton" />
+      </div>
+    )
   }
 
   return (

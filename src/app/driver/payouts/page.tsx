@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { StatsCard } from '@/components/shared/StatsCard'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PageLoader } from '@/components/shared/PageLoader'
 import { driversApi, DriverEarnings } from '@/lib/api/drivers.api'
 import { useAuth } from '@/features/auth/useAuth'
 
@@ -71,19 +72,15 @@ export default function DriverPayoutsPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading earnings...</div>
-      </div>
-    )
+    return <PageLoader message="Loading earnings..." />
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <Card className="bg-red-500/20 border-red-500">
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Card className="bg-red-50 border-red-500">
           <CardContent className="p-6">
-            <p className="text-white">{error}</p>
+            <p className="text-red-900">{error}</p>
             <Button
               onClick={() => window.location.reload()}
               variant="outline"
@@ -116,10 +113,10 @@ export default function DriverPayoutsPage() {
     .reduce((sum, b) => sum + b.driver_earnings, 0)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <PageHeader 
         title="Earnings & Payouts"
-        subtitle="View your earnings and payout history"
+        subtitle="Track your income and payout history"
         backUrl="/driver/dashboard"
         backLabel="Back to Dashboard"
       />
@@ -128,15 +125,6 @@ export default function DriverPayoutsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">
-              Earnings & Payouts
-            </h1>
-            <p className="text-lg text-gray-300">
-              Track your income and payout history
-            </p>
-          </div>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -172,13 +160,13 @@ export default function DriverPayoutsPage() {
 
           {/* Tabs */}
           <div className="mb-6">
-            <div className="flex space-x-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-1">
+            <div className="flex space-x-2 bg-gray-100 border border-gray-200 rounded-xl p-1">
               <button
                 onClick={() => setActiveTab('overview')}
                 className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
                   activeTab === 'overview'
-                    ? 'bg-white text-gray-900'
-                    : 'text-white hover:bg-white/10'
+                    ? 'bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white shadow-md'
+                    : 'text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 Overview
@@ -187,8 +175,8 @@ export default function DriverPayoutsPage() {
                 onClick={() => setActiveTab('earnings')}
                 className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
                   activeTab === 'earnings'
-                    ? 'bg-white text-gray-900'
-                    : 'text-white hover:bg-white/10'
+                    ? 'bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white shadow-md'
+                    : 'text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 Earnings Detail

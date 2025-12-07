@@ -10,7 +10,6 @@ import { CarFilters, CarFilterState } from '@/components/cars/CarFilters'
 import { CarDestinationsCarousel } from '@/components/cars/CarDestinationsCarousel'
 import { useCarSearch } from '@/features/cars/useCarSearch'
 import { useAuth } from '@/features/auth/useAuth'
-import { TransparentHeader } from '@/components/shared/TransparentHeader'
 import { CarSearchParams } from '@/types'
 
 interface CarSearchFormData {
@@ -119,11 +118,8 @@ export default function CarsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      {/* Transparent Header */}
-      <TransparentHeader />
-      
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden pt-16">
+      <section className="relative h-screen flex items-center justify-center overflow-hidden pt-0">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image

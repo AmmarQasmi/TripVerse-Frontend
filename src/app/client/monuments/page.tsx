@@ -7,7 +7,6 @@ import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { useRecognition } from '@/features/monuments/useRecognition'
 import { monumentsApi } from '@/lib/api/monuments.api'
-import { LandingHeader } from '@/components/landing/LandingHeader'
 
 type ProcessingStep = 'idle' | 'upload' | 'detection' | 'enrichment' | 'complete'
 
@@ -218,9 +217,7 @@ export default function MonumentsPage() {
         />
       ))}
 
-      <LandingHeader />
-      
-      <div className="container mx-auto px-4 md:px-6 py-8 pt-24 max-w-[1200px] relative z-10">
+      <div className="container mx-auto px-4 md:px-6 py-8 max-w-[1200px] relative z-10">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -262,10 +259,22 @@ export default function MonumentsPage() {
                 boxShadow: '0 20px 40px rgba(8, 145, 178, 0.15)'
               }}
             >
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                <span className="text-2xl">📸</span>
-                Upload Monument Photo
-              </h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
+                  <span className="text-2xl">📸</span>
+                  Upload Monument Photo
+                </h2>
+                <Link
+                  href="/client/monuments"
+                  className="text-sm font-semibold text-white bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 flex items-center gap-2 px-4 py-2 rounded-lg transition-all shadow-md hover:shadow-lg"
+                  title="View History"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  History
+                </Link>
+              </div>
 
               {!selectedFile ? (
                 <div

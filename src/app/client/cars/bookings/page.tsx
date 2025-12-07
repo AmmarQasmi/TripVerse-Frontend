@@ -1,20 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useUserBookings } from '@/features/cars/useCarSearch'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { ChatInterface } from '@/components/cars/ChatInterface'
 import { useToast } from '@/components/ui/Toast'
 import { useQueryClient } from '@tanstack/react-query'
-import { LandingHeader } from '@/components/landing/LandingHeader'
+import { PageHeader } from '@/components/shared/PageHeader'
+import { PageLoader } from '@/components/shared/PageLoader'
 import { Card, CardContent } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
 
 export default function CarBookingsPage() {
   const { user, requireAuth, isAuthenticated } = useRequireAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { showToast } = useToast()
   const queryClient = useQueryClient()
   const [selectedBooking, setSelectedBooking] = useState<number | null>(null)
@@ -23,11 +26,29 @@ export default function CarBookingsPage() {
   
   const { data: bookings, isLoading, error } = useUserBookings(statusFilter)
 
+  const canChat = (status: string) => {
+    return ['ACCEPTED', 'CONFIRMED', 'IN_PROGRESS'].includes(status)
+  }
+
+  // Auto-open chat from notification
+  useEffect(() => {
+    const openChatId = searchParams.get('openChat')
+    if (openChatId && bookings && bookings.length > 0) {
+      const bookingId = parseInt(openChatId, 10)
+      const booking = bookings.find((b: any) => b.id === bookingId)
+      if (booking && canChat(booking.status)) {
+        setSelectedBooking(bookingId)
+        setSelectedBookingData(booking)
+        // Remove query parameter from URL
+        router.replace('/client/cars/bookings', { scroll: false })
+      }
+    }
+  }, [searchParams, bookings, router])
+
   if (!isAuthenticated()) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <LandingHeader />
-        <div className="container mx-auto px-4 py-8 pt-24 flex items-center justify-center min-h-[60vh]">
+      <div className="min-h-screen bg-white">
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -88,42 +109,34 @@ export default function CarBookingsPage() {
     }
   }
 
-  const canChat = (status: string) => {
-    return ['ACCEPTED', 'CONFIRMED', 'IN_PROGRESS'].includes(status)
-  }
-
   const handleConfirmBooking = (bookingId: number) => {
     router.push(`/client/cars/booking/confirm?bookingId=${bookingId}`)
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <LandingHeader />
-        <div className="container mx-auto px-4 py-8 pt-24">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-            <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i}>
-                  <CardContent className="p-6">
-                    <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-white">
+        <PageHeader 
+          title="My Car Bookings"
+          subtitle="Manage your car rental bookings and communicate with drivers"
+          backUrl="/client/dashboard"
+          backLabel="Back to Dashboard"
+        />
+        <PageLoader message="Loading bookings..." variant="skeleton" />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <LandingHeader />
-        <div className="container mx-auto px-4 py-8 pt-24 flex items-center justify-center min-h-[60vh]">
+      <div className="min-h-screen bg-white">
+        <PageHeader 
+          title="My Car Bookings"
+          subtitle="Manage your car rental bookings and communicate with drivers"
+          backUrl="/client/dashboard"
+          backLabel="Back to Dashboard"
+        />
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -143,18 +156,14 @@ export default function CarBookingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <LandingHeader />
-      <div className="container mx-auto px-4 py-8 pt-24">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">My Car Bookings</h1>
-          <p className="text-gray-600">Manage your car rental bookings and communicate with drivers</p>
-        </motion.div>
+    <div className="min-h-screen bg-white">
+      <PageHeader 
+        title="My Car Bookings"
+        subtitle="Manage your car rental bookings and communicate with drivers"
+        backUrl="/client/dashboard"
+        backLabel="Back to Dashboard"
+      />
+      <div className="container mx-auto px-4 py-8">
 
         {/* Status Filter */}
         <motion.div
@@ -168,7 +177,7 @@ export default function CarBookingsPage() {
               onClick={() => setStatusFilter('')}
               className={`px-4 py-2 rounded-xl font-semibold transition-all duration-75 ${
                 statusFilter === ''
-                  ? 'bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 text-white shadow-md'
+                  ? 'bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white shadow-md'
                   : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
               }`}
             >
@@ -180,7 +189,7 @@ export default function CarBookingsPage() {
                 onClick={() => setStatusFilter(status)}
                 className={`px-4 py-2 rounded-xl font-semibold transition-all duration-75 ${
                   statusFilter === status
-                    ? 'bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 text-white shadow-md'
+                    ? 'bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white shadow-md'
                     : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
                 }`}
               >
@@ -246,28 +255,30 @@ export default function CarBookingsPage() {
                       <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
                         {booking.status === 'ACCEPTED' && (
                           <Link href={`/client/cars/booking/confirm?bookingId=${booking.id}`}>
-                            <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-75">
+                            <Button className="bg-green-600 hover:bg-green-700 text-white" size="sm">
                               ✅ Confirm & Pay
-                            </button>
+                            </Button>
                           </Link>
                         )}
                         {canChat(booking.status) && (
-                          <button
+                          <Button
                             onClick={() => {
                               setSelectedBooking(booking.id)
                               setSelectedBookingData(booking)
                             }}
-                            className="bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-md transition-all duration-75"
+                            className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white hover:opacity-90"
+                            size="sm"
                           >
                             💬 Chat
-                          </button>
+                          </Button>
                         )}
-                        <button
+                        <Button
                           onClick={() => {/* TODO: View details */}}
-                          className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-50 transition-all duration-75"
+                          variant="outline"
+                          size="sm"
                         >
                           View Details
-                        </button>
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -284,9 +295,9 @@ export default function CarBookingsPage() {
                     {statusFilter ? `No bookings with status "${getStatusText(statusFilter)}"` : 'You haven\'t made any car bookings yet'}
                   </p>
                   <Link href="/client/cars">
-                    <button className="bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-75">
+                    <Button className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white hover:opacity-90">
                       Browse Cars
-                    </button>
+                    </Button>
                   </Link>
                 </CardContent>
               </Card>

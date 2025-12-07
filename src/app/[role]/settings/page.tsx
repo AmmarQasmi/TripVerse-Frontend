@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { DashboardHeader } from '@/components/shared/DashboardHeader'
-import { LandingHeader } from '@/components/landing/LandingHeader'
 import { Toggle } from '@/components/ui/Toggle'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -13,7 +12,8 @@ import { useAuth } from '@/features/auth/useAuth'
 
 export default function SettingsPage() {
   const { user } = useAuth()
-  const isClient = user?.role === 'client'
+  const params = useParams()
+  const role = params.role as string || user?.role || 'client'
   const [settings, setSettings] = useState<UserSettings>({
     notifications_enabled: true,
     email_notifications_enabled: true,
@@ -59,19 +59,17 @@ export default function SettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        {isClient ? <LandingHeader /> : <DashboardHeader title="Settings" />}
+      <div className="min-h-screen bg-white">
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-white text-xl">Loading settings...</div>
+          <div className="text-gray-900 text-xl">Loading settings...</div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      {isClient ? <LandingHeader /> : <DashboardHeader title="Settings" subtitle="Manage your account preferences" />}
-      <div className={`container mx-auto px-4 py-8 ${isClient ? 'pt-24' : ''}`}>
+    <div className="min-h-screen bg-white">
+      <div className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -109,9 +107,9 @@ export default function SettingsPage() {
                 <h4 className="font-medium text-gray-900 mb-2">Account Information</h4>
                 <p className="text-sm text-gray-600">
                   To change your email or password, please visit your{' '}
-                  <a href="/profile" className="text-cyan-600 hover:text-cyan-700 underline">
+                  <Link href={`/${role}/profile`} className="text-cyan-600 hover:text-cyan-700 underline">
                     profile page
-                  </a>
+                  </Link>
                   .
                 </p>
               </div>

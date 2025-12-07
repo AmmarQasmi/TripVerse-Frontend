@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { PageHeader } from '@/components/shared/PageHeader'
+import { PageLoader } from '@/components/shared/PageLoader'
 import { useUserHotelBookings } from '@/features/bookings/useHotelBooking'
 
 export default function BookingsPage() {
@@ -45,12 +47,14 @@ export default function BookingsPage() {
   const bookings = hotelBookings || []
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          My Hotels
-        </h1>
-      </div>
+    <div className="min-h-screen bg-white">
+      <PageHeader 
+        title="My Hotel Bookings"
+        subtitle="View and manage your hotel reservations"
+        backUrl="/client/dashboard"
+        backLabel="Back to Dashboard"
+      />
+      <div className="container mx-auto px-4 py-8">
 
       {/* Bookings List */}
       <div className="space-y-4">
@@ -166,12 +170,15 @@ export default function BookingsPage() {
               <p className="text-gray-400 mb-6">
                 You haven't booked any hotels yet.
               </p>
-              <Button>
-                Browse Hotels
-              </Button>
+              <Link href="/client/hotels">
+                <Button className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white hover:opacity-90">
+                  Browse Hotels
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         )}
+      </div>
       </div>
     </div>
   )
