@@ -61,7 +61,7 @@ export function TransparentHeader() {
             <div className="flex items-center space-x-4">
               <Link 
                 href="/"
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-75"
                 aria-label="Go to home page"
               >
                 <Home className="w-6 h-6 text-white" />
@@ -78,7 +78,7 @@ export function TransparentHeader() {
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-75"
                 aria-label="Upload monument photo"
               >
                 <Camera className="w-6 h-6 text-white" />
@@ -90,7 +90,7 @@ export function TransparentHeader() {
                 <>
                   <Link 
                     href="/client/cars"
-                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors duration-75 border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
                     aria-label="Rent a car"
                   >
                     <FontAwesomeIcon 
@@ -100,7 +100,7 @@ export function TransparentHeader() {
                   </Link>
                   <Link 
                     href="/client/hotels"
-                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors duration-75 border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
                     aria-label="Book hotels"
                   >
                     <FontAwesomeIcon 
@@ -116,7 +116,7 @@ export function TransparentHeader() {
                 <>
                   <Link 
                     href="/client/hotels"
-                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors duration-75 border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
                     aria-label="Book hotels"
                   >
                     <FontAwesomeIcon 
@@ -126,7 +126,7 @@ export function TransparentHeader() {
                   </Link>
                   <Link 
                     href="/client/flights"
-                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors duration-75 border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
                     aria-label="Book flights"
                   >
                     <FontAwesomeIcon 
@@ -142,7 +142,7 @@ export function TransparentHeader() {
                 <>
                   <Link 
                     href="/client/flights"
-                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors duration-75 border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
                     aria-label="Book flights"
                   >
                     <FontAwesomeIcon 
@@ -152,7 +152,7 @@ export function TransparentHeader() {
                   </Link>
                   <Link 
                     href="/client/cars"
-                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors duration-75 border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
                     aria-label="Rent a car"
                   >
                     <FontAwesomeIcon 
@@ -170,7 +170,7 @@ export function TransparentHeader() {
                   <div className="relative" ref={dropdownRef}>
                     <button
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors"
+                      className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors duration-75"
                     >
                       <div className="hidden md:flex flex-col items-end">
                         <span className="text-sm font-medium text-white">{user?.full_name || 'User'}</span>
@@ -207,7 +207,7 @@ export function TransparentHeader() {
                           <div className="py-2">
                             <Link
                               href="/client/dashboard"
-                              className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
+                              className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors duration-75"
                               onClick={() => setIsDropdownOpen(false)}
                             >
                               <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -218,7 +218,7 @@ export function TransparentHeader() {
 
                             <Link
                               href="/client/profile"
-                              className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
+                              className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors duration-75"
                               onClick={() => setIsDropdownOpen(false)}
                             >
                               <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -229,7 +229,7 @@ export function TransparentHeader() {
                             
                             <Link
                               href="/client/settings"
-                              className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
+                              className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors duration-75"
                               onClick={() => setIsDropdownOpen(false)}
                             >
                               <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -243,7 +243,7 @@ export function TransparentHeader() {
                           <div className="border-t border-gray-200">
                             <button
                               onClick={handleLogout}
-                              className="flex items-center space-x-3 px-4 py-3 w-full hover:bg-red-50 transition-colors text-left"
+                              className="flex items-center space-x-3 px-4 py-3 w-full hover:bg-red-50 transition-colors duration-75 text-left"
                             >
                               <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

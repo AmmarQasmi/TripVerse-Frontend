@@ -124,9 +124,9 @@ export function StatsModal({ isOpen, onClose, title, data, totalAmount }: StatsM
                         className="group"
                       >
                         <Link href={item.type === 'hotel' ? `/client/hotelbookings/hotel/${item.id}` : `/client/cars/bookings`}>
-                          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-50 via-cyan-50 to-teal-50 border-2 border-transparent hover:border-blue-300 transition-all duration-300 p-5">
+                          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-50 via-cyan-50 to-teal-50 border-2 border-transparent hover:border-blue-300 transition-all duration-75 p-5">
                             {/* Hover gradient effect */}
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-cyan-500/0 to-teal-500/0 group-hover:from-blue-500/5 group-hover:via-cyan-500/5 group-hover:to-teal-500/5 transition-all duration-300" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-cyan-500/0 to-teal-500/0 group-hover:from-blue-500/5 group-hover:via-cyan-500/5 group-hover:to-teal-500/5 transition-all duration-75" />
 
                             <div className="relative z-10 flex items-center justify-between">
                               {/* Left: Icon + Info */}

@@ -96,7 +96,7 @@ export function PopularRoutesCarousel({ routes }: PopularRoutesCarouselProps) {
                 <img
                   src={route.image}
                   alt={`${route.origin.city} to ${route.destination.city}`}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-75"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 
@@ -179,7 +179,7 @@ export function PopularRoutesCarousel({ routes }: PopularRoutesCarouselProps) {
               </div>
 
               {/* Hover Effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/5 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/5 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-75 rounded-2xl" />
             </div>
           </motion.div>
         ))}
@@ -195,7 +195,7 @@ export function PopularRoutesCarousel({ routes }: PopularRoutesCarouselProps) {
                 scrollRef.current.scrollTo({ left: index * 320, behavior: 'smooth' })
               }
             }}
-            className={`w-2 h-2 rounded-full transition-colors ${
+            className={`w-2 h-2 rounded-full transition-colors duration-75 ${
               index === Math.floor(currentIndex / 4) 
                 ? 'bg-cyan-400' 
                 : 'bg-gray-600 hover:bg-gray-500'

@@ -197,7 +197,7 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
 
             {/* Arrow Button */}
             <div className="flex justify-center items-center pb-2">
-              <div className="bg-blue-100 hover:bg-blue-200 rounded-full p-2 transition-colors duration-200">
+              <div className="bg-blue-100 hover:bg-blue-200 rounded-full p-2 transition-colors duration-75">
                 <svg 
                   className="w-5 h-5 text-blue-600" 
                   fill="none" 
@@ -278,7 +278,7 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
           <Button
             type="submit"
             disabled={isLoading || days === 0}
-            className="w-full bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold py-3 rounded-xl transition-all duration-300"
+            className="w-full bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold py-3 rounded-xl transition-all duration-75"
           >
             {isLoading ? (
               <span className="flex items-center justify-center">

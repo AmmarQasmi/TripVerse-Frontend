@@ -26,7 +26,7 @@ export function CarCard({ car, isAvailable = true }: CarCardProps) {
       transition={{ duration: 0.3 }}
       className={`relative ${!isAvailable ? 'opacity-75' : ''}`}
     >
-      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-lg bg-white">
+      <Card className="overflow-hidden hover:shadow-xl transition-all duration-75 cursor-pointer border-0 shadow-lg bg-white">
         {/* Image Section */}
         <div className="aspect-video bg-gray-200 relative overflow-hidden">
           {car.images?.[0] && (
@@ -34,7 +34,7 @@ export function CarCard({ car, isAvailable = true }: CarCardProps) {
               src={car.images[0]}
               alt={`${car.brand} ${car.model}`}
               fill
-              className="object-cover group-hover:scale-110 transition-transform duration-300"
+              className="object-cover group-hover:scale-110 transition-transform duration-75"
             />
           )}
           
@@ -140,7 +140,7 @@ export function CarCard({ car, isAvailable = true }: CarCardProps) {
         
         <CardFooter className="pt-3">
           <Button 
-            className="w-full bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+            className="w-full bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold py-3 rounded-xl transition-all duration-75 transform hover:scale-105 shadow-lg hover:shadow-xl"
             disabled={!isAvailable}
           >
             {isAvailable ? 'View Details' : 'Unavailable'}

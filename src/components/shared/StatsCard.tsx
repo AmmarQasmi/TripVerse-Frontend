@@ -30,7 +30,7 @@ export function StatsCard({
     >
       <Card
         className={`shadow-lg bg-white/10 backdrop-blur-md border-white/20 ${
-          onClick ? 'cursor-pointer hover:border-white/40 transition-all duration-300' : ''
+          onClick ? 'cursor-pointer hover:border-white/40 transition-all duration-75' : ''
         } ${className}`}
         onClick={onClick}
       >

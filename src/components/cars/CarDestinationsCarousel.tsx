@@ -162,7 +162,7 @@ export function CarDestinationsCarousel() {
                   </div>
                   <Link
                     href={`/client/cars?location=${destinations[currentIndex].name}`}
-                    className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+                    className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-75 transform hover:scale-105"
                   >
                     View Cars
                   </Link>
@@ -175,7 +175,7 @@ export function CarDestinationsCarousel() {
         {/* Navigation Arrows */}
         <button
           onClick={prevSlide}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm z-10"
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-75 backdrop-blur-sm z-10"
           onMouseEnter={() => setIsAutoPlaying(false)}
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,7 +185,7 @@ export function CarDestinationsCarousel() {
 
         <button
           onClick={nextSlide}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm z-10"
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-75 backdrop-blur-sm z-10"
           onMouseEnter={() => setIsAutoPlaying(false)}
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,7 +200,7 @@ export function CarDestinationsCarousel() {
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+            className={`w-3 h-3 rounded-full transition-all duration-75 ${
               index === currentIndex 
                 ? 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] scale-125' 
                 : 'bg-gray-600 hover:bg-gray-400'
@@ -213,7 +213,7 @@ export function CarDestinationsCarousel() {
       <div className="flex justify-center mt-4">
         <button
           onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-          className="bg-gray-800/50 hover:bg-gray-700/50 text-white px-4 py-2 rounded-lg transition-all duration-300 backdrop-blur-sm flex items-center space-x-2"
+          className="bg-gray-800/50 hover:bg-gray-700/50 text-white px-4 py-2 rounded-lg transition-all duration-75 backdrop-blur-sm flex items-center space-x-2"
         >
           <span>{isAutoPlaying ? '⏸️' : '▶️'}</span>
           <span className="text-sm">
@@ -228,13 +228,13 @@ export function CarDestinationsCarousel() {
           <Link
             key={destination.id}
             href={`/client/cars?location=${destination.name}`}
-            className="group relative h-32 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+            className="group relative h-32 overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-75"
           >
             <Image
               src={destination.image}
               alt={destination.name}
               fill
-              className="object-cover group-hover:scale-110 transition-transform duration-300"
+              className="object-cover group-hover:scale-110 transition-transform duration-75"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
             <div className="absolute bottom-3 left-3 right-3">

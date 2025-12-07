@@ -64,6 +64,11 @@ const config: Config = {
       fontFamily: {
         sans: ['Poppins', 'Inter', 'system-ui', 'sans-serif'],
       },
+      transitionDuration: {
+        '75': '75ms',
+        '150': '150ms',
+        '200': '200ms',
+      },
     },
   },
   plugins: [],

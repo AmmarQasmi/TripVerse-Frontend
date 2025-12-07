@@ -67,7 +67,7 @@ export function CarImageCarousel({ images, alt }: CarImageCarouselProps) {
           <>
             <button
               onClick={prevSlide}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm z-10"
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-75 backdrop-blur-sm z-10"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -76,7 +76,7 @@ export function CarImageCarousel({ images, alt }: CarImageCarouselProps) {
 
             <button
               onClick={nextSlide}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm z-10"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-75 backdrop-blur-sm z-10"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -93,7 +93,7 @@ export function CarImageCarousel({ images, alt }: CarImageCarouselProps) {
         )}
 
         {/* Fullscreen Button */}
-        <button className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm">
+        <button className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-75 backdrop-blur-sm">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
           </svg>
@@ -107,7 +107,7 @@ export function CarImageCarousel({ images, alt }: CarImageCarouselProps) {
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`relative flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
+              className={`relative flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-all duration-75 ${
                 index === currentIndex 
                   ? 'border-blue-500 scale-105' 
                   : 'border-gray-300 hover:border-gray-400'
@@ -134,7 +134,7 @@ export function CarImageCarousel({ images, alt }: CarImageCarouselProps) {
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`relative h-24 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
+              className={`relative h-24 rounded-lg overflow-hidden border-2 transition-all duration-75 ${
                 index === currentIndex 
                   ? 'border-blue-500 scale-105' 
                   : 'border-gray-300 hover:border-gray-400'

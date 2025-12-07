@@ -99,7 +99,7 @@ export function FAQSection() {
               </button>
               
               <div
-                className={`transition-all duration-300 ease-in-out ${
+                className={`transition-all duration-75 ease-in-out ${
                   openIndex === index
                     ? 'max-h-96 opacity-100'
                     : 'max-h-0 opacity-0'

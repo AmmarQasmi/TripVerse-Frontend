@@ -383,7 +383,7 @@ export default function HotelBookingConfirmationPage() {
             <Button
               onClick={handleConfirmBooking}
               disabled={isConfirming}
-              className="flex-1 bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold py-4 rounded-xl transition-all duration-300 disabled:opacity-50"
+              className="flex-1 bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold py-4 rounded-xl transition-all duration-75 disabled:opacity-50"
             >
               {isConfirming ? 'Confirming...' : '✅ Confirm Booking & Pay'}
             </Button>

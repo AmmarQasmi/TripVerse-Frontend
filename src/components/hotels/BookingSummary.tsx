@@ -330,7 +330,7 @@ export function BookingSummary({ hotel, roomType, onClose, onBookingSubmit, isSu
                       value={bookingData.specialRequests}
                       onChange={(e) => updateBookingData('specialRequests', e.target.value)}
                       placeholder="Any special requests or requirements..."
-                      className="w-full px-4 py-3 bg-gray-600 border border-gray-500 rounded-xl text-white placeholder-gray-400 focus:border-[#38bdf8] focus:ring-2 focus:ring-[#38bdf8]/20 focus:outline-none transition-all duration-300"
+                      className="w-full px-4 py-3 bg-gray-600 border border-gray-500 rounded-xl text-white placeholder-gray-400 focus:border-[#38bdf8] focus:ring-2 focus:ring-[#38bdf8]/20 focus:outline-none transition-all duration-75"
                       rows={3}
                     />
                   </div>

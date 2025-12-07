@@ -129,7 +129,7 @@ export function HotelReviews({ hotelId }: HotelReviewsProps) {
                 <span className="text-gray-300 w-8">{rating}★</span>
                 <div className="flex-1 bg-gray-700 rounded-full h-2">
                   <div
-                    className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] h-2 rounded-full transition-all duration-500"
+                    className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] h-2 rounded-full transition-all duration-75"
                     style={{ width: `${percentage}%` }}
                   />
                 </div>
@@ -213,11 +213,11 @@ export function HotelReviews({ hotelId }: HotelReviewsProps) {
                   </p>
                   
                   <div className="flex items-center space-x-4 text-sm text-gray-400">
-                    <button className="flex items-center space-x-1 hover:text-white transition-colors">
+                    <button className="flex items-center space-x-1 hover:text-white transition-colors duration-75">
                       <span>👍</span>
                       <span>Helpful ({review.helpful})</span>
                     </button>
-                    <button className="hover:text-white transition-colors">
+                    <button className="hover:text-white transition-colors duration-75">
                       Reply
                     </button>
                   </div>
@@ -229,7 +229,7 @@ export function HotelReviews({ hotelId }: HotelReviewsProps) {
 
       {/* Load More Button */}
       <div className="text-center">
-        <button className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300">
+        <button className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-75">
           Load More Reviews
         </button>
       </div>

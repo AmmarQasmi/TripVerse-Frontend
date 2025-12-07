@@ -145,7 +145,7 @@ export default function AdminCarsPage() {
               transition={{ delay: 0.1 }}
             >
               <Card 
-                className={`shadow-lg cursor-pointer transition-all duration-300 ${
+                className={`shadow-lg cursor-pointer transition-all duration-75 ${
                   filter === 'all' 
                     ? 'bg-blue-500/20 border-2 border-blue-500' 
                     : 'bg-white/10 backdrop-blur-md border-white/20'
@@ -170,7 +170,7 @@ export default function AdminCarsPage() {
               transition={{ delay: 0.2 }}
             >
               <Card 
-                className={`shadow-lg cursor-pointer transition-all duration-300 ${
+                className={`shadow-lg cursor-pointer transition-all duration-75 ${
                   filter === 'pending' 
                     ? 'bg-yellow-500/20 border-2 border-yellow-500' 
                     : 'bg-white/10 backdrop-blur-md border-white/20'
@@ -195,7 +195,7 @@ export default function AdminCarsPage() {
               transition={{ delay: 0.3 }}
             >
               <Card 
-                className={`shadow-lg cursor-pointer transition-all duration-300 ${
+                className={`shadow-lg cursor-pointer transition-all duration-75 ${
                   filter === 'approved' 
                     ? 'bg-green-500/20 border-2 border-green-500' 
                     : 'bg-white/10 backdrop-blur-md border-white/20'
@@ -220,7 +220,7 @@ export default function AdminCarsPage() {
               transition={{ delay: 0.4 }}
             >
               <Card 
-                className={`shadow-lg cursor-pointer transition-all duration-300 ${
+                className={`shadow-lg cursor-pointer transition-all duration-75 ${
                   filter === 'rejected' 
                     ? 'bg-red-500/20 border-2 border-red-500' 
                     : 'bg-white/10 backdrop-blur-md border-white/20'

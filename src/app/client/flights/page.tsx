@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { FlightSearchForm } from '@/components/flights/FlightSearchForm'
 import { PopularRoutesCarousel } from '@/components/flights/PopularRoutesCarousel'
@@ -331,6 +331,33 @@ export default function FlightsPage() {
   const [searchParams, setSearchParams] = useState<FlightSearchParams | null>(null)
   const [hasSearched, setHasSearched] = useState(false)
 
+  // Read query parameters from URL on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const from = urlParams.get('from')
+      const to = urlParams.get('to')
+      const departure = urlParams.get('departure')
+      const returnDate = urlParams.get('return')
+      const travelers = urlParams.get('travelers')
+
+      if (from || to || departure) {
+        const params: FlightSearchParams = {
+          origin: (from || '').toUpperCase().trim(),
+          destination: (to || '').toUpperCase().trim(),
+          departure_date: departure || '',
+          return_date: returnDate || undefined,
+          adults: parseInt(travelers || '1', 10),
+          children: 0,
+          infants: 0,
+          cabin_class: 'economy',
+        }
+        setSearchParams(params)
+        setHasSearched(true)
+      }
+    }
+  }, [])
+
   // Query for flight search
   const { data: flightResults, isLoading, error } = useQuery({
     queryKey: ['flights', searchParams],
@@ -605,7 +632,7 @@ export default function FlightsPage() {
               else if (brandFull.includes('fly')) logoSlug = 'flyjinnah'
 
               return (
-                <div key={a.name} className={`rounded-2xl p-[1px] bg-gradient-to-r ${borderGradient} shadow-[0_10px_30px_rgba(2,132,199,0.2)] transition-transform duration-300 hover:scale-[1.03]`}>
+                <div key={a.name} className={`rounded-2xl p-[1px] bg-gradient-to-r ${borderGradient} shadow-[0_10px_30px_rgba(2,132,199,0.2)] transition-transform duration-75 hover:scale-[1.03]`}>
                   <div className="rounded-2xl bg-gray-900/70 backdrop-blur-lg p-6 h-full border border-white/5">
                     <div className="flex items-start space-x-4">
                       {/* Logo */}

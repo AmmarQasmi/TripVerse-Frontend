@@ -69,6 +69,30 @@ export default function HotelsPage() {
     guests: 1,
     rooms: 1,
   })
+
+  // Read query parameters from URL on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const location = urlParams.get('location')
+      const checkIn = urlParams.get('checkIn')
+      const checkOut = urlParams.get('checkOut')
+      const guests = urlParams.get('guests')
+
+      if (location || checkIn || checkOut) {
+        const newParams = {
+          query: '',
+          location: location || searchParams.location,
+          checkIn: checkIn || searchParams.checkIn,
+          checkOut: checkOut || searchParams.checkOut,
+          guests: guests ? parseInt(guests, 10) : searchParams.guests,
+          rooms: 1,
+        }
+        setSearchParams(newParams)
+        setShowAllHotels(false) // Filter by location when URL params are present
+      }
+    }
+  }, [])
   const [filters, setFilters] = useState({
     priceRange: [5000, 25000] as [number, number],
     starRating: [] as number[],
@@ -275,7 +299,7 @@ export default function HotelsPage() {
               <button
                 onClick={() => setShowAllHotels(!showAllHotels)}
                 className={`
-                  px-6 py-3 rounded-xl font-semibold transition-all duration-300
+                  px-6 py-3 rounded-xl font-semibold transition-all duration-75
                   ${showAllHotels 
                     ? 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white' 
                     : 'bg-gray-700 text-white hover:bg-gray-600'
@@ -410,7 +434,7 @@ export default function HotelsPage() {
                   </p>
                   <button 
                     onClick={handleClearFilters}
-                    className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                    className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-75"
                   >
                     Clear All Filters
                   </button>

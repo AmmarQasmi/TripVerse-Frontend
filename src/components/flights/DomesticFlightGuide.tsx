@@ -123,7 +123,7 @@ export function DomesticFlightGuide({ flights }: DomesticFlightGuideProps) {
               transition={{ delay: index * 0.1 }}
               className="group relative h-full"
             >
-              <div className="bg-gray-900/60 backdrop-blur-md border border-yellow-400/60 rounded-2xl p-6 hover:border-yellow-300/80 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,0,0.3)] hover:-translate-y-1 h-full overflow-hidden">
+              <div className="bg-gray-900/60 backdrop-blur-md border border-yellow-400/60 rounded-2xl p-6 hover:border-yellow-300/80 transition-all duration-75 hover:shadow-[0_0_20px_rgba(255,255,0,0.3)] hover:-translate-y-1 h-full overflow-hidden">
                 <div className="flex items-center justify-between h-full min-w-0">
                   {/* Airline Info */}
                   <div className="flex items-center space-x-4">

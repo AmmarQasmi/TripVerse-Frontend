@@ -448,8 +448,8 @@ export default function AdminDashboard() {
               className="h-full"
             >
               <Link href="/admin/drivers">
-                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-300">
-                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col">
+                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-75">
+                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-75 cursor-pointer flex flex-col">
                     <CardContent className="p-6 text-center flex flex-col justify-between h-full">
                       <div className="flex justify-center mb-3">
                         <svg className="w-12 h-12 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -471,8 +471,8 @@ export default function AdminDashboard() {
               className="h-full"
             >
               <Link href="/admin/hotel-managers">
-                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-300">
-                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col">
+                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-75">
+                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-75 cursor-pointer flex flex-col">
                     <CardContent className="p-6 text-center flex flex-col justify-between h-full">
                       <div className="flex justify-center mb-3">
                         <svg className="w-12 h-12 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -494,8 +494,8 @@ export default function AdminDashboard() {
               className="h-full"
             >
               <Link href="/admin/payments">
-                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-300">
-                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col">
+                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-75">
+                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-75 cursor-pointer flex flex-col">
                     <CardContent className="p-6 text-center flex flex-col justify-between h-full">
                       <div className="flex justify-center mb-3">
                         <svg className="w-12 h-12 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -517,8 +517,8 @@ export default function AdminDashboard() {
               className="h-full"
             >
               <Link href="/admin/disputes">
-                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-300">
-                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col">
+                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-75">
+                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-75 cursor-pointer flex flex-col">
                     <CardContent className="p-6 text-center flex flex-col justify-between h-full">
                       <div className="flex justify-center mb-3">
                         <svg className="w-12 h-12 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -540,8 +540,8 @@ export default function AdminDashboard() {
               className="h-full"
             >
               <Link href="/admin/reports">
-                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-300">
-                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col">
+                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-75">
+                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-75 cursor-pointer flex flex-col">
                     <CardContent className="p-6 text-center flex flex-col justify-between h-full">
                       <div className="flex justify-center mb-3">
                         <svg className="w-12 h-12 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">

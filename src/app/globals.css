@@ -56,6 +56,12 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Fast hover transitions globally - instant feel */
+  button, a, [role="button"], .cursor-pointer {
+    transition-duration: 75ms !important;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
 }
 
 /* Date picker styling for dark theme - fixes double calendar icon issue */

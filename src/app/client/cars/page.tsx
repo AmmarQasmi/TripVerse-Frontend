@@ -34,6 +34,27 @@ export default function CarsPage() {
     dropoffTime: '10:00',
     carType: '',
   })
+
+  // Read query parameters from URL on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const pickupLocation = urlParams.get('pickupLocation')
+      const pickupDate = urlParams.get('pickupDate')
+      const returnDate = urlParams.get('returnDate')
+      const vehicleType = urlParams.get('vehicleType')
+
+      if (pickupLocation || pickupDate || returnDate) {
+        setSearchParams(prev => ({
+          ...prev,
+          pickupLocation: pickupLocation || prev.pickupLocation,
+          pickupDate: pickupDate || prev.pickupDate,
+          dropoffDate: returnDate || prev.dropoffDate,
+          carType: vehicleType || prev.carType,
+        }))
+      }
+    }
+  }, [])
   
   const [filters, setFilters] = useState<CarFilterState>({
     priceRange: [0, 10000],
@@ -206,7 +227,7 @@ export default function CarsPage() {
               <button
                 onClick={() => setShowAllCars(!showAllCars)}
                 className={`
-                  px-6 py-3 rounded-xl font-semibold transition-all duration-300
+                  px-6 py-3 rounded-xl font-semibold transition-all duration-75
                   ${showAllCars 
                     ? 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white' 
                     : 'bg-gray-700 text-white hover:bg-gray-600'
@@ -296,14 +317,14 @@ export default function CarsPage() {
                   {!showAllCars && (
                     <button 
                       onClick={() => setShowAllCars(true)}
-                      className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 mr-3"
+                      className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-75 mr-3"
                     >
                       Show All Cars
                     </button>
                   )}
                   <button 
                     onClick={handleClearFilters}
-                    className="bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-600 transition-all duration-300"
+                    className="bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-600 transition-all duration-75"
                   >
                     Clear All Filters
                   </button>

@@ -269,7 +269,7 @@ export default function MonumentsPage() {
 
               {!selectedFile ? (
                 <div
-                  className="border-2 border-dashed border-cyan-400/50 rounded-xl p-12 text-center cursor-pointer transition-all duration-200 hover:border-cyan-500 hover:bg-white/10"
+                  className="border-2 border-dashed border-cyan-400/50 rounded-xl p-12 text-center cursor-pointer transition-all duration-75 hover:border-cyan-500 hover:bg-white/10"
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}

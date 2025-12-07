@@ -34,7 +34,7 @@ export function SimpleChart({ data, type = 'bar', height = 200, showValues = tru
               <div key={index} className="flex-1 flex flex-col items-center">
                 <div className="relative w-full h-full flex items-end">
                   <div
-                    className="w-full rounded-t transition-all duration-500 hover:opacity-80"
+                    className="w-full rounded-t transition-all duration-75 hover:opacity-80"
                     style={{
                       height: `${barHeight}%`,
                       backgroundColor: colors[index],
