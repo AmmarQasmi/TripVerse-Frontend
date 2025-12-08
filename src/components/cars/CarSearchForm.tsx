@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 
 interface CarSearchFormProps {
@@ -28,6 +28,29 @@ export function CarSearchForm({ onSearch, initialParams }: CarSearchFormProps) {
     dropoffTime: initialParams?.dropoffTime || '10:00',
     carType: initialParams?.carType || '',
   })
+
+  // Sync internal state when initialParams changes
+  useEffect(() => {
+    if (initialParams) {
+      setSearchParams(prev => ({
+        pickupLocation: initialParams.pickupLocation ?? prev.pickupLocation,
+        dropoffLocation: initialParams.dropoffLocation ?? prev.dropoffLocation,
+        pickupDate: initialParams.pickupDate ?? prev.pickupDate,
+        dropoffDate: initialParams.dropoffDate ?? prev.dropoffDate,
+        pickupTime: initialParams.pickupTime ?? prev.pickupTime,
+        dropoffTime: initialParams.dropoffTime ?? prev.dropoffTime,
+        carType: initialParams.carType ?? prev.carType,
+      }))
+    }
+  }, [
+    initialParams?.pickupLocation,
+    initialParams?.dropoffLocation,
+    initialParams?.pickupDate,
+    initialParams?.dropoffDate,
+    initialParams?.pickupTime,
+    initialParams?.dropoffTime,
+    initialParams?.carType
+  ])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()

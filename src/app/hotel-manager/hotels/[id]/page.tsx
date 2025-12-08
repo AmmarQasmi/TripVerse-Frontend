@@ -425,22 +425,52 @@ export default function ManageHotelPage() {
               <CardTitle className="text-white">Listing Availability</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white font-medium">
-                    {hotel.is_listed ? 'Hotel is listed and visible to customers' : 'Hotel is unlisted and hidden from customers'}
-                  </p>
-                  <p className="text-gray-400 text-sm mt-1">
-                    Toggle this to show or hide your hotel in search results
-                  </p>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white font-medium">
+                      {hotel.is_listed ? 'Hotel is listed and visible to customers' : 'Hotel is unlisted and hidden from customers'}
+                    </p>
+                    <p className="text-gray-400 text-sm mt-1">
+                      Toggle this to show or hide your hotel in search results
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleToggleAvailability}
+                    disabled={isToggling}
+                    className={hotel.is_listed ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'}
+                  >
+                    {isToggling ? 'Updating...' : hotel.is_listed ? 'Unlist Hotel' : 'List Hotel'}
+                  </Button>
                 </div>
-                <Button
-                  onClick={handleToggleAvailability}
-                  disabled={isToggling}
-                  className={hotel.is_listed ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'}
-                >
-                  {isToggling ? 'Updating...' : hotel.is_listed ? 'Unlist Hotel' : 'List Hotel'}
-                </Button>
+                
+                {!hotel.is_active && (
+                  <div className="p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
+                    <p className="text-yellow-200 text-sm">
+                      <strong>Status: Inactive</strong> - Your hotel is listed but not active. 
+                      It will only be visible to customers after an admin activates it. 
+                      Please wait for admin approval or contact support if you believe this is an error.
+                    </p>
+                  </div>
+                )}
+                
+                {hotel.is_active && !hotel.is_listed && (
+                  <div className="p-4 bg-blue-500/20 border border-blue-500/50 rounded-lg">
+                    <p className="text-blue-200 text-sm">
+                      <strong>Status: Active but Unlisted</strong> - Your hotel is active but currently unlisted. 
+                      Click "List Hotel" above to make it visible to customers.
+                    </p>
+                  </div>
+                )}
+                
+                {hotel.is_active && hotel.is_listed && (
+                  <div className="p-4 bg-green-500/20 border border-green-500/50 rounded-lg">
+                    <p className="text-green-200 text-sm">
+                      <strong>Status: Active and Listed</strong> - Your hotel is active and listed. 
+                      It is currently visible to customers and accepting bookings.
+                    </p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

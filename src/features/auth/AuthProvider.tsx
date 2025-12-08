@@ -85,6 +85,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Clear user state
       setUser(null)
       // Cookie is already cleared by backend
+      
+      // Clear all cached search data on logout
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('cached_flight_search')
+        localStorage.removeItem('cached_hotel_search')
+        localStorage.removeItem('cached_rental_search')
+      }
     }
   }
 

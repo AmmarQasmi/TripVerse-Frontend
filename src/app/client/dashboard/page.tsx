@@ -16,9 +16,16 @@ import { useUserHotelBookings } from '@/features/bookings/useHotelBooking'
 import { useUserBookings as useUserCarBookings } from '@/features/cars/useCarSearch'
 
 export default function ClientDashboard() {
-  const { user } = useAuth()
+  const { user, isLoading } = useAuth()
   const router = useRouter()
   const [modalType, setModalType] = useState<string | null>(null)
+  
+  // Add redirect if not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/auth/login?redirect=/client/dashboard')
+    }
+  }, [user, isLoading, router])
   
   // Redirect hotel managers to their dashboard
   useEffect(() => {

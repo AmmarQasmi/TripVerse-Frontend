@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { FlightSearchForm } from '@/components/flights/FlightSearchForm'
 import { PopularRoutesCarousel } from '@/components/flights/PopularRoutesCarousel'
@@ -13,6 +14,7 @@ import { Plane } from 'lucide-react'
 import { DomesticFlightGuide } from '@/components/flights/DomesticFlightGuide'
 import { flightsApi } from '@/lib/api/flights.api'
 import { FlightSearchParams } from '@/types'
+import { useAuth } from '@/features/auth/useAuth'
 
 // Mock flight data with Pakistani airlines
 const mockFlights = [
@@ -325,12 +327,22 @@ const airlineSummary = [
 ] as const
 
 export default function FlightsPage() {
+  const router = useRouter()
+  const { user, isLoading: authLoading } = useAuth()
   const [selectedFlight, setSelectedFlight] = useState<any>(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [searchParams, setSearchParams] = useState<FlightSearchParams | null>(null)
   const [hasSearched, setHasSearched] = useState(false)
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
+  const [formInitialParams, setFormInitialParams] = useState<{
+    origin?: string
+    destination?: string
+    departureDate?: string
+    returnDate?: string
+    travelers?: number
+  } | null>(null)
 
-  // Read query parameters from URL on mount
+  // Read URL params immediately on mount (before auth check)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search)
@@ -341,6 +353,14 @@ export default function FlightsPage() {
       const travelers = urlParams.get('travelers')
 
       if (from || to || departure) {
+        setFormInitialParams({
+          origin: from || '',
+          destination: to || '',
+          departureDate: departure || '',
+          returnDate: returnDate || '',
+          travelers: travelers ? parseInt(travelers, 10) : 1,
+        })
+        
         const params: FlightSearchParams = {
           origin: (from || '').toUpperCase().trim(),
           destination: (to || '').toUpperCase().trim(),
@@ -356,6 +376,80 @@ export default function FlightsPage() {
       }
     }
   }, [])
+
+  // Check authentication and restore cached data on mount
+  useEffect(() => {
+    if (authLoading) return // Wait for auth to load
+    
+    if (!user) {
+      // User not authenticated - redirect to login with current URL as redirect
+      const currentUrl = window.location.pathname + window.location.search
+      router.push(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`)
+      return
+    }
+
+    // User is authenticated - proceed with restoring cached data
+    if (typeof window !== 'undefined' && !hasCheckedAuth) {
+      setHasCheckedAuth(true)
+      
+      // First, try to get data from URL params
+      const urlParams = new URLSearchParams(window.location.search)
+      const from = urlParams.get('from')
+      const to = urlParams.get('to')
+      const departure = urlParams.get('departure')
+      const returnDate = urlParams.get('return')
+      const travelers = urlParams.get('travelers')
+
+      if (from || to || departure) {
+        // Use URL params if available
+        const params: FlightSearchParams = {
+          origin: (from || '').toUpperCase().trim(),
+          destination: (to || '').toUpperCase().trim(),
+          departure_date: departure || '',
+          return_date: returnDate || undefined,
+          adults: parseInt(travelers || '1', 10),
+          children: 0,
+          infants: 0,
+          cabin_class: 'economy',
+        }
+        setSearchParams(params)
+        setHasSearched(true)
+      } else {
+        // Try to restore from cache
+        const cachedData = localStorage.getItem('cached_flight_search')
+        if (cachedData) {
+          try {
+            const cached = JSON.parse(cachedData)
+            if (cached.from && cached.to && cached.departure) {
+              const params: FlightSearchParams = {
+                origin: cached.from.toUpperCase().trim(),
+                destination: cached.to.toUpperCase().trim(),
+                departure_date: cached.departure,
+                return_date: cached.return || undefined,
+                adults: parseInt(cached.travelers || '1', 10),
+                children: 0,
+                infants: 0,
+                cabin_class: 'economy',
+              }
+              setSearchParams(params)
+              setHasSearched(true)
+              
+              // Update URL to reflect cached data
+              const newParams = new URLSearchParams()
+              if (cached.from) newParams.set('from', cached.from)
+              if (cached.to) newParams.set('to', cached.to)
+              if (cached.departure) newParams.set('departure', cached.departure)
+              if (cached.return) newParams.set('return', cached.return)
+              if (cached.travelers) newParams.set('travelers', cached.travelers)
+              window.history.replaceState({}, '', `${window.location.pathname}?${newParams.toString()}`)
+            }
+          } catch (error) {
+            console.error('Error parsing cached flight search data:', error)
+          }
+        }
+      }
+    }
+  }, [user, authLoading, router, hasCheckedAuth])
 
   // Query for flight search
   const { data: flightResults, isLoading, error } = useQuery({
@@ -454,7 +548,11 @@ export default function FlightsPage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="max-w-6xl mx-auto"
           >
-            <FlightSearchForm onSearch={handleSearch} isLoading={isLoading} />
+            <FlightSearchForm 
+              onSearch={handleSearch} 
+              isLoading={isLoading}
+              initialParams={formInitialParams || undefined}
+            />
           </motion.div>
           
           <motion.p

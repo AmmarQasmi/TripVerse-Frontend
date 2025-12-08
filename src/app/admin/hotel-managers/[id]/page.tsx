@@ -72,6 +72,7 @@ export default function AdminHotelManagerReviewPage() {
   const [viewingDocument, setViewingDocument] = useState<{ url: string; name: string } | null>(null)
   const [rejectionReason, setRejectionReason] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
+  const [activatingHotelId, setActivatingHotelId] = useState<number | null>(null)
 
   useEffect(() => {
     const fetchManager = async () => {
@@ -163,6 +164,31 @@ export default function AdminHotelManagerReviewPage() {
       console.error('Error verifying hotel manager:', err)
     } finally {
       setIsProcessing(false)
+    }
+  }
+
+  const handleToggleHotelActive = async (hotelId: number, currentStatus: boolean) => {
+    const newStatus = !currentStatus
+    const action = newStatus ? 'activate' : 'deactivate'
+    
+    if (!confirm(`Are you sure you want to ${action} this hotel? ${newStatus ? 'It will become visible to customers.' : 'It will be hidden from customers.'}`)) {
+      return
+    }
+
+    setActivatingHotelId(hotelId)
+    setError(null)
+
+    try {
+      await adminApi.updateHotel(hotelId, { is_active: newStatus })
+      // Refresh manager data to show updated hotel status
+      const managerData: any = await adminApi.getHotelManagerDetails(managerId)
+      setManager(managerData as HotelManagerDetail)
+      alert(`Hotel ${action}d successfully!`)
+    } catch (err: any) {
+      setError(err.response?.data?.message || `Failed to ${action} hotel`)
+      console.error(`Error ${action}ing hotel:`, err)
+    } finally {
+      setActivatingHotelId(null)
     }
   }
 
@@ -328,12 +354,33 @@ export default function AdminHotelManagerReviewPage() {
             <Card className="bg-white/10 backdrop-blur-md border-white/20 mb-6">
               <CardHeader>
                 <CardTitle className="text-white">Hotels</CardTitle>
+                <p className="text-gray-400 text-sm mt-2">
+                  Manage hotel activation status. Only active hotels are visible to customers.
+                </p>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {manager.hotels.map((hotel) => (
                     <div key={hotel.id} className="p-4 border border-white/20 rounded-lg bg-white/5">
-                      <h4 className="text-white font-semibold mb-2">{hotel.name}</h4>
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="text-white font-semibold">{hotel.name}</h4>
+                        <Button
+                          onClick={() => handleToggleHotelActive(hotel.id, hotel.is_active)}
+                          disabled={activatingHotelId === hotel.id}
+                          size="sm"
+                          className={
+                            hotel.is_active
+                              ? 'bg-red-600 hover:bg-red-700 text-white'
+                              : 'bg-green-600 hover:bg-green-700 text-white'
+                          }
+                        >
+                          {activatingHotelId === hotel.id
+                            ? 'Updating...'
+                            : hotel.is_active
+                            ? 'Deactivate'
+                            : 'Activate'}
+                        </Button>
+                      </div>
                       <div className="text-sm text-gray-300 space-y-1">
                         <p>City: {hotel.city.name}</p>
                         <p>Room Types: {hotel.room_types_count}</p>
@@ -347,6 +394,16 @@ export default function AdminHotelManagerReviewPage() {
                             {hotel.is_listed ? 'Listed' : 'Unlisted'}
                           </span>
                         </div>
+                        {!hotel.is_active && (
+                          <p className="text-yellow-300 text-xs mt-2">
+                            ⚠️ This hotel is inactive and not visible to customers. Click "Activate" to make it visible.
+                          </p>
+                        )}
+                        {hotel.is_active && !hotel.is_listed && (
+                          <p className="text-yellow-300 text-xs mt-2">
+                            ⚠️ This hotel is active but unlisted. Hotel manager needs to list it.
+                          </p>
+                        )}
                       </div>
                     </div>
                   ))}
