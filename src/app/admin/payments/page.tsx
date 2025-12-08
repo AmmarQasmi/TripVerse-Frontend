@@ -167,7 +167,7 @@ export default function AdminPaymentsPage() {
               <div className="flex items-center">
                 <div className="flex-1">
                   <p className="text-sm font-medium text-emerald-100/90">Total Revenue</p>
-                  <p className="text-3xl font-bold text-white">${totalRevenue.toLocaleString()}</p>
+                  <p className="text-3xl font-bold text-white">PKR {totalRevenue.toLocaleString()}</p>
                 </div>
                 <div className="text-4xl">💰</div>
               </div>
@@ -205,7 +205,7 @@ export default function AdminPaymentsPage() {
               <div className="flex items-center">
                 <div className="flex-1">
                   <p className="text-sm font-medium text-emerald-100/90">Total Refunds</p>
-                  <p className="text-3xl font-bold text-white">${totalRefunds.toLocaleString()}</p>
+                  <p className="text-3xl font-bold text-white">PKR {totalRefunds.toLocaleString()}</p>
                 </div>
                 <div className="text-4xl">🔄</div>
               </div>
@@ -265,9 +265,9 @@ export default function AdminPaymentsPage() {
                   </div>
                   
                   <div className="text-right ml-6">
-                    <div className="font-semibold text-lg">${payment.amount}</div>
+                    <div className="font-semibold text-lg">PKR {payment.amount.toLocaleString()}</div>
                     {payment.refundAmount && (
-                      <div className="text-sm text-red-600">Refunded: ${payment.refundAmount}</div>
+                      <div className="text-sm text-red-600">Refunded: PKR {payment.refundAmount.toLocaleString()}</div>
                     )}
                     {payment.status === 'COMPLETED' && (
                       <Button 

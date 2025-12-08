@@ -147,7 +147,7 @@ export function StatsModal({ isOpen, onClose, title, data, totalAmount }: StatsM
                                         : formatDate(item.date)}
                                     </span>
                                     <span className="font-semibold text-gray-900">
-                                      ${item.amount?.toLocaleString() || '0'}
+                                      PKR {item.amount?.toLocaleString() || '0'}
                                     </span>
                                   </div>
                                 </div>
@@ -215,7 +215,7 @@ export function StatsModal({ isOpen, onClose, title, data, totalAmount }: StatsM
                   >
                     <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200">
                       <span className="text-lg font-semibold text-gray-900">Total Amount Spent:</span>
-                      <span className="text-2xl font-bold text-green-700">${totalAmount.toLocaleString()}</span>
+                      <span className="text-2xl font-bold text-green-700">PKR {totalAmount.toLocaleString()}</span>
                     </div>
                   </motion.div>
                 )}

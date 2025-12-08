@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { carsApi } from '@/lib/api/cars.api'
@@ -23,42 +23,75 @@ export default function BookingConfirmationPage() {
   const [countdown, setCountdown] = useState(5)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
 
-  useEffect(() => {
-    const fetchBooking = async () => {
-      if (!bookingId) {
-        setIsLoading(false)
-        return
-      }
-
-      try {
-        setIsLoading(true)
-        // Fetch user bookings and find the one with matching ID
-        const bookings = await carsApi.getUserBookings()
-        const foundBooking = bookings.find((b: any) => b.id === parseInt(bookingId))
-        
-        if (foundBooking) {
-          setBooking(foundBooking)
-        } else {
-          showToast('Booking not found', 'error')
-          router.push('/client/cars/bookings')
-        }
-      } catch (error: any) {
-        console.error('Failed to fetch booking:', error)
-        showToast('Failed to load booking details', 'error')
-        router.push('/client/cars/bookings')
-      } finally {
-        setIsLoading(false)
-      }
+  const fetchBooking = useCallback(async () => {
+    if (!bookingId) {
+      setIsLoading(false)
+      return
     }
 
-    fetchBooking()
+    try {
+      setIsLoading(true)
+      // Fetch user bookings and find the one with matching ID
+      const bookings = await carsApi.getUserBookings()
+      const foundBooking = bookings.find((b: any) => b.id === parseInt(bookingId))
+      
+      if (foundBooking) {
+        setBooking(foundBooking)
+      } else {
+        showToast('Booking not found', 'error')
+        router.push('/client/cars/bookings')
+      }
+    } catch (error: any) {
+      console.error('Failed to fetch booking:', error)
+      showToast('Failed to load booking details', 'error')
+      router.push('/client/cars/bookings')
+    } finally {
+      setIsLoading(false)
+    }
   }, [bookingId, router, showToast])
+
+  useEffect(() => {
+    fetchBooking()
+  }, [fetchBooking])
+
+  // Refresh booking when page becomes visible (user returns to tab)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && bookingId && !isLoading) {
+        // Refresh booking data when user returns to the page
+        fetchBooking()
+      }
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [bookingId, isLoading, fetchBooking])
 
   const handlePaymentSuccess = async () => {
     if (!bookingId) return
 
     setIsConfirming(true)
     try {
+      // Refresh booking data before confirming to ensure we have latest status
+      const bookings = await carsApi.getUserBookings()
+      const latestBooking = bookings.find((b: any) => b.id === parseInt(bookingId))
+      
+      if (!latestBooking) {
+        showToast('Booking not found', 'error')
+        setIsConfirming(false)
+        return
+      }
+      
+      // Double-check status before proceeding
+      if (latestBooking.status !== 'ACCEPTED') {
+        showToast('Booking must be accepted by driver before payment. Please refresh the page.', 'error')
+        // Update the booking state with latest data
+        setBooking(latestBooking)
+        setIsConfirming(false)
+        return
+      }
+      
+      // Proceed with confirmation
       await carsApi.confirmBooking(parseInt(bookingId))
       
       // Invalidate queries to refresh data (both query key formats)
@@ -84,6 +117,17 @@ export default function BookingConfirmationPage() {
       console.error('Failed to confirm booking:', error)
       const errorMessage = error?.response?.data?.message || 'Failed to confirm booking. Please try again.'
       showToast(errorMessage, 'error')
+      
+      // Refresh booking data on error to get latest status
+      try {
+        const bookings = await carsApi.getUserBookings()
+        const latestBooking = bookings.find((b: any) => b.id === parseInt(bookingId))
+        if (latestBooking) {
+          setBooking(latestBooking)
+        }
+      } catch (refreshError) {
+        console.error('Failed to refresh booking:', refreshError)
+      }
     } finally {
       setIsConfirming(false)
     }
@@ -302,7 +346,7 @@ export default function BookingConfirmationPage() {
             <Button
               onClick={() => router.push('/client/cars/bookings')}
               variant="outline"
-              className="flex-1 border-white/30 text-white hover:bg-white/10 py-4 rounded-xl"
+              className="flex-1 border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white py-4 rounded-xl"
             >
               Cancel
             </Button>

@@ -111,10 +111,9 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
   const days = calculateDays()
 
   return (
-    <Card className="shadow-lg">
+    <Card className="bg-white/10 backdrop-blur-md border border-white/20 shadow-lg">
       <CardHeader>
-        <CardTitle className="flex items-center">
-          <span className="mr-2">📝</span>
+        <CardTitle className="flex items-center text-white">
           Book This Car
         </CardTitle>
       </CardHeader>
@@ -124,7 +123,7 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
           {/* Location Selection */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-white mb-2">
                 Pickup Location *
               </label>
               <input
@@ -132,17 +131,17 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
                 value={formData.pickupLocation}
                 onChange={(e) => handleInputChange('pickupLocation', e.target.value)}
                 placeholder="e.g., Karachi Airport, Pakistan"
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.pickupLocation ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.pickupLocation ? 'border-red-500' : 'border-white/20'
                 }`}
               />
               {errors.pickupLocation && (
-                <p className="text-red-500 text-sm mt-1">{errors.pickupLocation}</p>
+                <p className="text-red-400 text-sm mt-1">{errors.pickupLocation}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-white mb-2">
                 Dropoff Location *
               </label>
               <input
@@ -150,12 +149,12 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
                 value={formData.dropoffLocation}
                 onChange={(e) => handleInputChange('dropoffLocation', e.target.value)}
                 placeholder="e.g., Lahore City Center, Pakistan"
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.dropoffLocation ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.dropoffLocation ? 'border-red-500' : 'border-white/20'
                 }`}
               />
               {errors.dropoffLocation && (
-                <p className="text-red-500 text-sm mt-1">{errors.dropoffLocation}</p>
+                <p className="text-red-400 text-sm mt-1">{errors.dropoffLocation}</p>
               )}
             </div>
           </div>
@@ -173,9 +172,9 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
           )}
 
           {/* Date Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+            <div className="flex flex-col">
+              <label className="block text-sm font-medium text-white mb-2">
                 Pickup Date *
               </label>
               <input
@@ -183,23 +182,23 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
                 value={formData.pickupDate}
                 onChange={(e) => handleInputChange('pickupDate', e.target.value)}
                 min={today}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.pickupDate ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 bg-white/10 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.pickupDate ? 'border-red-500' : 'border-white/20'
                 }`}
               />
               {errors.pickupDate && (
-                <p className="text-red-500 text-sm mt-1">{errors.pickupDate}</p>
+                <p className="text-red-400 text-sm mt-1">{errors.pickupDate}</p>
               )}
-              <p className="text-xs text-gray-500 mt-1">
-                🚗 Pickup time will be arranged with the driver
+              <p className="text-xs text-gray-400 mt-1">
+                Pickup time will be arranged with the driver
               </p>
             </div>
 
             {/* Arrow Button */}
-            <div className="flex justify-center items-center pb-2">
-              <div className="bg-blue-100 hover:bg-blue-200 rounded-full p-2 transition-colors duration-75">
+            <div className="flex justify-center items-center pt-8">
+              <div className="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-full p-2 transition-colors duration-75">
                 <svg 
-                  className="w-5 h-5 text-blue-600" 
+                  className="w-5 h-5 text-blue-300" 
                   fill="none" 
                   stroke="currentColor" 
                   viewBox="0 0 24 24"
@@ -214,8 +213,8 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="flex flex-col">
+              <label className="block text-sm font-medium text-white mb-2">
                 Drop-off Date *
               </label>
               <input
@@ -223,15 +222,15 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
                 value={formData.dropoffDate}
                 onChange={(e) => handleInputChange('dropoffDate', e.target.value)}
                 min={formData.pickupDate || today}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.dropoffDate ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 bg-white/10 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.dropoffDate ? 'border-red-500' : 'border-white/20'
                 }`}
               />
               {errors.dropoffDate && (
-                <p className="text-red-500 text-sm mt-1">{errors.dropoffDate}</p>
+                <p className="text-red-400 text-sm mt-1">{errors.dropoffDate}</p>
               )}
-              <p className="text-xs text-gray-500 mt-1">
-                💡 For multi-day rentals, you'll return the car on this date (any time before 11 PM)
+              <p className="text-xs text-gray-400 mt-1">
+                For multi-day rentals, you'll return the car on this date (any time before 11 PM)
               </p>
             </div>
           </div>
@@ -239,7 +238,7 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
 
           {/* Customer Notes */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Special Instructions (Optional)
             </label>
             <textarea
@@ -247,28 +246,28 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
               onChange={(e) => handleInputChange('customerNotes', e.target.value)}
               placeholder="Any special requests or instructions for the driver..."
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           {/* Trip Summary */}
           {days > 0 && (
-            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+            <div className="bg-white/5 border border-white/10 p-4 rounded-lg space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-600">Trip Duration:</span>
-                <span className="font-medium">{days} {days === 1 ? 'day' : 'days'}</span>
+                <span className="text-gray-300">Trip Duration:</span>
+                <span className="font-medium text-white">{days} {days === 1 ? 'day' : 'days'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Base Price per Day:</span>
-                <span className="font-medium">PKR {getCarPrice().toLocaleString()}</span>
+                <span className="text-gray-300">Base Price per Day:</span>
+                <span className="font-medium text-white">PKR {getCarPrice().toLocaleString()}</span>
               </div>
               {calculatedDistance && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Estimated Distance:</span>
-                  <span className="font-medium">{calculatedDistance.toFixed(1)} km</span>
+                  <span className="text-gray-300">Estimated Distance:</span>
+                  <span className="font-medium text-white">{calculatedDistance.toFixed(1)} km</span>
                 </div>
               )}
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-400">
                 * Distance and final pricing will be calculated automatically when you submit the booking request
               </div>
             </div>
@@ -289,22 +288,20 @@ export function CarBookingForm({ car, onBookingSubmit, isLoading = false, isAuth
                 Calculating Price...
               </span>
             ) : !isAuthenticated ? (
-              <span>🔒 Login to Calculate Price</span>
+              <span>Login to Calculate Price</span>
             ) : (
               <span>Calculate Price & Send Request</span>
             )}
           </Button>
 
           {/* Info Note */}
-          <div className="text-center text-sm text-gray-500">
+          <div className="text-center text-sm text-gray-400">
             {!isAuthenticated ? (
               <>
-                <span className="mr-2">🔒</span>
                 Please login to continue with your booking
               </>
             ) : (
               <>
-                <span className="mr-2">ℹ️</span>
                 You'll see the final price breakdown before confirming your booking
               </>
             )}

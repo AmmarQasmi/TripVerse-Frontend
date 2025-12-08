@@ -3,11 +3,25 @@ import { carsApi } from '@/lib/api/cars.api'
 import { CarApiResponse, CarSearchParams } from '@/types'
 
 export function useCarSearch(params: CarSearchParams) {
+  // Only enable query if we have at least one search parameter or showing all cars
+  const hasParams = !!(
+    params.query || 
+    params.city_id || 
+    params.start_date || 
+    params.end_date || 
+    params.seats || 
+    params.transmission || 
+    params.fuel_type || 
+    params.min_price || 
+    params.max_price
+  )
+  
   return useQuery({
     queryKey: ['cars', 'search', params],
     queryFn: () => carsApi.search(params),
-    enabled: true, // Allow fetching even without location for "All" option
+    enabled: hasParams || true, // Allow fetching even without location for "All" option
     select: (data: { data: CarApiResponse[] }) => data.data, // Extract the data array from the response
+    staleTime: 5 * 60 * 1000, // 5 minutes
   })
 }
 

@@ -280,7 +280,7 @@ export default function DriverBookingsPage() {
                         <span className="font-medium">Return:</span> {booking.end_date ? formatDate(booking.end_date) : 'N/A'}
                       </div>
                       <div>
-                        <span className="font-medium">Earnings:</span> ${booking.driver_earnings || 0}
+                        <span className="font-medium">Earnings:</span> PKR {(booking.driver_earnings || 0).toLocaleString()}
                       </div>
                     </div>
 
@@ -289,7 +289,7 @@ export default function DriverBookingsPage() {
                         <span className="font-medium text-gray-900">Booking ID:</span> {booking.id}
                       </div>
                       <div>
-                        <span className="font-medium text-gray-900">Total Amount:</span> ${booking.total_amount || 0}
+                        <span className="font-medium text-gray-900">Total Amount:</span> PKR {(booking.total_amount || 0).toLocaleString()}
                       </div>
                       <div>
                         <span className="font-medium text-gray-900">Pickup:</span> {booking.pickup_location || 'N/A'}
@@ -381,7 +381,10 @@ export default function DriverBookingsPage() {
                 
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
                   <div className="text-2xl font-bold text-purple-600">
-                    ${bookings.reduce((sum: number, b: any) => sum + (b.driver_earnings || 0), 0).toFixed(2)}
+                    PKR {bookings
+                      .filter((b: any) => ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(b.status))
+                      .reduce((sum: number, b: any) => sum + (b.driver_earnings || 0), 0)
+                      .toLocaleString()}
                   </div>
                   <div className="text-sm text-purple-800">Total Earnings</div>
                 </div>

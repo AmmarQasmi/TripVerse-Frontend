@@ -42,12 +42,7 @@ export default function AdminDashboard() {
   }, [])
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: stats?.revenue.currency || 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
+    return `PKR ${amount.toLocaleString()}`
   }
 
   const handleChartClick = async (type: string) => {

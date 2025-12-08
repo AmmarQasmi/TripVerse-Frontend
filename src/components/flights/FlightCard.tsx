@@ -214,7 +214,7 @@ export function FlightCard({ flight, onSelect }: FlightCardProps) {
           <div className="flex items-center justify-between">
             <div className="text-right">
               <div className="text-3xl font-bold text-white group-hover:text-cyan-300 transition-colors">
-                {flightData.currency} {flightData.totalFare.toLocaleString()}
+                PKR {flightData.totalFare.toLocaleString()}
               </div>
               <div className="text-sm text-gray-400">per passenger</div>
               {flightData.availableSeats > 0 && (

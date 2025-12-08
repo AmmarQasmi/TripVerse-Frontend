@@ -152,16 +152,26 @@ export default function CarsPage() {
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [showAllCars, setShowAllCars] = useState(false)
   
+  // Check if any filters are active
+  const hasActiveFilters = 
+    filters.passengerCapacity > 0 ||
+    filters.transmission.length > 0 ||
+    filters.fuelType.length > 0 ||
+    filters.priceRange[0] > 0 ||
+    filters.priceRange[1] < 10000 ||
+    filters.carType.length > 0 ||
+    filters.amenities.length > 0
+  
   const { data: cars, isLoading } = useCarSearch({
     query: searchParams.pickupLocation,
     city_id: showAllCars ? undefined : user?.city?.id?.toString(),
     start_date: searchParams.pickupDate,
     end_date: searchParams.dropoffDate,
-    seats: filters.passengerCapacity || undefined,
-    transmission: filters.transmission[0] || undefined,
-    fuel_type: filters.fuelType[0] || undefined,
-    min_price: filters.priceRange[0] || undefined,
-    max_price: filters.priceRange[1] || undefined,
+    seats: filters.passengerCapacity > 0 ? filters.passengerCapacity : undefined,
+    transmission: filters.transmission.length > 0 ? filters.transmission[0] : undefined,
+    fuel_type: filters.fuelType.length > 0 ? filters.fuelType[0] : undefined,
+    min_price: filters.priceRange[0] > 0 ? filters.priceRange[0] : undefined,
+    max_price: filters.priceRange[1] < 10000 ? filters.priceRange[1] : undefined,
   })
 
   // Auto-load all cars on first visit if no user location
@@ -313,7 +323,7 @@ export default function CarsPage() {
                   }
                 `}
               >
-                {showAllCars ? '📍 Filter by Location' : '🌐 Show All Cars'}
+                {showAllCars ? 'Filter by Location' : 'Show All Cars'}
               </button>
             </div>
           </motion.div>
@@ -327,6 +337,19 @@ export default function CarsPage() {
                   onFiltersChange={handleFiltersChange}
                   onClearFilters={handleClearFilters}
                 />
+                {hasActiveFilters && (
+                  <div className="mt-4 p-3 bg-cyan-500/20 border border-cyan-500/30 rounded-lg">
+                    <p className="text-xs text-cyan-300 font-medium">
+                      Filters active: {[
+                        filters.transmission.length > 0 && `${filters.transmission.length} transmission`,
+                        filters.fuelType.length > 0 && `${filters.fuelType.length} fuel type`,
+                        filters.passengerCapacity > 0 && `${filters.passengerCapacity} seats`,
+                        filters.priceRange[0] > 0 && `Min PKR ${filters.priceRange[0]}`,
+                        filters.priceRange[1] < 10000 && `Max PKR ${filters.priceRange[1]}`
+                      ].filter(Boolean).join(', ')}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -383,7 +406,11 @@ export default function CarsPage() {
                 </div>
               ) : (
                 <div className="text-center py-16">
-                  <div className="text-6xl mb-4">🚗</div>
+                  <div className="w-24 h-24 mx-auto mb-6 bg-gray-700/50 rounded-full flex items-center justify-center">
+                    <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                  </div>
                   <h3 className="text-xl font-semibold text-white mb-2">
                     {showAllCars ? 'No cars available' : 'No cars found in this area'}
                   </h3>
@@ -393,20 +420,22 @@ export default function CarsPage() {
                       : 'Try adjusting your search criteria, switching to "Show All Cars", or explore other destinations'
                     }
                   </p>
-                  {!showAllCars && (
+                  <div className="flex items-center justify-center gap-3">
+                    {!showAllCars && (
+                      <button 
+                        onClick={() => setShowAllCars(true)}
+                        className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-75"
+                      >
+                        Show All Cars
+                      </button>
+                    )}
                     <button 
-                      onClick={() => setShowAllCars(true)}
-                      className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-75 mr-3"
+                      onClick={handleClearFilters}
+                      className="bg-gray-700/50 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-700 transition-all duration-75 border border-white/20"
                     >
-                      Show All Cars
+                      Clear All Filters
                     </button>
-                  )}
-                  <button 
-                    onClick={handleClearFilters}
-                    className="bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-600 transition-all duration-75"
-                  >
-                    Clear All Filters
-                  </button>
+                  </div>
                 </div>
               )}
             </div>
