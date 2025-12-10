@@ -50,7 +50,6 @@ export default function ManageCarPage() {
   const [carImages, setCarImages] = useState<Array<{ id: number; url: string }>>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [isToggling, setIsToggling] = useState(false)
   const [isUploadingImages, setIsUploadingImages] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -82,20 +81,33 @@ export default function ManageCarPage() {
 
       setCar(carData as CarDetails)
 
-      // Map optimized images to include IDs
+      // Fix: Use optimized images if available, otherwise use carData.images
+      // Deduplicate by URL to prevent showing same image twice
+      const imageMap = new Map<string, { id: number; url: string }>()
+      
       if (optimizedImages.length > 0) {
-        setCarImages(optimizedImages.map((img, index) => ({
-          id: img.id || index,
-          url: img.original,
-        })))
+        // Use optimized images with their IDs
+        optimizedImages.forEach((img, index) => {
+          if (!imageMap.has(img.original)) {
+            imageMap.set(img.original, {
+              id: img.id || index,
+              url: img.original,
+            })
+          }
+        })
       } else if (carData.images && carData.images.length > 0) {
-        setCarImages(carData.images.map((url, index) => ({
-          id: index,
-          url,
-        })))
-      } else {
-        setCarImages([])
+        // Fallback to regular images, deduplicate
+        carData.images.forEach((url, index) => {
+          if (!imageMap.has(url)) {
+            imageMap.set(url, {
+              id: index,
+              url,
+            })
+          }
+        })
       }
+      
+      setCarImages(Array.from(imageMap.values()))
 
       // Get booking stats from driver cars list
       if (driverCarsResponse) {
@@ -114,34 +126,6 @@ export default function ManageCarPage() {
       setError(err.response?.data?.message || 'Failed to load car details')
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const handleToggleAvailability = async () => {
-    if (!car) return
-
-    const newStatus = !car.is_listed
-    const confirmMessage = newStatus
-      ? 'Are you sure you want to list this car? It will be visible to customers.'
-      : 'Are you sure you want to unlist this car? It will no longer be visible to customers.'
-
-    if (!window.confirm(confirmMessage)) {
-      return
-    }
-
-    setIsToggling(true)
-    setError(null)
-    setSuccess(null)
-
-    try {
-      await carsApi.updateCarAvailability(carId, { is_listed: newStatus })
-      setSuccess(`Car ${newStatus ? 'listed' : 'unlisted'} successfully`)
-      await fetchCarData()
-    } catch (err: any) {
-      console.error('Error toggling availability:', err)
-      setError(err.response?.data?.message || 'Failed to update availability')
-    } finally {
-      setIsToggling(false)
     }
   }
 
@@ -348,32 +332,6 @@ export default function ManageCarPage() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Availability Toggle */}
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white">Listing Availability</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white font-medium">
-                    {car.is_listed ? 'Car is listed and visible to customers' : 'Car is unlisted and hidden from customers'}
-                  </p>
-                  <p className="text-gray-400 text-sm mt-1">
-                    Toggle this to show or hide your car in search results
-                  </p>
-                </div>
-                <Button
-                  onClick={handleToggleAvailability}
-                  disabled={isToggling}
-                  className={car.is_listed ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'}
-                >
-                  {isToggling ? 'Updating...' : car.is_listed ? 'Unlist Car' : 'List Car'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Car Information */}
           <Card className="bg-white/10 backdrop-blur-md border-white/20">

@@ -238,15 +238,10 @@ export default function DriverCarsPage() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex space-x-2">
-                      <Link href={`/driver/cars/${car.id}`} className="flex-1">
+                    <div>
+                      <Link href={`/driver/cars/${car.id}`}>
                         <Button variant="outline" className="w-full">
                           ✏️ Manage
-                        </Button>
-                      </Link>
-                      <Link href={`/client/cars/${car.id}`} className="flex-1">
-                        <Button variant="outline" className="w-full">
-                          👁️ View
                         </Button>
                       </Link>
                     </div>

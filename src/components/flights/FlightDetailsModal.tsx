@@ -14,8 +14,8 @@ interface FlightDetailsModalProps {
     departureTime: string
     arrivalTime: string
     duration: number
-    baseFare: number
-    taxes: number
+    baseFare?: number
+    taxes?: number
     totalFare: number
     currency: string
     availableSeats: number
@@ -34,6 +34,17 @@ interface FlightDetailsModalProps {
   }
   isOpen: boolean
   onClose: () => void
+}
+
+// USD to PKR conversion rate (approximate, should be fetched from API in production)
+const USD_TO_PKR_RATE = 280
+
+// Convert USD to PKR
+const convertToPKR = (amount: number, currency: string): number => {
+  if (currency === 'USD' || currency === 'usd') {
+    return Math.round(amount * USD_TO_PKR_RATE)
+  }
+  return amount // Already in PKR or other currency
 }
 
 export function FlightDetailsModal({ flight, isOpen, onClose }: FlightDetailsModalProps) {
@@ -221,19 +232,23 @@ export function FlightDetailsModal({ flight, isOpen, onClose }: FlightDetailsMod
 
                     {/* Price Breakdown */}
                     <div className="space-y-3 mb-6">
-                      <div className="flex justify-between">
-                        <span className="text-gray-300">Base Fare</span>
-                        <span className="text-white">PKR {flight.baseFare.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-300">Taxes & Fees</span>
-                        <span className="text-white">PKR {flight.taxes.toLocaleString()}</span>
-                      </div>
+                      {flight.baseFare !== undefined && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-300">Base Fare</span>
+                          <span className="text-white">PKR {convertToPKR(flight.baseFare || 0, flight.currency).toLocaleString()}</span>
+                        </div>
+                      )}
+                      {flight.taxes !== undefined && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-300">Taxes & Fees</span>
+                          <span className="text-white">PKR {convertToPKR(flight.taxes || 0, flight.currency).toLocaleString()}</span>
+                        </div>
+                      )}
                       <div className="border-t border-gray-600 pt-3">
                         <div className="flex justify-between">
                           <span className="text-white font-semibold">Total Price</span>
                           <span className="text-2xl font-bold text-cyan-300">
-                            PKR {flight.totalFare.toLocaleString()}
+                            PKR {convertToPKR(flight.totalFare, flight.currency).toLocaleString()}
                           </span>
                         </div>
                       </div>
