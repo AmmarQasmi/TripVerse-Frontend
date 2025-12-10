@@ -91,7 +91,7 @@ export function DoughnutChart({
     
     // Handle currency labels
     if (label === 'Total Spent' || label === 'Total Revenue' || label.includes('Earnings') || label.includes('Revenue')) {
-      return { display: `$${val.toLocaleString()}`, prefix: '', isCurrency: true }
+      return { display: `PKR ${val.toLocaleString()}`, prefix: '', isCurrency: true }
     }
     
     // Regular numeric values

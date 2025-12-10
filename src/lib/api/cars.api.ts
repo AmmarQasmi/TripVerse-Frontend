@@ -14,6 +14,7 @@ export const carsApi = {
     if (params.endDate) searchParams.append('end_date', params.endDate)
     if (params.seats) searchParams.append('seats', params.seats.toString())
     if (params.type) searchParams.append('transmission', params.type)
+    if (params.fuel_type) searchParams.append('fuel_type', params.fuel_type)
     if (params.minPrice) searchParams.append('min_price', params.minPrice.toString())
     if (params.maxPrice) searchParams.append('max_price', params.maxPrice.toString())
 

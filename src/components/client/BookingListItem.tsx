@@ -70,7 +70,7 @@ export function BookingListItem({
                     {new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </span>
                   <span className="text-gray-900 font-semibold">
-                    ${amount.toLocaleString()}
+                    PKR {amount.toLocaleString()}
                   </span>
                 </div>
               </div>
