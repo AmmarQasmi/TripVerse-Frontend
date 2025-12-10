@@ -372,7 +372,6 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
               />
               <label htmlFor="image-upload" className="cursor-pointer">
                 <p className="text-gray-700 mb-2">Click to upload car images</p>
-                <p className="text-sm text-gray-500">Upload at least 3 high-quality images</p>
               </label>
             </div>
             {formData.images && formData.images.length > 0 && (

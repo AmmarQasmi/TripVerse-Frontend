@@ -105,6 +105,12 @@ export function FlightSearchForm({ onSearch, isLoading = false, initialParams }:
   const extractAirportCode = (input: string): string => {
     if (!input) return ''
     
+    // Extract code from format "City (CODE)" - e.g., "Karachi (KHI)"
+    const codeMatch = input.match(/\(([A-Z]{3})\)/i)
+    if (codeMatch) {
+      return codeMatch[1].toUpperCase()
+    }
+    
     // If input is already a 3-letter code, return it uppercase
     const trimmed = input.trim().toUpperCase()
     if (/^[A-Z]{3}$/.test(trimmed)) {
@@ -115,7 +121,9 @@ export function FlightSearchForm({ onSearch, isLoading = false, initialParams }:
     const matched = airports.find(airport => 
       airport.city.toLowerCase() === input.toLowerCase() ||
       airport.name.toLowerCase().includes(input.toLowerCase()) ||
-      airport.code.toLowerCase() === input.toLowerCase()
+      airport.code.toLowerCase() === input.toLowerCase() ||
+      input.toLowerCase().includes(airport.city.toLowerCase()) ||
+      input.toLowerCase().includes(airport.code.toLowerCase())
     )
     
     return matched ? matched.code : ''
@@ -135,12 +143,18 @@ export function FlightSearchForm({ onSearch, isLoading = false, initialParams }:
     setShowDestinationSuggestions(suggestions.length > 0 && value.length > 0)
   }
 
-  const selectAirport = (airport: typeof airports[0], type: 'origin' | 'destination') => {
+  const selectAirport = (airport: typeof airports[0], type: 'origin' | 'destination', event?: React.MouseEvent) => {
+    // Prevent blur event from firing when clicking suggestion
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+    
     if (type === 'origin') {
-      setSearchParams(prev => ({ ...prev, origin: airport.code }))
+      setSearchParams(prev => ({ ...prev, origin: `${airport.city} (${airport.code})` }))
       setShowOriginSuggestions(false)
     } else {
-      setSearchParams(prev => ({ ...prev, destination: airport.code }))
+      setSearchParams(prev => ({ ...prev, destination: `${airport.city} (${airport.code})` }))
       setShowDestinationSuggestions(false)
     }
   }
@@ -264,7 +278,10 @@ export function FlightSearchForm({ onSearch, isLoading = false, initialParams }:
                       <button
                         key={airport.code}
                         type="button"
-                        onClick={() => selectAirport(airport, 'origin')}
+                        onMouseDown={(e) => {
+                          e.preventDefault()
+                          selectAirport(airport, 'origin', e)
+                        }}
                         className="w-full px-4 py-2 text-left hover:bg-gray-700/50 transition-colors duration-75"
                       >
                         <div className="text-white font-medium">{airport.city}</div>
@@ -311,7 +328,10 @@ export function FlightSearchForm({ onSearch, isLoading = false, initialParams }:
                       <button
                         key={airport.code}
                         type="button"
-                        onClick={() => selectAirport(airport, 'destination')}
+                        onMouseDown={(e) => {
+                          e.preventDefault()
+                          selectAirport(airport, 'destination', e)
+                        }}
                         className="w-full px-4 py-2 text-left hover:bg-gray-700/50 transition-colors duration-75"
                       >
                         <div className="text-white font-medium">{airport.city}</div>
@@ -331,7 +351,7 @@ export function FlightSearchForm({ onSearch, isLoading = false, initialParams }:
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="date"
-                value={searchParams.departureDate || getTomorrow()}
+                value={searchParams.departureDate || ''}
                 onChange={(e) => setSearchParams(prev => ({ ...prev, departureDate: e.target.value }))}
                 min={getTomorrow()}
                 className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-full text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors duration-75 [color-scheme:dark]"
@@ -380,7 +400,7 @@ export function FlightSearchForm({ onSearch, isLoading = false, initialParams }:
                     <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="date"
-                      value={leg.date || getTomorrow()}
+                      value={leg.date || ''}
                       onChange={(e) => setMultiLegs((legs) => legs.map((l, i) => i===idx ? { ...l, date: e.target.value } : l))}
                       min={getTomorrow()}
                       className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-full text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors duration-75 [color-scheme:dark]"
@@ -420,7 +440,7 @@ export function FlightSearchForm({ onSearch, isLoading = false, initialParams }:
                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="date"
-                  value={searchParams.returnDate || getNextWeek()}
+                  value={searchParams.returnDate || ''}
                   onChange={(e) => setSearchParams(prev => ({ ...prev, returnDate: e.target.value }))}
                   min={searchParams.departureDate || getTomorrow()}
                   className="w-full pl-10 pr-4 py-3 bg-gray-800/80 border border-gray-600 rounded-full text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors duration-75 [color-scheme:dark]"

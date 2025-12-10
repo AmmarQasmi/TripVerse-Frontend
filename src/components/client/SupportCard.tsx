@@ -216,7 +216,7 @@ export function SupportCard() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
                 <div className="text-left">
-                  <p className="text-white text-sm font-medium">Live Chat</p>
+                  <p className="text-white text-sm font-medium">For Queries Contact us on +1 (234) 567-890</p>
                   <p className="text-cyan-300 text-sm">Get instant help</p>
                 </div>
               </div>

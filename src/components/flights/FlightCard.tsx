@@ -32,6 +32,17 @@ interface FlightCardProps {
   onSelect?: () => void
 }
 
+// USD to PKR conversion rate (approximate, should be fetched from API in production)
+const USD_TO_PKR_RATE = 280
+
+// Convert USD to PKR
+const convertToPKR = (amount: number, currency: string): number => {
+  if (currency === 'USD' || currency === 'usd') {
+    return Math.round(amount * USD_TO_PKR_RATE)
+  }
+  return amount // Already in PKR or other currency
+}
+
 export function FlightCard({ flight, onSelect }: FlightCardProps) {
   const [isBooking, setIsBooking] = useState(false)
   
@@ -214,7 +225,7 @@ export function FlightCard({ flight, onSelect }: FlightCardProps) {
           <div className="flex items-center justify-between">
             <div className="text-right">
               <div className="text-3xl font-bold text-white group-hover:text-cyan-300 transition-colors">
-                PKR {flightData.totalFare.toLocaleString()}
+                PKR {convertToPKR(flightData.totalFare, flightData.currency).toLocaleString()}
               </div>
               <div className="text-sm text-gray-400">per passenger</div>
               {flightData.availableSeats > 0 && (
