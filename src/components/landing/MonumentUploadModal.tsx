@@ -47,7 +47,8 @@ export function MonumentUploadModal({ isOpen, onClose }: MonumentUploadModalProp
       }
     } catch (err: any) {
       console.error('Recognition failed:', err)
-      alert(err?.response?.data?.message || 'Failed to recognize monument. Please try again.')
+      const errorMessage = err?.response?.data?.message || err?.message || 'Failed to recognize monument. Please try again.'
+      alert(errorMessage)
     }
   }
 
@@ -92,6 +93,11 @@ export function MonumentUploadModal({ isOpen, onClose }: MonumentUploadModalProp
             <p className="text-gray-600 mb-4">
               Upload a picture to identify a monument and learn about its history!
             </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <p className="text-xs text-blue-800">
+                <strong>💡 Tip:</strong> Google Vision only recognizes famous landmarks (e.g., Eiffel Tower, Taj Mahal, Statue of Liberty, Big Ben, Colosseum). Regular buildings or personal photos may not be detected.
+              </p>
+            </div>
             
             {!previewUrl ? (
               <div
