@@ -204,7 +204,7 @@ export default function ManageCarPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-white">
         <PageHeader 
           title="Manage Car"
           subtitle="Loading car details..."
@@ -212,7 +212,7 @@ export default function ManageCarPage() {
           backLabel="Back to Cars"
         />
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-white text-xl">Loading car details...</div>
+          <div className="text-gray-900 text-xl">Loading car details...</div>
         </div>
       </div>
     )
@@ -220,7 +220,7 @@ export default function ManageCarPage() {
 
   if (error && !car) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-white">
         <PageHeader 
           title="Manage Car"
           subtitle="Error loading car"
@@ -228,9 +228,9 @@ export default function ManageCarPage() {
           backLabel="Back to Cars"
         />
         <div className="container mx-auto px-4 py-8">
-          <Card className="bg-red-500/20 border-red-500">
+          <Card className="bg-red-50 border-red-200">
             <CardContent className="p-6">
-              <p className="text-white">{error}</p>
+              <p className="text-gray-900">{error}</p>
               <Button onClick={() => router.push('/driver/cars')} variant="outline" className="mt-4">
                 Back to Cars
               </Button>
@@ -246,7 +246,7 @@ export default function ManageCarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <PageHeader 
         title={`${car.car.make} ${car.car.model}`}
         subtitle="Manage your car listing"
@@ -277,36 +277,36 @@ export default function ManageCarPage() {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card className="bg-gray-50 border-gray-200">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-300">Total Bookings</p>
-                    <p className="text-3xl font-bold text-white">{bookingStats.total_bookings}</p>
+                    <p className="text-sm font-medium text-gray-600">Total Bookings</p>
+                    <p className="text-3xl font-bold text-gray-900">{bookingStats.total_bookings}</p>
                   </div>
                   <div className="text-4xl">📋</div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card className="bg-gray-50 border-gray-200">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-300">Active Bookings</p>
-                    <p className="text-3xl font-bold text-white">{bookingStats.active_bookings}</p>
+                    <p className="text-sm font-medium text-gray-600">Active Bookings</p>
+                    <p className="text-3xl font-bold text-gray-900">{bookingStats.active_bookings}</p>
                   </div>
                   <div className="text-4xl">✅</div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card className="bg-gray-50 border-gray-200">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-300">Total Earnings</p>
-                    <p className="text-3xl font-bold text-white">
+                    <p className="text-sm font-medium text-gray-600">Total Earnings</p>
+                    <p className="text-3xl font-bold text-gray-900">
                       PKR {bookingStats.total_earnings.toLocaleString()}
                     </p>
                   </div>
@@ -315,15 +315,15 @@ export default function ManageCarPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card className="bg-gray-50 border-gray-200">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-300">Status</p>
-                    <p className="text-lg font-bold text-white">
+                    <p className="text-sm font-medium text-gray-600">Status</p>
+                    <p className="text-lg font-bold text-gray-900">
                       {car.is_active ? '✅ Active' : '⏸️ Inactive'}
                     </p>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-gray-600">
                       {car.is_listed ? '📋 Listed' : '🔒 Unlisted'}
                     </p>
                   </div>
@@ -334,10 +334,10 @@ export default function ManageCarPage() {
           </div>
 
           {/* Car Information */}
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="bg-gray-50 border-gray-200">
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle className="text-white">Car Information</CardTitle>
+                <CardTitle className="text-gray-900">Car Information</CardTitle>
                 {!isEditing && (
                   <Button variant="outline" onClick={() => setIsEditing(true)}>
                     Edit
@@ -367,44 +367,44 @@ export default function ManageCarPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <p className="text-sm text-gray-400">Make & Model</p>
-                    <p className="text-xl font-semibold text-white">
+                    <p className="text-sm text-gray-600">Make & Model</p>
+                    <p className="text-xl font-semibold text-gray-900">
                       {car.car.make} {car.car.model}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Year</p>
-                    <p className="text-xl font-semibold text-white">{car.car.year}</p>
+                    <p className="text-sm text-gray-600">Year</p>
+                    <p className="text-xl font-semibold text-gray-900">{car.car.year}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Color</p>
-                    <p className="text-xl font-semibold text-white">{car.car.color || 'N/A'}</p>
+                    <p className="text-sm text-gray-600">Color</p>
+                    <p className="text-xl font-semibold text-gray-900">{car.car.color || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Seats</p>
-                    <p className="text-xl font-semibold text-white">{car.car.seats}</p>
+                    <p className="text-sm text-gray-600">Seats</p>
+                    <p className="text-xl font-semibold text-gray-900">{car.car.seats}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Transmission</p>
-                    <p className="text-xl font-semibold text-white capitalize">{car.car.transmission}</p>
+                    <p className="text-sm text-gray-600">Transmission</p>
+                    <p className="text-xl font-semibold text-gray-900 capitalize">{car.car.transmission}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Fuel Type</p>
-                    <p className="text-xl font-semibold text-white capitalize">{car.car.fuel_type}</p>
+                    <p className="text-sm text-gray-600">Fuel Type</p>
+                    <p className="text-xl font-semibold text-gray-900 capitalize">{car.car.fuel_type}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">License Plate</p>
-                    <p className="text-xl font-semibold text-white">{car.car.license_plate || 'N/A'}</p>
+                    <p className="text-sm text-gray-600">License Plate</p>
+                    <p className="text-xl font-semibold text-gray-900">{car.car.license_plate || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Base Price per Day</p>
-                    <p className="text-xl font-semibold text-white">
+                    <p className="text-sm text-gray-600">Base Price per Day</p>
+                    <p className="text-xl font-semibold text-gray-900">
                       PKR {car.pricing.base_price_per_day.toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Distance Rate per KM</p>
-                    <p className="text-xl font-semibold text-white">
+                    <p className="text-sm text-gray-600">Distance Rate per KM</p>
+                    <p className="text-xl font-semibold text-gray-900">
                       PKR {car.pricing.distance_rate_per_km.toLocaleString()}
                     </p>
                   </div>
@@ -414,9 +414,9 @@ export default function ManageCarPage() {
           </Card>
 
           {/* Images */}
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="bg-gray-50 border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white">Car Images</CardTitle>
+              <CardTitle className="text-gray-900">Car Images</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {carImages.length > 0 && (
