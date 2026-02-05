@@ -64,6 +64,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Set user state from response
       setUser(response.user)
       
+      // CRITICAL: Wait a tiny bit to ensure cookie is fully set before next request
+      // This prevents race conditions where checkSession is called too quickly
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       // Return the user so it can be used immediately for redirects
       return response.user
     } catch (error: any) {
