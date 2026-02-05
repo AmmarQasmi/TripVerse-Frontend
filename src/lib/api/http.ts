@@ -17,6 +17,23 @@ class HttpClient {
   }
 
   private setupInterceptors() {
+    // Request interceptor for debugging
+    this.instance.interceptors.request.use(
+      (config) => {
+        // Log request details for debugging cookie issues
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`📤 ${config.method?.toUpperCase()} ${config.url}`, {
+            withCredentials: config.withCredentials,
+            baseURL: config.baseURL,
+          })
+        }
+        return config
+      },
+      (error) => {
+        return Promise.reject(error)
+      }
+    )
+
     // Response interceptor to handle errors
     this.instance.interceptors.response.use(
       (response) => response,
