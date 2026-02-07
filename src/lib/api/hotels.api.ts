@@ -9,21 +9,34 @@ export const hotelsApi = {
 
   getById: async (id: string) => {
     const response = await httpClient.get<any>(API_ENDPOINTS.HOTELS.BY_ID(id))
-    // Backend returns hotel object directly, but check if wrapped in data property
     const hotel = response.data || response
-    console.log('API Response for hotel:', hotel)
-    console.log('Images in API response:', hotel?.images)
     return hotel as Hotel
   },
 
   search: async (params: HotelSearchParams) => {
     const searchParams = new URLSearchParams()
     
-    // Map frontend params to backend params
-    // Note: Backend expects city_id, but we're passing location (region name)
-    // For now, we'll fetch all hotels and filter by region on frontend if needed
-    // TODO: Add city lookup by region name to get city_id
+    // Map frontend params to backend search endpoint params
+    if (params.location && params.location !== '') {
+      searchParams.append('city', params.location)
+    }
     
+    if (params.checkIn) {
+      searchParams.append('checkin', params.checkIn)
+    }
+    
+    if (params.checkOut) {
+      searchParams.append('checkout', params.checkOut)
+    }
+    
+    if (params.guests !== undefined && params.guests > 0) {
+      searchParams.append('guests', params.guests.toString())
+    }
+    
+    if (params.rooms !== undefined && params.rooms > 0) {
+      searchParams.append('rooms', params.rooms.toString())
+    }
+
     if (params.minPrice !== undefined) {
       searchParams.append('minPrice', params.minPrice.toString())
     }
@@ -40,26 +53,122 @@ export const hotelsApi = {
       searchParams.append('amenities', params.amenities.join(','))
     }
     
-    // Use BASE endpoint (GET /hotels) which supports search params
+    // Use the dedicated search endpoint
+    const queryStr = searchParams.toString()
+    const url = queryStr 
+      ? `${API_ENDPOINTS.HOTELS.SEARCH}?${queryStr}` 
+      : API_ENDPOINTS.HOTELS.SEARCH
+    
     const response = await httpClient.get<{
       data: Hotel[]
-      pagination: {
-        page: number
-        limit: number
-        total: number
-        totalPages: number
+      total: number
+      filters: {
+        city: string | null
+        region: string | null
+        checkin: string | null
+        checkout: string | null
+        guests: number
+        rooms: number
       }
-    }>(`${API_ENDPOINTS.HOTELS.BASE}?${searchParams.toString()}`)
+    }>(url)
     
-    // Filter by location (region) on frontend if provided
-    let filteredData = response.data || []
-    if (params.location && params.location !== '') {
-      filteredData = filteredData.filter((hotel: Hotel) => 
-        hotel.location?.toLowerCase().includes(params.location!.toLowerCase())
-      )
-    }
-    
-    return filteredData
+    return response.data || []
+  },
+
+  getAvailableCities: async () => {
+    const response = await httpClient.get<Array<{
+      id: number
+      city: string
+      region: string
+      hotel_count: number
+    }>>(API_ENDPOINTS.HOTELS.AVAILABLE_CITIES)
+    return response
+  },
+
+  getPopularDestinations: async () => {
+    const response = await httpClient.get<Array<{
+      city: string
+      region: string
+      hotel_count: number
+      starting_price: number
+      avg_price: number
+      total_bookings: number
+    }>>(API_ENDPOINTS.HOTELS.POPULAR_DESTINATIONS)
+    return response
+  },
+
+  getRegionsByCity: async (city: string) => {
+    const response = await httpClient.get<Array<{
+      region: string
+      hotel_count: number
+    }>>(API_ENDPOINTS.HOTELS.REGIONS_BY_CITY(city))
+    return response
+  },
+
+  getHotelReviews: async (hotelId: string, page: number = 1, limit: number = 10) => {
+    const response = await httpClient.get<{
+      reviews: Array<{
+        id: number
+        rating: number
+        comment: string | null
+        created_at: string
+        user: { id: number; name: string }
+        verified_stay: boolean
+      }>
+      avg_rating: number
+      total: number
+      pagination: { page: number; limit: number; total: number; pages: number }
+    }>(`${API_ENDPOINTS.HOTELS.REVIEWS(hotelId)}?page=${page}&limit=${limit}`)
+    return response
+  },
+
+  canUserReview: async (hotelId: string) => {
+    const response = await httpClient.get<{
+      can_review: boolean
+      reason?: string
+    }>(API_ENDPOINTS.HOTELS.CAN_REVIEW(hotelId))
+    return response
+  },
+
+  createReview: async (hotelId: string, data: { rating: number; comment?: string }) => {
+    const response = await httpClient.post<{
+      id: number
+      rating: number
+      comment: string | null
+      created_at: string
+      user: { id: number; name: string }
+      verified_stay: boolean
+    }>(API_ENDPOINTS.HOTELS.REVIEWS(hotelId), data)
+    return response
+  },
+
+  checkRoomAvailability: async (hotelId: string, checkin: string, checkout: string) => {
+    const searchParams = new URLSearchParams({ checkin, checkout })
+    const response = await httpClient.get<{
+      hotelId: string
+      hotelName: string
+      location: string
+      region: string
+      checkin: string
+      checkout: string
+      roomTypes: Array<{
+        id: string
+        name: string
+        description: string | null
+        capacity: number
+        pricePerNight: number
+        totalPrice: number
+        nights: number
+        totalRooms: number
+        bookedRooms: number
+        availableRooms: number
+        isAvailable: boolean
+        amenities: string[]
+        images: string[]
+      }>
+      hasAvailability: boolean
+    }>(API_ENDPOINTS.HOTELS.ROOM_AVAILABILITY(hotelId) + `?${searchParams.toString()}`)
+    return response
   },
 
   create: async (hotel: Omit<Hotel, 'id' | 'createdAt' | 'updatedAt'>) => {

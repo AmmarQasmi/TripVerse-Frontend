@@ -1,225 +1,137 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import Image from 'next/image'
-import Link from 'next/link'
+import { usePopularDestinations } from '@/features/hotels/useHotelSearch'
 
-// City → 3-image galleries. If local images exist in /public/images/cities/{city}/{city}-0X.jpg they'll be used.
-const cityData = [
-  { key: 'karachi',  name: 'Karachi, Pakistan',  price: 'PKR 12,000', description: 'Coastal metropolis' },
-  { key: 'lahore',   name: 'Lahore, Pakistan',   price: 'PKR 14,000', description: 'Historic city of culture' },
-  { key: 'islamabad',name: 'Islamabad, Pakistan',price: 'PKR 18,000', description: 'Green capital' },
-  { key: 'peshawar', name: 'Peshawar, Pakistan', price: 'PKR 10,000', description: 'Gateway to the North' },
-  { key: 'multan',   name: 'Multan, Pakistan',   price: 'PKR 9,500',  description: 'City of saints' },
-  { key: 'faisalabad',name:'Faisalabad, Pakistan',price: 'PKR 9,000', description: 'Industrial hub' },
-] as const
-
-const fallback = {
-  karachi: [
-    'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1600&q=80',
-    'https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=1600&q=80',
-    'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=80',
-  ],
-  lahore: [
-    'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1600&q=80',
-    'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=1600&q=80',
-    'https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=1600&q=80',
-  ],
-  islamabad: [
-    'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1600&q=80',
-    'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80',
-    'https://images.unsplash.com/photo-1529257414772-1960b0e0871e?auto=format&fit=crop&w=1600&q=80',
-  ],
-  peshawar: [
-    'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80',
-    'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1600&q=80',
-    'https://images.unsplash.com/photo-1529257414772-1960b0e0871e?auto=format&fit=crop&w=1600&q=80',
-  ],
-  multan: [
-    'https://images.unsplash.com/photo-1529257414772-1960b0e0871e?auto=format&fit=crop&w=1600&q=80',
-    'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1600&q=80',
-    'https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=1600&q=80',
-  ],
-  faisalabad: [
-    'https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=1600&q=80',
-    'https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=1600&q=80',
-    'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1600&q=80',
-  ],
-} as const
-
-const buildCandidates = (key: keyof typeof fallback, i: number) => {
-  const base = `/images/cities/${key}/${key}-${String(i+1).padStart(2,'0')}`
-  return [
-    `${base}.jpg`,
-    `${base}.jpeg`,
-    `${base}.webp`,
-    `${base}.png`,
-  ]
+// City image map — curated Unsplash images for Pakistan cities
+const cityImages: Record<string, string> = {
+  karachi:    'https://images.unsplash.com/photo-1567530877351-f8be0e893491?auto=format&fit=crop&w=800&q=80',
+  lahore:     'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=800&q=80',
+  islamabad:  'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80',
+  peshawar:   'https://images.unsplash.com/photo-1529257414772-1960b0e0871e?auto=format&fit=crop&w=800&q=80',
+  multan:     'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80',
+  faisalabad: 'https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=800&q=80',
+  quetta:     'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80',
+  rawalpindi: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=800&q=80',
+  murree:     'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80',
+  swat:       'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80',
+  hunza:      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80',
+  skardu:     'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
+  naran:      'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80',
+  gilgit:     'https://images.unsplash.com/photo-1505682634904-d7c8d95cdc50?auto=format&fit=crop&w=800&q=80',
+  gwadar:     'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+  hyderabad:  'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=800&q=80',
 }
 
-const getCityImages = (key: keyof typeof fallback) => {
-  // Return arrays of candidates for each of the 3 images, followed by remote fallbacks
-  return [0,1,2].map((i) => buildCandidates(key, i).concat([fallback[key][i]]))
+const defaultImage = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80'
+
+function getCityImage(cityName: string): string {
+  const key = cityName.toLowerCase().replace(/\s+/g, '')
+  return cityImages[key] || defaultImage
 }
 
-function FallbackImage({ sources, alt }: { sources: string[]; alt: string }) {
-  const [idx, setIdx] = useState(0)
-  const src = sources[idx]
-  return (
-    <Image
-      src={src}
-      alt={alt}
-      fill
-      className="object-cover"
-      priority
-      onError={() => setIdx((p) => Math.min(p + 1, sources.length - 1))}
-    />
-  )
+interface PopularDestinationsCarouselProps {
+  onCitySelect?: (city: string) => void
 }
 
-export function PopularDestinationsCarousel() {
-  const [cityIndex, setCityIndex] = useState(2) // default Islamabad
-  const [imgIndex, setImgIndex] = useState(0)
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
+export function PopularDestinationsCarousel({ onCitySelect }: PopularDestinationsCarouselProps) {
+  const { data: destinations, isLoading } = usePopularDestinations()
 
-  // Auto-play functionality
-  useEffect(() => {
-    if (!isAutoPlaying) return
-
-    const interval = setInterval(() => {
-      setImgIndex((prev) => (prev + 1) % 3)
-    }, 3000)
-
-    return () => clearInterval(interval)
-  }, [isAutoPlaying])
-
-  const nextCity = () => { setCityIndex((c) => (c + 1) % cityData.length); setImgIndex(0); setIsAutoPlaying(false) }
-  const prevCity = () => { setCityIndex((c) => (c === 0 ? cityData.length - 1 : c - 1)); setImgIndex(0); setIsAutoPlaying(false) }
-  const goToCity = (i: number) => { setCityIndex(i); setImgIndex(0); setIsAutoPlaying(false) }
-  const goToImage = (i: number) => { setImgIndex(i); setIsAutoPlaying(false) }
-
-  return (
-    <div className="relative">
-      {/* Main Carousel */}
-      <div className="relative h-[28rem] overflow-hidden rounded-2xl bg-gray-900">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${cityIndex}-${imgIndex}`}
-            initial={{ opacity: 0, x: 300 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -300 }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-            className="absolute inset-0"
-          >
-            <FallbackImage
-              sources={getCityImages(cityData[cityIndex].key as any)[imgIndex]}
-              alt={`${cityData[cityIndex].name} ${imgIndex+1}`}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            
-            {/* Content Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-8">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <h3 className="text-2xl font-bold text-white mb-2">
-                  {cityData[cityIndex].name}
-                </h3>
-                <p className="text-gray-200 mb-3 text-sm">
-                  {cityData[cityIndex].description}
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-semibold text-white">
-                    Hotels from {cityData[cityIndex].price} / night
-                  </span>
-                  <Link
-                    href={`/client/hotels?location=${cityData[cityIndex].name.split(',')[0]}`}
-                    className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-75 transform hover:scale-105"
-                  >
-                    Explore
-                  </Link>
-                </div>
-              </motion.div>
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="relative h-64 rounded-2xl overflow-hidden bg-gray-800/50 animate-pulse">
+            <div className="absolute inset-0 bg-gray-700/40" />
+            <div className="absolute bottom-0 left-0 right-0 p-5 space-y-2">
+              <div className="h-5 bg-gray-600 rounded w-2/3" />
+              <div className="h-4 bg-gray-600 rounded w-1/2" />
+              <div className="h-3 bg-gray-600 rounded w-1/3" />
             </div>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Navigation Arrows */}
-        <button
-          onClick={prevCity}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-75 backdrop-blur-sm"
-          onMouseEnter={() => setIsAutoPlaying(false)}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-
-        <button
-          onClick={nextCity}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-75 backdrop-blur-sm"
-          onMouseEnter={() => setIsAutoPlaying(false)}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-
-      {/* City Tabs */}
-      <div className="flex justify-center flex-wrap gap-2 mt-6">
-        {cityData.map((c, i) => (
-          <motion.button
-            key={c.key}
-            onClick={() => goToCity(i)}
-            className={`px-3 py-1 rounded-full text-sm border transition-all duration-75 ${i===cityIndex ? 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white border-transparent' : 'bg-gray-800/50 text-gray-200 border-gray-700 hover:bg-gray-700/50'}`}
-            animate={i === cityIndex ? {
-              boxShadow: [
-                '0 0 10px rgba(21, 94, 117, 0.4)',
-                '0 0 20px rgba(21, 94, 117, 0.8)',
-                '0 0 10px rgba(21, 94, 117, 0.4)'
-              ]
-            } : {}}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            style={i === cityIndex ? {
-              border: '2px solid rgba(21, 94, 117, 0.6)'
-            } : {}}
-          >
-            {c.name.split(',')[0]}
-          </motion.button>
+          </div>
         ))}
       </div>
+    )
+  }
 
-      {/* Inner image dots */}
-      <div className="flex justify-center space-x-2 mt-3">
-        {[0,1,2].map((i) => (
-          <button
-            key={i}
-            onClick={() => goToImage(i)}
-            className={`w-2.5 h-2.5 rounded-full transition-all duration-75 ${i===imgIndex ? 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] scale-125' : 'bg-gray-600 hover:bg-gray-400'}`}
+  if (!destinations || destinations.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <svg className="w-12 h-12 text-gray-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+        </svg>
+        <p className="text-gray-400">No destinations available yet</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+      {destinations.map((dest, index) => (
+        <motion.div
+          key={dest.city}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: index * 0.06 }}
+          viewport={{ once: true }}
+          onClick={() => onCitySelect?.(dest.city)}
+          className="group relative h-64 rounded-2xl overflow-hidden cursor-pointer"
+        >
+          {/* Background Image */}
+          <Image
+            src={getCityImage(dest.city)}
+            alt={dest.city}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-110"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
-        ))}
-      </div>
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent group-hover:from-black/90 transition-all duration-300" />
 
-      {/* Play/Pause Button */}
-      <div className="flex justify-center mt-4">
-        <button
-          onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-          className="bg-gray-800/50 hover:bg-gray-700/50 text-white px-4 py-2 rounded-lg transition-all duration-75 backdrop-blur-sm flex items-center space-x-2"
-        >
-          <span>{isAutoPlaying ? '⏸️' : '▶️'}</span>
-          <span className="text-sm">
-            {isAutoPlaying ? 'Pause' : 'Play'} slideshow
-          </span>
-        </button>
-      </div>
+          {/* Booking Badge */}
+          {dest.total_bookings > 0 && (
+            <div className="absolute top-3 right-3 bg-cyan-500/90 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" />
+              </svg>
+              {dest.total_bookings} booked
+            </div>
+          )}
+
+          {/* Content */}
+          <div className="absolute bottom-0 left-0 right-0 p-5">
+            <h3 className="text-xl font-bold text-white mb-1 group-hover:text-cyan-300 transition-colors">
+              {dest.city}
+            </h3>
+            <p className="text-gray-300 text-sm mb-2">{dest.region}</p>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 text-sm">
+                <span className="text-gray-300 flex items-center gap-1">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
+                  </svg>
+                  {dest.hotel_count} hotel{dest.hotel_count !== 1 ? 's' : ''}
+                </span>
+              </div>
+              {dest.starting_price > 0 && (
+                <span className="text-cyan-400 font-semibold text-sm">
+                  From PKR {dest.starting_price.toLocaleString()}
+                </span>
+              )}
+            </div>
+
+            {/* Hover CTA */}
+            <div className="mt-3 overflow-hidden max-h-0 group-hover:max-h-12 transition-all duration-300">
+              <div className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white text-center py-2 rounded-lg text-sm font-semibold">
+                View Hotels
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      ))}
     </div>
   )
 }

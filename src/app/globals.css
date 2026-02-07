@@ -90,14 +90,12 @@
   
   /* Style the calendar picker indicator - single clean white icon */
   input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(1);
+    filter: invert(1) brightness(100);
     cursor: pointer;
     opacity: 0.9;
-    width: 18px;
-    height: 18px;
-    background: none;
-    border: none;
-    margin-right: 4px;
+    width: 20px;
+    height: 20px;
+    margin-right: 2px;
     transition: opacity 0.2s;
   }
   
