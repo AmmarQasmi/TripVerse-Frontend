@@ -4,29 +4,6 @@ interface HotelAmenitiesProps {
   amenities: string[]
 }
 
-const amenityIcons: { [key: string]: string } = {
-  'wifi': '📶',
-  'pool': '🏊',
-  'parking': '🅿️',
-  'breakfast': '🍳',
-  'gym': '💪',
-  'spa': '🧘',
-  'restaurant': '🍽️',
-  'bar': '🍸',
-  'airport-shuttle': '🚌',
-  'pet-friendly': '🐕',
-  'business-center': '💼',
-  'room-service': '🏠',
-  'kitchen': '🍳',
-  'laundry': '👕',
-  'concierge': '🎩',
-  'valet': '🚗',
-  'fitness': '💪',
-  'wellness': '🧘‍♀️',
-  'entertainment': '🎮',
-  'kids-club': '👶'
-}
-
 const amenityLabels: { [key: string]: string } = {
   'wifi': 'Free WiFi',
   'pool': 'Swimming Pool',
@@ -53,27 +30,27 @@ const amenityLabels: { [key: string]: string } = {
 export function HotelAmenities({ amenities }: HotelAmenitiesProps) {
   if (!amenities || amenities.length === 0) {
     return (
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-        <h3 className="text-2xl font-bold text-white mb-6">Amenities</h3>
-        <p className="text-gray-400">No amenities listed</p>
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50">
+        <h3 className="text-xl font-bold text-white mb-4">Amenities</h3>
+        <p className="text-gray-400 text-sm">No amenities listed</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-      <h3 className="text-2xl font-bold text-white mb-6">Amenities</h3>
+    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-5 border border-gray-700/50">
+      <h3 className="text-xl font-bold text-white mb-4">Amenities</h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
         {amenities.map((amenity, index) => (
           <div
             key={index}
-            className="flex items-center space-x-3 p-3 bg-gray-700/30 rounded-xl hover:bg-gray-700/50 transition-colors"
+            className="flex items-center space-x-2.5 px-3 py-2.5 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-colors"
           >
-            <span className="text-2xl">
-              {amenityIcons[amenity.toLowerCase()] || '✓'}
-            </span>
-            <span className="text-gray-300 font-medium">
+            <svg className="w-4 h-4 text-teal-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+            <span className="text-gray-300 text-sm font-medium">
               {amenityLabels[amenity.toLowerCase()] || amenity}
             </span>
           </div>

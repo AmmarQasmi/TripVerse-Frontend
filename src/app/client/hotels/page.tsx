@@ -1,15 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import Link from 'next/link'
 import Image from 'next/image'
 import { HotelCard } from '@/components/hotels/HotelCard'
 import { HotelSearchForm } from '@/components/hotels/HotelSearchForm'
+import { BookingModal } from '@/components/hotels/BookingModal'
+import { BookingSuccessModal } from '@/components/hotels/BookingSuccessModal'
 import { PopularDestinationsCarousel } from '@/components/hotels/PopularDestinationsCarousel'
+import { HotelLocationFilters } from '@/components/hotels/HotelLocationFilters'
 import { useHotelSearch } from '@/features/hotels/useHotelSearch'
 import { useAuth } from '@/features/auth/useAuth'
+import { Hotel } from '@/types'
+import { BookingResponse } from '@/lib/api/bookings.api'
 
 // Helper functions for image fallbacks
 const hdCityImages = [
@@ -62,6 +66,7 @@ const pickHDImage = (location: string, name: string) => {
 export default function HotelsPage() {
   const router = useRouter()
   const { user, isLoading: authLoading } = useAuth()
+  const resultsRef = useRef<HTMLDivElement>(null)
   const [searchParams, setSearchParams] = useState({
     query: '',
     location: '',
@@ -71,6 +76,10 @@ export default function HotelsPage() {
     rooms: 1,
   })
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
+
+  // Booking modal state
+  const [bookingHotel, setBookingHotel] = useState<Hotel | null>(null)
+  const [successBooking, setSuccessBooking] = useState<BookingResponse | null>(null)
 
   // Read URL params immediately on mount (before auth check)
   useEffect(() => {
@@ -171,9 +180,14 @@ export default function HotelsPage() {
   })
   const [showAllHotels, setShowAllHotels] = useState(false)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [locationFilter, setLocationFilter] = useState<{ city?: string; region?: string }>({})
   
   const { data: hotels, isLoading } = useHotelSearch({
     location: showAllHotels ? undefined : searchParams.location,
+    checkIn: searchParams.checkIn || undefined,
+    checkOut: searchParams.checkOut || undefined,
+    guests: searchParams.guests,
+    rooms: searchParams.rooms,
     minPrice: filters.priceRange[0],
     maxPrice: filters.priceRange[1],
     starRating: filters.starRating,
@@ -208,6 +222,10 @@ export default function HotelsPage() {
   const handleSearch = (newParams: typeof searchParams) => {
     setSearchParams(newParams)
     setShowAllHotels(false) // When searching, filter by location
+    // Smooth scroll to results after a short delay for data to load
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 300)
   }
 
   const handleClearFilters = () => {
@@ -217,6 +235,16 @@ export default function HotelsPage() {
       amenities: [],
       propertyType: [],
     })
+    setLocationFilter({})
+  }
+
+  const handleLocationFilterChange = (lf: { city?: string; region?: string }) => {
+    setLocationFilter(lf)
+    // When city filter is set, update the search location too
+    if (lf.city) {
+      setSearchParams(prev => ({ ...prev, location: lf.city || '' }))
+      setShowAllHotels(false)
+    }
   }
 
   return (
@@ -278,13 +306,18 @@ export default function HotelsPage() {
             <h2 className="text-3xl font-bold text-white text-center mb-12">
               Popular destinations
             </h2>
-            <PopularDestinationsCarousel />
+            <PopularDestinationsCarousel
+                onCitySelect={(city) => {
+                  setSearchParams((prev) => ({ ...prev, location: city }))
+                  setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
+                }}
+              />
           </motion.div>
         </div>
       </section>
 
       {/* Hotel Listing Section */}
-      <section className="py-16 px-4">
+      <section ref={resultsRef} className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Inline style for custom range theme (scoped) */}
           <style jsx>{`
@@ -325,7 +358,20 @@ export default function HotelsPage() {
             className="mb-8 flex items-center justify-between flex-wrap gap-4"
           >
             <div className="flex-1">
-              {showAllHotels ? (
+              {searchParams.location ? (
+                <div>
+                  <h3 className="text-2xl font-semibold text-white mb-2">
+                    Hotels in {searchParams.location}
+                  </h3>
+                  <p className="text-gray-300">
+                    {searchParams.checkIn && searchParams.checkOut 
+                      ? `${searchParams.checkIn} → ${searchParams.checkOut} · ${searchParams.guests} guest${searchParams.guests > 1 ? 's' : ''} · ${searchParams.rooms} room${searchParams.rooms > 1 ? 's' : ''}`
+                      : 'Select dates to check real-time availability'
+                    }
+                    {displayedHotels.length > 0 && ` · ${displayedHotels.length} result${displayedHotels.length !== 1 ? 's' : ''}`}
+                  </p>
+                </div>
+              ) : showAllHotels ? (
                 <div>
                   <h3 className="text-2xl font-semibold text-white mb-2">
                     All Available Hotels
@@ -367,10 +413,28 @@ export default function HotelsPage() {
                   }
                 `}
               >
-                {showAllHotels ? '📍 Filter by Location' : '🌐 Show All Hotels'}
+                {showAllHotels ? (
+                  <>
+                    <svg className="w-5 h-5 inline mr-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
+                    Filter by Location
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5 inline mr-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5a17.92 17.92 0 0 1-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" /></svg>
+                    Show All Hotels
+                  </>
+                )}
               </button>
             </div>
           </motion.div>
+
+          {/* Location Filters */}
+          <div className="mb-6">
+            <HotelLocationFilters
+              onFilterChange={handleLocationFilterChange}
+              initialCity={searchParams.location || ''}
+            />
+          </div>
 
           {/* Filters Section */}
           <div className="mb-8 grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -454,7 +518,7 @@ export default function HotelsPage() {
             </div>
 
             {/* Hotel Cards Grid */}
-            <div className="lg:col-span-4">
+            <div className="lg:col-span-3">
           {isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {Array.from({ length: 6 }).map((_, i) => (
@@ -478,27 +542,53 @@ export default function HotelsPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                     >
-                      <Link href={`/client/hotels/${hotel.id}`}>
-                        <HotelCard hotel={hotel} />
-                      </Link>
+                        <HotelCard
+                          hotel={hotel}
+                          onBook={(h) => setBookingHotel(h)}
+                          searchDates={{
+                            checkIn: searchParams.checkIn,
+                            checkOut: searchParams.checkOut,
+                            guests: searchParams.guests,
+                            rooms: searchParams.rooms,
+                          }}
+                        />
                     </motion.div>
                   ))}
                 </div>
               ) : (
                 <div className="text-center py-16">
-                  <div className="text-6xl mb-4">🏨</div>
+                  <svg className="w-16 h-16 text-gray-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
+                  </svg>
                   <h3 className="text-xl font-semibold text-white mb-2">
-                    No hotels found in this area
+                    {searchParams.location 
+                      ? `No hotels found in "${searchParams.location}"`
+                      : 'No hotels found'
+                    }
                   </h3>
                   <p className="text-gray-400 mb-6">
-                    Try adjusting your search criteria or explore other destinations
+                    {searchParams.checkIn && searchParams.checkOut 
+                      ? 'No rooms available for your selected dates. Try different dates or explore other destinations.'
+                      : 'Try adjusting your search criteria or explore other destinations.'
+                    }
                   </p>
-                  <button 
-                    onClick={handleClearFilters}
-                    className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-75"
-                  >
-                    Clear All Filters
-                  </button>
+                  <div className="flex items-center justify-center gap-4">
+                    <button 
+                      onClick={handleClearFilters}
+                      className="bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-600 transition-all duration-75"
+                    >
+                      Clear Filters
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setShowAllHotels(true)
+                        setSearchParams(prev => ({ ...prev, location: '' }))
+                      }}
+                      className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-75"
+                    >
+                      Show All Hotels
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -508,6 +598,32 @@ export default function HotelsPage() {
 
       {/* Region Selection Modal */}
       {/* Region Selection Modal removed per design request */}
+
+      {/* Booking Modal */}
+      {bookingHotel && (
+        <BookingModal
+          hotel={bookingHotel}
+          isOpen={!!bookingHotel}
+          onClose={() => setBookingHotel(null)}
+          onSuccess={(response) => {
+            setBookingHotel(null)
+            setSuccessBooking(response)
+          }}
+          searchDates={{
+            checkIn: searchParams.checkIn,
+            checkOut: searchParams.checkOut,
+            guests: searchParams.guests,
+            rooms: searchParams.rooms,
+          }}
+        />
+      )}
+
+      {/* Booking Success Modal */}
+      <BookingSuccessModal
+        isOpen={!!successBooking}
+        onClose={() => setSuccessBooking(null)}
+        booking={successBooking}
+      />
     </div>
   )
 }
