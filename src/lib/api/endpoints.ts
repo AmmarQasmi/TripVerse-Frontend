@@ -74,6 +74,9 @@ export const API_ENDPOINTS = {
   CARS: {
     BASE: '/cars',
     SEARCH: '/cars/search',
+    PLACES_AUTOCOMPLETE: '/cars/places/autocomplete',
+    CITIES_POPULAR: '/cars/cities/popular',
+    CITIES_EXPLORE: (cityName: string) => `/cars/cities/explore/${encodeURIComponent(cityName)}`,
     BY_ID: (id: string) => `/cars/${id}`,
     CREATE: '/cars/driver/cars', // Driver-specific endpoint
     UPDATE: (id: string) => `/cars/driver/cars/${id}`, // Driver-specific endpoint
@@ -103,6 +106,7 @@ export const API_ENDPOINTS = {
     MANAGER_BOOKINGS: '/hotel-bookings/manager/bookings',
     MANAGER_STATS: '/hotel-bookings/manager/stats',
     ADMIN_ALL: '/hotel-bookings/admin/all',
+    ROOM_UNAVAILABLE_DATES: (hotelId: string) => `/hotel-bookings/room-unavailable-dates/${hotelId}`,
   },
 
   // Car booking endpoints

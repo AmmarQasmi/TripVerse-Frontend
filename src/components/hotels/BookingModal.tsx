@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ProgressStepper } from './ProgressStepper'
+import { HotelBookingCalendar } from './HotelBookingCalendar'
 import { useRoomAvailability } from '@/features/hotels/useHotelSearch'
 import { useCreateBooking } from '@/features/bookings/useBooking'
+import { bookingsApi } from '@/lib/api/bookings.api'
 import { Hotel } from '@/types'
 import { BookingResponse } from '@/lib/api/bookings.api'
 
@@ -97,6 +99,10 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
   const [cardCvv, setCardCvv] = useState('')
   const [cardName, setCardName] = useState('')
 
+  // Unavailable dates for selected room type
+  const [unavailableDates, setUnavailableDates] = useState<string[]>([])
+  const [isLoadingDates, setIsLoadingDates] = useState(false)
+
   const createBooking = useCreateBooking()
 
   // Pre-fill dates from search params
@@ -107,6 +113,21 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
       if (searchDates.rooms > 0) setQuantity(searchDates.rooms)
     }
   }, [searchDates])
+
+  // Fetch unavailable dates when a room type is selected
+  const fetchUnavailableDates = useCallback(async (roomTypeId: string) => {
+    if (!hotel.id) return
+    setIsLoadingDates(true)
+    try {
+      const data = await bookingsApi.getRoomUnavailableDates(hotel.id.toString(), roomTypeId)
+      setUnavailableDates(data.unavailable_dates || [])
+    } catch (err) {
+      console.error('Failed to fetch unavailable dates:', err)
+      setUnavailableDates([])
+    } finally {
+      setIsLoadingDates(false)
+    }
+  }, [hotel.id])
 
   // Fetch room availability
   const { data: availability, isLoading: availabilityLoading } = useRoomAvailability(
@@ -150,6 +171,7 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
       setCardExpiry('')
       setCardCvv('')
       setCardName('')
+      setUnavailableDates([])
       createBooking.reset()
     }
   }, [isOpen])
@@ -261,35 +283,23 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
                   transition={{ duration: 0.2 }}
                   className="space-y-5"
                 >
-                  {/* Date Selection */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1.5">Check-in</label>
-                      <input
-                        type="date"
-                        value={checkIn}
-                        onChange={(e) => {
-                          setCheckIn(e.target.value)
-                          setSelectedRoomType(null)
-                          if (checkOut && e.target.value >= checkOut) setCheckOut('')
-                        }}
-                        min={today}
-                        className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none transition-all text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1.5">Check-out</label>
-                      <input
-                        type="date"
-                        value={checkOut}
-                        onChange={(e) => {
-                          setCheckOut(e.target.value)
-                          setSelectedRoomType(null)
-                        }}
-                        min={checkIn || today}
-                        className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none transition-all text-sm"
-                      />
-                    </div>
+                  {/* Date Selection Calendar */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Select Your Dates</label>
+                    <HotelBookingCalendar
+                      checkIn={checkIn}
+                      checkOut={checkOut}
+                      onCheckInSelect={(date) => {
+                        setCheckIn(date)
+                        setSelectedRoomType(null)
+                      }}
+                      onCheckOutSelect={(date) => {
+                        setCheckOut(date)
+                        setSelectedRoomType(null)
+                      }}
+                      unavailableDates={unavailableDates}
+                      isLoading={isLoadingDates}
+                    />
                   </div>
 
                   {/* Quantity */}
@@ -342,7 +352,12 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
                             <button
                               key={room.id}
                               type="button"
-                              onClick={() => !isDisabled && setSelectedRoomType(room)}
+                              onClick={() => {
+                                if (!isDisabled) {
+                                  setSelectedRoomType(room)
+                                  fetchUnavailableDates(room.id.toString())
+                                }
+                              }}
                               disabled={isDisabled}
                               className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-200 ${
                                 isSelected

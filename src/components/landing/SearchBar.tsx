@@ -3,117 +3,75 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Button } from '@/components/ui/Button'
+import { HotelSearchForm } from '@/components/hotels/HotelSearchForm'
+import { CarSearchForm, CarSearchParams } from '@/components/cars/CarSearchForm'
+import { FlightSearchForm } from '@/components/flights/FlightSearchForm'
 
 type SearchType = 'flight' | 'hotel' | 'rental'
 
 export function SearchBar() {
   const router = useRouter()
   const [searchType, setSearchType] = useState<SearchType>('flight')
-  const [departureDate, setDepartureDate] = useState('')
-  const [returnDate, setReturnDate] = useState('')
-  const [checkInDate, setCheckInDate] = useState('')
-  const [checkOutDate, setCheckOutDate] = useState('')
-  const [pickupDate, setPickupDate] = useState('')
-  const [returnCarDate, setReturnCarDate] = useState('')
-  
-  // Form state for all inputs
-  const [flightFrom, setFlightFrom] = useState('')
-  const [flightTo, setFlightTo] = useState('')
-  const [travelers, setTravelers] = useState('1')
-  const [hotelDestination, setHotelDestination] = useState('')
-  const [hotelGuests, setHotelGuests] = useState('2')
-  const [carPickupLocation, setCarPickupLocation] = useState('')
-  const [carDropoffLocation, setCarDropoffLocation] = useState('')
-  const [carPickupTime, setCarPickupTime] = useState('10:00')
-  const [carDropoffTime, setCarDropoffTime] = useState('10:00')
-  const [carVehicleType, setCarVehicleType] = useState('Any')
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    // Build query parameters based on search type
-    const params = new URLSearchParams()
-    
-    switch (searchType) {
-      case 'flight':
-        // Cache flight search data
-        const flightSearchData = {
-          from: flightFrom,
-          to: flightTo,
-          departure: departureDate,
-          return: returnDate,
-          travelers: travelers,
-        }
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('cached_flight_search', JSON.stringify(flightSearchData))
-        }
-        
-        if (flightFrom) params.set('from', flightFrom)
-        if (flightTo) params.set('to', flightTo)
-        if (departureDate) params.set('departure', departureDate)
-        if (returnDate) params.set('return', returnDate)
-        if (travelers) params.set('travelers', travelers)
-        router.push(`/client/flights?${params.toString()}`)
-        break
-      case 'hotel':
-        // Cache hotel search data - use 'location' to match form field name
-        const hotelSearchData = {
-          location: hotelDestination, // This will be stored as 'location' in cache
-          checkIn: checkInDate,
-          checkOut: checkOutDate,
-          guests: hotelGuests,
-        }
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('cached_hotel_search', JSON.stringify(hotelSearchData))
-        }
-        
-        if (hotelDestination) params.set('location', hotelDestination)
-        if (checkInDate) params.set('checkIn', checkInDate)
-        if (checkOutDate) params.set('checkOut', checkOutDate)
-        if (hotelGuests) params.set('guests', hotelGuests)
-        router.push(`/client/hotels?${params.toString()}`)
-        break
-      case 'rental':
-        // Cache rental search data
-        const rentalSearchData = {
-          pickupLocation: carPickupLocation,
-          dropoffLocation: carDropoffLocation,
-          pickupDate: pickupDate,
-          returnDate: returnCarDate,
-          pickupTime: carPickupTime,
-          dropoffTime: carDropoffTime,
-          vehicleType: carVehicleType,
-        }
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('cached_rental_search', JSON.stringify(rentalSearchData))
-        }
-        
-        if (carPickupLocation) params.set('pickupLocation', carPickupLocation)
-        if (carDropoffLocation) params.set('dropoffLocation', carDropoffLocation)
-        if (pickupDate) params.set('pickupDate', pickupDate)
-        if (returnCarDate) params.set('returnDate', returnCarDate)
-        if (carPickupTime) params.set('pickupTime', carPickupTime)
-        if (carDropoffTime) params.set('dropoffTime', carDropoffTime)
-        if (carVehicleType && carVehicleType !== 'Any') params.set('vehicleType', carVehicleType)
-        router.push(`/client/cars?${params.toString()}`)
-        break
-      default:
-        break
+  const handleHotelSearch = (params: any) => {
+    const urlParams = new URLSearchParams()
+    if (params.location) urlParams.set('location', params.location)
+    if (params.checkIn) urlParams.set('checkIn', params.checkIn)
+    if (params.checkOut) urlParams.set('checkOut', params.checkOut)
+    if (params.guests) urlParams.set('guests', params.guests.toString())
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cached_hotel_search', JSON.stringify({
+        location: params.location,
+        checkIn: params.checkIn,
+        checkOut: params.checkOut,
+        guests: params.guests?.toString(),
+      }))
     }
+
+    router.push(`/client/hotels?${urlParams.toString()}`)
   }
 
-  // Get today's date for min date
-  const today = new Date().toISOString().split('T')[0]
+  const handleCarSearch = (params: CarSearchParams) => {
+    const urlParams = new URLSearchParams()
+    if (params.pickupLocation) urlParams.set('pickupLocation', params.pickupLocation)
+    if (params.pickupDate) urlParams.set('pickupDate', params.pickupDate)
+    if (params.pickupTime) urlParams.set('pickupTime', params.pickupTime)
+    if (params.passengers) urlParams.set('passengers', params.passengers.toString())
+    if (params.carType) urlParams.set('carType', params.carType)
 
-  // Unified input classes for consistent dark theme styling - matching the reference image
-  const inputClasses = "flex h-10 w-full rounded-md border border-gray-300 bg-gray-900 px-3 py-2 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-  const dateInputClasses = "flex h-10 w-full rounded-md border border-gray-300 bg-gray-900 px-3 py-2 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all [color-scheme:dark]"
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cached_car_search', JSON.stringify(params))
+    }
+
+    router.push(`/client/cars?${urlParams.toString()}`)
+  }
+
+  const handleFlightSearch = (params: any) => {
+    const urlParams = new URLSearchParams()
+    if (params.origin) urlParams.set('from', params.origin)
+    if (params.destination) urlParams.set('to', params.destination)
+    if (params.departureDate) urlParams.set('departure', params.departureDate)
+    if (params.returnDate) urlParams.set('return', params.returnDate)
+    if (params.passengers?.adults) urlParams.set('travelers', params.passengers.adults.toString())
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cached_flight_search', JSON.stringify({
+        from: params.origin,
+        to: params.destination,
+        departure: params.departureDate,
+        return: params.returnDate,
+        travelers: params.passengers?.adults?.toString(),
+      }))
+    }
+
+    router.push(`/client/flights?${urlParams.toString()}`)
+  }
 
   return (
-    <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 w-full max-w-5xl px-4 z-20">
+    <div id="search-panel" className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl px-4 z-20">
       <motion.div 
-        className="relative bg-black/60 backdrop-blur-md rounded-2xl shadow-2xl p-6 overflow-hidden"
+        className="relative bg-black/60 backdrop-blur-md rounded-2xl shadow-2xl p-6"
         animate={{
           boxShadow: [
             '0 0 20px rgba(21, 94, 117, 0.3)',
@@ -131,7 +89,7 @@ export function SearchBar() {
         }}
       >
         {/* Tabs */}
-        <div className="flex space-x-2 mb-6 border-b">
+        <div className="flex space-x-2 mb-6 border-b border-gray-700/50 relative z-10">
           {[
             { 
               key: 'flight', 
@@ -180,6 +138,7 @@ export function SearchBar() {
             }
           ].map((tab) => (
             <button
+              type="button"
               key={tab.key}
               onClick={() => setSearchType(tab.key as SearchType)}
               className={`flex items-center space-x-3 px-6 py-3 font-medium transition-colors relative ${
@@ -197,200 +156,19 @@ export function SearchBar() {
           ))}
         </div>
 
-        {/* Search Forms */}
-        <form onSubmit={handleSearch}>
-          {searchType === 'flight' && (
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none text-white">From</label>
-                <input
-                  type="text"
-                  placeholder="Departure city"
-                  value={flightFrom}
-                  onChange={(e) => setFlightFrom(e.target.value)}
-                  className={inputClasses}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none text-white">To</label>
-                <input
-                  type="text"
-                  placeholder="Destination city"
-                  value={flightTo}
-                  onChange={(e) => setFlightTo(e.target.value)}
-                  className={inputClasses}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none text-white">Departure</label>
-                <input
-                  type="date"
-                  value={departureDate}
-                  onChange={(e) => setDepartureDate(e.target.value)}
-                  min={today}
-                  className={dateInputClasses}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none text-white">Return</label>
-                <input
-                  type="date"
-                  value={returnDate}
-                  onChange={(e) => setReturnDate(e.target.value)}
-                  min={departureDate || today}
-                  className={dateInputClasses}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none text-white">Travelers</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={travelers}
-                  onChange={(e) => setTravelers(e.target.value)}
-                  className={inputClasses}
-                />
-              </div>
-            </div>
-          )}
+        {/* Actual Search Forms from their respective pages */}
+        {searchType === 'flight' && (
+          <FlightSearchForm onSearch={handleFlightSearch} embedded />
+        )}
 
-          {searchType === 'hotel' && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none text-white">Destination</label>
-                <input
-                  type="text"
-                  placeholder="City or hotel name"
-                  value={hotelDestination}
-                  onChange={(e) => setHotelDestination(e.target.value)}
-                  className={inputClasses}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none text-white">Check-in</label>
-                <input
-                  type="date"
-                  value={checkInDate}
-                  onChange={(e) => setCheckInDate(e.target.value)}
-                  min={today}
-                  className={dateInputClasses}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none text-white">Check-out</label>
-                <input
-                  type="date"
-                  value={checkOutDate}
-                  onChange={(e) => setCheckOutDate(e.target.value)}
-                  min={checkInDate || today}
-                  className={dateInputClasses}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none text-white">Guests</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={hotelGuests}
-                  onChange={(e) => setHotelGuests(e.target.value)}
-                  className={inputClasses}
-                />
-              </div>
-            </div>
-          )}
+        {searchType === 'hotel' && (
+          <HotelSearchForm onSearch={handleHotelSearch} />
+        )}
 
-          {searchType === 'rental' && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium leading-none text-white">Pickup Location</label>
-                  <input
-                    type="text"
-                    placeholder="City or address"
-                    value={carPickupLocation}
-                    onChange={(e) => setCarPickupLocation(e.target.value)}
-                    className={inputClasses}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium leading-none text-white">Drop-off Location</label>
-                  <input
-                    type="text"
-                    placeholder="Same as pickup (optional)"
-                    value={carDropoffLocation}
-                    onChange={(e) => setCarDropoffLocation(e.target.value)}
-                    className={inputClasses}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium leading-none text-white">Pickup Date</label>
-                  <input
-                    type="date"
-                    value={pickupDate}
-                    onChange={(e) => setPickupDate(e.target.value)}
-                    min={today}
-                    className={dateInputClasses}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium leading-none text-white">Drop-off Date</label>
-                  <input
-                    type="date"
-                    value={returnCarDate}
-                    onChange={(e) => setReturnCarDate(e.target.value)}
-                    min={pickupDate || today}
-                    className={dateInputClasses}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium leading-none text-white">Pickup Time</label>
-                  <input
-                    type="time"
-                    value={carPickupTime}
-                    onChange={(e) => setCarPickupTime(e.target.value)}
-                    className={inputClasses}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium leading-none text-white">Drop-off Time</label>
-                  <input
-                    type="time"
-                    value={carDropoffTime}
-                    onChange={(e) => setCarDropoffTime(e.target.value)}
-                    className={inputClasses}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium leading-none text-white">Vehicle Type</label>
-                  <select 
-                    value={carVehicleType}
-                    onChange={(e) => setCarVehicleType(e.target.value)}
-                    className={inputClasses}
-                  >
-                    <option className="bg-gray-800 text-white">Any</option>
-                    <option className="bg-gray-800 text-white">Sedan</option>
-                    <option className="bg-gray-800 text-white">SUV</option>
-                    <option className="bg-gray-800 text-white">Van</option>
-                    <option className="bg-gray-800 text-white">Luxury</option>
-                  </select>
-                </div>
-              </div>
-            </>
-          )}
-
-          <div className="mt-6 flex justify-center">
-            <Button 
-              type="submit" 
-              className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 hover:from-blue-700 hover:via-cyan-700 hover:to-teal-700 text-white px-12 py-3 text-lg rounded-full transition-all duration-75 shadow-lg"
-            >
-              Search Now
-            </Button>
-          </div>
-        </form>
+        {searchType === 'rental' && (
+          <CarSearchForm onSearch={handleCarSearch} embedded />
+        )}
       </motion.div>
     </div>
   )
 }
-

@@ -10,7 +10,7 @@ import { faCreditCard, faChartLine, faCar } from '@fortawesome/free-solid-svg-ic
 
 export default function DriverPayoutsPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-gray-50">
       <PageHeader 
         title="Earnings & Payouts"
         subtitle="Track your income and payout history"
@@ -24,7 +24,7 @@ export default function DriverPayoutsPage() {
           transition={{ duration: 0.6 }}
           className="max-w-4xl mx-auto"
         >
-          <Card className="bg-gray-800/50 backdrop-blur-sm border-gray-700/50 shadow-2xl">
+          <Card className="shadow-2xl">
             <CardContent className="p-12">
               <div className="text-center">
                 <motion.div
@@ -45,7 +45,7 @@ export default function DriverPayoutsPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3, duration: 0.5 }}
-                  className="text-3xl md:text-4xl font-bold text-white mb-4"
+                  className="text-3xl md:text-4xl font-bold text-gray-900 mb-4"
                 >
                   Coming Soon
                 </motion.h2>
@@ -54,7 +54,7 @@ export default function DriverPayoutsPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, duration: 0.5 }}
-                  className="text-lg text-gray-300 mb-2"
+                  className="text-lg text-gray-600 mb-2"
                 >
                   The Earnings & Payouts feature will be implemented in
                 </motion.p>
@@ -74,7 +74,7 @@ export default function DriverPayoutsPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.6, duration: 0.5 }}
-                  className="text-gray-400 mt-8 mb-8 max-w-md mx-auto"
+                  className="text-gray-500 mt-8 mb-8 max-w-md mx-auto"
                 >
                   This feature will include detailed earnings breakdowns, payout history, and payment management for your completed trips.
                 </motion.p>

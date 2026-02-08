@@ -138,6 +138,11 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
       newErrors.distance_rate_per_km = 'Distance rate cannot be negative'
     }
 
+    // Require at least one image for new car listings
+    if (!car && (!formData.images || formData.images.length === 0)) {
+      newErrors.images = 'At least one car image is required'
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -184,11 +189,11 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
   ]
 
   return (
-    <div className="space-y-6 [&_label]:text-gray-700 [&_label]:font-medium [&_p.text-sm]:text-red-500">
+    <div className="space-y-6 [&_label]:font-medium [&_p.text-sm]:text-red-400">
       {/* Basic Information */}
-      <Card className="shadow-lg bg-white border border-gray-200">
+      <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-gray-900">
+          <CardTitle>
             Basic Information
           </CardTitle>
         </CardHeader>
@@ -314,9 +319,9 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
       </Card>
 
       {/* Pricing */}
-      <Card className="shadow-lg bg-white border border-gray-200">
+      <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-gray-900">
+          <CardTitle>
             Pricing
           </CardTitle>
         </CardHeader>
@@ -353,15 +358,15 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
       </Card>
 
       {/* Images */}
-      <Card className="shadow-lg bg-white border border-gray-200">
+      <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-gray-900">
-            Car Images
+          <CardTitle>
+            Car Images {!car && <span className="text-red-400 text-sm">*</span>}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors bg-gray-50">
+            <div className={`border-2 border-dashed ${errors.images ? 'border-red-500' : 'border-gray-300'} rounded-lg p-6 text-center hover:border-gray-400 transition-colors bg-gray-50`}>
               <input
                 type="file"
                 multiple
@@ -371,11 +376,14 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
                 id="image-upload"
               />
               <label htmlFor="image-upload" className="cursor-pointer">
-                <p className="text-gray-700 mb-2">Click to upload car images</p>
+                <p className="text-gray-600 mb-2">Click to upload car images</p>
               </label>
             </div>
+            {errors.images && (
+              <p className="text-sm text-red-400">{errors.images}</p>
+            )}
             {formData.images && formData.images.length > 0 && (
-              <div className="text-sm text-gray-700">
+              <div className="text-sm text-gray-600">
                 {formData.images.length} image{formData.images.length !== 1 ? 's' : ''} selected
               </div>
             )}

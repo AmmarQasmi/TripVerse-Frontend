@@ -33,6 +33,7 @@ export default function HotelManagerHotelsPage() {
   const [hotels, setHotels] = useState<ManagerHotel[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [togglingId, setTogglingId] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchHotels = async () => {
@@ -54,6 +55,18 @@ export default function HotelManagerHotelsPage() {
     }
   }, [user])
 
+  const handleToggleListing = async (hotelId: string, currentStatus: boolean) => {
+    try {
+      setTogglingId(hotelId)
+      await hotelsApi.updateHotelAvailability(hotelId, { is_listed: !currentStatus })
+      setHotels(prev => prev.map(h => h.id === hotelId ? { ...h, is_listed: !currentStatus } : h))
+    } catch (err: any) {
+      console.error('Error toggling listing:', err)
+    } finally {
+      setTogglingId(null)
+    }
+  }
+
   const getStatusColor = (isListed: boolean, isActive: boolean) => {
     if (!isActive) return 'bg-gray-100 text-gray-800'
     if (isListed) return 'bg-green-100 text-green-800'
@@ -73,7 +86,7 @@ export default function HotelManagerHotelsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gray-50">
         <PageHeader 
           title="My Hotels"
           subtitle="Manage your hotel listings"
@@ -87,7 +100,7 @@ export default function HotelManagerHotelsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gray-50">
         <PageHeader 
           title="My Hotels"
           subtitle="Manage your hotel listings"
@@ -95,9 +108,9 @@ export default function HotelManagerHotelsPage() {
           backLabel="Back to Dashboard"
         />
         <div className="container mx-auto px-4 py-8">
-          <Card className="bg-red-50 border-red-500">
+          <Card className="bg-red-50 border-red-200">
             <CardContent className="p-6">
-              <p className="text-red-900">{error}</p>
+              <p className="text-red-600">{error}</p>
               <Button onClick={() => window.location.reload()} variant="outline" className="mt-4">
                 Retry
               </Button>
@@ -109,7 +122,7 @@ export default function HotelManagerHotelsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <PageHeader 
         title="My Hotels"
         subtitle="Manage your properties and track performance"
@@ -166,7 +179,7 @@ export default function HotelManagerHotelsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * index }}
               >
-                <Card className="shadow-lg hover:shadow-xl transition-all duration-75 bg-white overflow-hidden border border-gray-200">
+                <Card className="shadow-lg hover:shadow-xl transition-all duration-75 overflow-hidden">
                   {/* Hotel Image */}
                   <div className="relative h-48 bg-gray-200">
                     {hotel.images && hotel.images.length > 0 ? (
@@ -182,7 +195,7 @@ export default function HotelManagerHotelsPage() {
                   </div>
 
                   <CardHeader>
-                    <CardTitle className="text-xl font-bold text-gray-900">
+                    <CardTitle className="text-xl font-bold">
                       {hotel.name}
                     </CardTitle>
                     <p className="text-sm text-gray-600">{hotel.location}</p>
@@ -191,18 +204,18 @@ export default function HotelManagerHotelsPage() {
                   <CardContent className="space-y-4">
                     {/* Stats */}
                     <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="bg-gray-50 p-2 rounded-lg">
-                        <p className="text-lg font-bold text-gray-900">
+                      <div className="bg-gray-100 p-2 rounded-lg">
+                        <p className="text-lg font-bold">
                           {hotel.room_types_count}
                         </p>
                         <p className="text-xs text-gray-600">Room Types</p>
                       </div>
-                      <div className="bg-gray-50 p-2 rounded-lg">
-                        <p className="text-lg font-bold text-gray-900">{hotel.total_bookings}</p>
+                      <div className="bg-gray-100 p-2 rounded-lg">
+                        <p className="text-lg font-bold">{hotel.total_bookings}</p>
                         <p className="text-xs text-gray-600">Bookings</p>
                       </div>
-                      <div className="bg-gray-50 p-2 rounded-lg">
-                        <p className="text-lg font-bold text-gray-900">
+                      <div className="bg-gray-100 p-2 rounded-lg">
+                        <p className="text-lg font-bold">
                           {hotel.total_earnings > 0 ? `${(hotel.total_earnings / 1000).toFixed(0)}k` : '0'}
                         </p>
                         <p className="text-xs text-gray-600">Earned</p>
@@ -216,6 +229,16 @@ export default function HotelManagerHotelsPage() {
                           Manage
                         </Button>
                       </Link>
+                      <Button
+                        variant="outline"
+                        className={`px-3 ${
+                          hotel.is_listed ? 'text-yellow-600' : 'text-green-600'
+                        }`}
+                        onClick={() => handleToggleListing(hotel.id, hotel.is_listed)}
+                        disabled={togglingId === hotel.id}
+                      >
+                        {togglingId === hotel.id ? '...' : hotel.is_listed ? '🔒 Unlist' : '📋 List'}
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -228,7 +251,7 @@ export default function HotelManagerHotelsPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center py-16"
           >
-            <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+            <h3 className="text-2xl font-semibold mb-2">
               No hotels listed yet
             </h3>
             <p className="text-gray-600 mb-8">

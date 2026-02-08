@@ -303,15 +303,15 @@ export default function DriverVerificationPage() {
   const isFullyVerified = driver?.is_verified || false
 
   if (isLoading) {
-    return <PageLoader message="Loading verification status..." />
+    return <PageLoader message="Loading verification status..." variant="skeleton" />
   }
 
   if (error && !driver) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Card className="bg-red-50 border-red-500">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="bg-red-50 border-red-300">
           <CardContent className="p-6">
-            <p className="text-red-900">{error}</p>
+            <p className="text-red-600">{error}</p>
           </CardContent>
         </Card>
       </div>
@@ -323,7 +323,7 @@ export default function DriverVerificationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <PageHeader 
         title="Driver Verification"
         subtitle="Submit documents to verify your driver account"
@@ -338,24 +338,24 @@ export default function DriverVerificationPage() {
         >
           {/* Error Message */}
           {error && (
-            <div className="mb-6 bg-red-50 border border-red-500 rounded-lg p-4">
-              <p className="text-red-800">{error}</p>
+            <div className="mb-6 bg-red-50 border border-red-300 rounded-lg p-4">
+              <p className="text-red-600">{error}</p>
             </div>
           )}
 
           {/* Verification Status Card */}
-          <Card className="shadow-lg mb-8 bg-white border border-gray-200">
+          <Card className="shadow-lg mb-8">
             <CardHeader>
-              <CardTitle className="text-gray-900">Verification Status</CardTitle>
+              <CardTitle>Verification Status</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Progress Bar */}
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-gray-600">
                     Overall Progress
                   </span>
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium">
                     {approvedCount}/{totalRequired} Approved
                   </span>
                 </div>
@@ -379,17 +379,17 @@ export default function DriverVerificationPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="text-3xl font-bold text-green-600">{approvedCount}</div>
-                  <div className="text-sm text-gray-700">Approved</div>
+                  <div className="text-sm text-gray-600">Approved</div>
                 </div>
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <div className="text-3xl font-bold text-yellow-600">{pendingCount}</div>
-                  <div className="text-sm text-gray-700">Pending Review</div>
+                  <div className="text-sm text-gray-600">Pending Review</div>
                 </div>
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                   <div className="text-3xl font-bold text-gray-600">
                     {totalRequired - approvedCount - pendingCount}
                   </div>
-                  <div className="text-sm text-gray-700">Not Submitted</div>
+                  <div className="text-sm text-gray-600">Not Submitted</div>
                 </div>
               </div>
 
@@ -401,10 +401,10 @@ export default function DriverVerificationPage() {
                   className="bg-green-50 border-2 border-green-500 rounded-xl p-6 text-center"
                 >
                   <div className="text-5xl mb-2">✅</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-xl font-bold mb-2">
                     Fully Verified Driver
                   </h3>
-                  <p className="text-gray-700">
+                  <p className="text-gray-600">
                     You're all set! Start accepting bookings now.
                   </p>
                 </motion.div>
@@ -414,7 +414,7 @@ export default function DriverVerificationPage() {
 
           {/* Documents List */}
           <div className="space-y-4 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Required Documents</h2>
+            <h2 className="text-2xl font-bold mb-4">Required Documents</h2>
             {REQUIRED_DOCUMENTS.map((docType, index) => {
               const document = getDocumentByType(docType)
               const status = document?.status || 'not_submitted'
@@ -432,7 +432,7 @@ export default function DriverVerificationPage() {
                       <div className="flex items-start space-x-4 flex-1">
                           <div className="text-4xl">{getStatusIcon(status)}</div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                          <h3 className="text-lg font-semibold mb-1">
                               {getDocumentName(docType)}
                           </h3>
                           
@@ -516,17 +516,17 @@ export default function DriverVerificationPage() {
 
            {/* Platform Ratings Section */}
            <div className="space-y-4 mb-8">
-             <h2 className="text-2xl font-bold text-gray-900 mb-4">Platform Ratings</h2>
-             <Card className="shadow-lg bg-white border border-gray-200">
+             <h2 className="text-2xl font-bold mb-4">Platform Ratings</h2>
+             <Card className="shadow-lg">
                <CardContent className="p-6">
-                <p className="text-gray-700 mb-4">
+                <p className="text-gray-600 mb-4">
                   Add your ratings from ride-sharing platforms. 
                   All ratings must be 4.0 or higher. 
-                  <span className="font-semibold text-gray-900"> At least one rating must include a screenshot</span> (others are optional).
+                  <span className="font-semibold"> At least one rating must include a screenshot</span> (others are optional).
                 </p>
                  
                  {/* Add Platform Section */}
-                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                 <div className="mb-6 p-4 bg-gray-100 rounded-lg">
                    <div className="flex gap-4 items-end">
                      <div className="flex-1">
                        <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -535,7 +535,7 @@ export default function DriverVerificationPage() {
                        <select
                          value={selectedPlatform}
                          onChange={(e) => setSelectedPlatform(e.target.value)}
-                         className="w-full h-11 px-3 py-2 bg-white border border-gray-300 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                         className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                        >
                          <option value="">Choose a platform...</option>
                          {availablePlatforms
@@ -566,7 +566,7 @@ export default function DriverVerificationPage() {
                        return (
                          <div key={rating.platform} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                            <div className="flex items-center justify-between mb-4">
-                             <h3 className="text-lg font-semibold text-gray-900 capitalize">
+                             <h3 className="text-lg font-semibold capitalize">
                                {rating.platform}
                              </h3>
                              <Button
@@ -675,10 +675,10 @@ export default function DriverVerificationPage() {
                 <CardContent className="p-6">
                   <div className="text-center">
                     <div className="text-5xl mb-4">✅</div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    <h3 className="text-2xl font-bold mb-2">
                       Verification Submitted Successfully!
                     </h3>
-                    <p className="text-gray-700 mb-6">
+                    <p className="text-gray-600 mb-6">
                       Your verification request has been submitted and is now pending admin review.
                       You will be notified once the review is complete.
                     </p>
@@ -706,10 +706,10 @@ export default function DriverVerificationPage() {
                 <div className="flex items-start space-x-4">
                   <div className="text-3xl">ℹ️</div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    <h3 className="text-lg font-semibold mb-2">
                       Verification Tips
                     </h3>
-                    <ul className="space-y-2 text-sm text-gray-700">
+                    <ul className="space-y-2 text-sm text-gray-600">
                       <li className="flex items-start">
                         <span className="mr-2">•</span>
                         <span>Ensure all documents are clear and readable</span>

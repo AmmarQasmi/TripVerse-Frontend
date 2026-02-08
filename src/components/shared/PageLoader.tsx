@@ -15,7 +15,7 @@ export function PageLoader({
 }: PageLoaderProps) {
   if (variant === 'spinner') {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative w-16 h-16 mx-auto mb-4">
             <div className="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
@@ -41,7 +41,7 @@ export function PageLoader({
 
   if (variant === 'skeleton') {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
           <div className="space-y-6">
             {/* Header skeleton */}
@@ -53,7 +53,7 @@ export function PageLoader({
             {/* Cards skeleton */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="bg-white border border-gray-200 rounded-xl p-6 animate-pulse">
+                <div key={i} className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm animate-pulse">
                   <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
                   <div className="h-10 bg-gray-200 rounded w-3/4 mb-2"></div>
                   <div className="h-4 bg-gray-200 rounded w-1/2"></div>
@@ -65,7 +65,7 @@ export function PageLoader({
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-4">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="bg-white border border-gray-200 rounded-xl p-6 animate-pulse">
+                  <div key={i} className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm animate-pulse">
                     <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
                     <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
                     <div className="h-4 bg-gray-200 rounded w-5/6"></div>
@@ -74,7 +74,7 @@ export function PageLoader({
               </div>
               <div className="space-y-4">
                 {Array.from({ length: 2 }).map((_, i) => (
-                  <div key={i} className="bg-white border border-gray-200 rounded-xl p-6 animate-pulse">
+                  <div key={i} className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm animate-pulse">
                     <div className="h-32 bg-gray-200 rounded"></div>
                   </div>
                 ))}
@@ -88,7 +88,7 @@ export function PageLoader({
 
   // Default variant - spinner with message
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center">
         <div className="relative w-16 h-16 mx-auto mb-4">
           <div className="absolute inset-0 border-4 border-gray-200 rounded-full"></div>

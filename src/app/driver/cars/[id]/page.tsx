@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PageLoader } from '@/components/shared/PageLoader'
 import { ImageGallery } from '@/components/hotels/ImageGallery'
 import { ImageUploader } from '@/components/hotels/ImageUploader'
 import { useAuth } from '@/features/auth/useAuth'
@@ -61,6 +62,23 @@ export default function ManageCarPage() {
     active_bookings: 0,
     total_earnings: 0,
   })
+
+  const [togglingListing, setTogglingListing] = useState(false)
+
+  const handleToggleListing = async () => {
+    if (!car) return
+    try {
+      setTogglingListing(true)
+      const newListed = !car.is_listed
+      await carsApi.updateCarAvailability(carId, { is_listed: newListed })
+      setCar(prev => prev ? { ...prev, is_listed: newListed } : null)
+    } catch (err: any) {
+      console.error('Error toggling listing:', err)
+      setError(err.response?.data?.message || 'Failed to update listing status')
+    } finally {
+      setTogglingListing(false)
+    }
+  }
 
   useEffect(() => {
     if (carId) {
@@ -204,15 +222,15 @@ export default function ManageCarPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gray-50">
         <PageHeader 
           title="Manage Car"
           subtitle="Loading car details..."
           backUrl="/driver/cars"
           backLabel="Back to Cars"
         />
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-gray-900 text-xl">Loading car details...</div>
+        <div className="container mx-auto px-4 py-8">
+          <PageLoader variant="skeleton" />
         </div>
       </div>
     )
@@ -220,7 +238,7 @@ export default function ManageCarPage() {
 
   if (error && !car) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gray-50">
         <PageHeader 
           title="Manage Car"
           subtitle="Error loading car"
@@ -230,7 +248,7 @@ export default function ManageCarPage() {
         <div className="container mx-auto px-4 py-8">
           <Card className="bg-red-50 border-red-200">
             <CardContent className="p-6">
-              <p className="text-gray-900">{error}</p>
+              <p className="text-red-600">{error}</p>
               <Button onClick={() => router.push('/driver/cars')} variant="outline" className="mt-4">
                 Back to Cars
               </Button>
@@ -246,12 +264,25 @@ export default function ManageCarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <PageHeader 
         title={`${car.car.make} ${car.car.model}`}
         subtitle="Manage your car listing"
         backUrl="/driver/cars"
         backLabel="Back to Cars"
+        action={
+          <Button
+            onClick={handleToggleListing}
+            disabled={togglingListing}
+            className={`font-semibold px-6 py-3 rounded-xl ${
+              car.is_listed 
+                ? 'bg-red-600 hover:bg-red-700 text-white'
+                : 'bg-green-600 hover:bg-green-700 text-white'
+            }`}
+          >
+            {togglingListing ? '...' : car.is_listed ? '🔒 Unlist Car' : '📋 List Car'}
+          </Button>
+        }
       />
       <div className="container mx-auto px-4 py-8">
         <motion.div
@@ -261,52 +292,52 @@ export default function ManageCarPage() {
         >
           {/* Error/Success Messages */}
           {error && (
-            <Card className="bg-red-500/20 border-red-500">
+            <Card className="bg-red-50 border-red-200">
               <CardContent className="p-4">
-                <p className="text-red-200">{error}</p>
+                <p className="text-red-600">{error}</p>
               </CardContent>
             </Card>
           )}
           {success && (
-            <Card className="bg-green-500/20 border-green-500">
+            <Card className="bg-green-50 border-green-200">
               <CardContent className="p-4">
-                <p className="text-green-200">{success}</p>
+                <p className="text-green-600">{success}</p>
               </CardContent>
             </Card>
           )}
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card className="bg-gray-50 border-gray-200">
+            <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Total Bookings</p>
-                    <p className="text-3xl font-bold text-gray-900">{bookingStats.total_bookings}</p>
+                    <p className="text-3xl font-bold">{bookingStats.total_bookings}</p>
                   </div>
                   <div className="text-4xl">📋</div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-50 border-gray-200">
+            <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Active Bookings</p>
-                    <p className="text-3xl font-bold text-gray-900">{bookingStats.active_bookings}</p>
+                    <p className="text-3xl font-bold">{bookingStats.active_bookings}</p>
                   </div>
                   <div className="text-4xl">✅</div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-50 border-gray-200">
+            <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Total Earnings</p>
-                    <p className="text-3xl font-bold text-gray-900">
+                    <p className="text-3xl font-bold">
                       PKR {bookingStats.total_earnings.toLocaleString()}
                     </p>
                   </div>
@@ -315,12 +346,12 @@ export default function ManageCarPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-50 border-gray-200">
+            <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Status</p>
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="text-lg font-bold">
                       {car.is_active ? '✅ Active' : '⏸️ Inactive'}
                     </p>
                     <p className="text-sm text-gray-600">
@@ -334,10 +365,10 @@ export default function ManageCarPage() {
           </div>
 
           {/* Car Information */}
-          <Card className="bg-gray-50 border-gray-200">
+          <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle className="text-gray-900">Car Information</CardTitle>
+                <CardTitle>Car Information</CardTitle>
                 {!isEditing && (
                   <Button variant="outline" onClick={() => setIsEditing(true)}>
                     Edit

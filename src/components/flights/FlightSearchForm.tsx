@@ -8,6 +8,7 @@ import { MapPin, Calendar, Users, Plane, RotateCcw } from 'lucide-react'
 interface FlightSearchFormProps {
   onSearch: (params: any) => void
   isLoading?: boolean
+  embedded?: boolean
   initialParams?: {
     origin?: string
     destination?: string
@@ -17,7 +18,7 @@ interface FlightSearchFormProps {
   }
 }
 
-export function FlightSearchForm({ onSearch, isLoading = false, initialParams }: FlightSearchFormProps) {
+export function FlightSearchForm({ onSearch, isLoading = false, embedded = false, initialParams }: FlightSearchFormProps) {
   const [tripType, setTripType] = useState<'ONE_WAY' | 'ROUND_TRIP' | 'MULTI_CITY'>('ONE_WAY')
   const [searchParams, setSearchParams] = useState({
     origin: initialParams?.origin || '',
@@ -217,8 +218,12 @@ export function FlightSearchForm({ onSearch, isLoading = false, initialParams }:
     return nextWeek.toISOString().split('T')[0]
   }
 
+  const containerClass = embedded
+    ? ''
+    : 'bg-gray-900/60 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-cyan-600/30 shadow-2xl'
+
   return (
-    <div className="bg-gray-900/60 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-cyan-600/30 shadow-2xl">
+    <div className={containerClass}>
       {/* Trip Type Tabs */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex rounded-full p-1 bg-gray-800/60 border border-gray-700/60">
