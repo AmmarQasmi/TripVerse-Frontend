@@ -232,7 +232,7 @@ export default function DriverBookingsPage() {
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 statusFilter === filter.value
                   ? 'bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               {filter.label}
@@ -247,7 +247,7 @@ export default function DriverBookingsPage() {
         <div className="lg:col-span-2 space-y-4">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i} className="animate-pulse bg-gray-50">
+            <Card key={i} className="animate-pulse">
               <CardContent className="p-6">
                 <div className="h-4 bg-gray-200 rounded mb-2"></div>
                 <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -256,7 +256,7 @@ export default function DriverBookingsPage() {
           ))
         ) : filteredBookings.length > 0 ? (
           filteredBookings.map((booking: any) => (
-            <Card key={booking.id} className="hover:shadow-md transition-shadow bg-white">
+            <Card key={booking.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
@@ -286,13 +286,13 @@ export default function DriverBookingsPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       <div>
-                        <span className="font-medium text-gray-900">Booking ID:</span> {booking.id}
+                        <span className="font-medium text-gray-600">Booking ID:</span> <span className="text-gray-600">{booking.id}</span>
                       </div>
                       <div>
-                        <span className="font-medium text-gray-900">Total Amount:</span> PKR {(booking.total_amount || 0).toLocaleString()}
+                        <span className="font-medium text-gray-600">Total Amount:</span> <span className="text-gray-600">PKR {(booking.total_amount || 0).toLocaleString()}</span>
                       </div>
                       <div>
-                        <span className="font-medium text-gray-900">Pickup:</span> {booking.pickup_location || 'N/A'}
+                        <span className="font-medium text-gray-600">Pickup:</span> <span className="text-gray-600">{booking.pickup_location || 'N/A'}</span>
                       </div>
                     </div>
                   </div>
@@ -305,12 +305,12 @@ export default function DriverBookingsPage() {
             </Card>
           ))
         ) : (
-          <Card className="bg-white">
+          <Card>
             <CardContent className="p-12 text-center">
               <div className="text-gray-500 text-lg mb-4">
                 No bookings found
               </div>
-              <p className="text-gray-600">
+              <p className="text-gray-500">
                 {statusFilter === 'all' 
                   ? "You don't have any bookings yet."
                   : `No bookings with status "${statusFilter.replace(/_/g, ' ').toLowerCase()}".`
@@ -335,13 +335,13 @@ export default function DriverBookingsPage() {
               />
             )
           })() : (
-            <Card className="bg-white">
+            <Card>
               <CardContent className="p-6 text-center">
                 <div className="text-4xl mb-4">💬</div>
                 <h3 className="text-lg font-semibold mb-2">
                   Select a Booking
                 </h3>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-500 text-sm">
                   Choose a booking from the list to start chatting with the customer
                 </p>
               </CardContent>
@@ -352,41 +352,41 @@ export default function DriverBookingsPage() {
 
         {/* Summary Stats */}
         {Array.isArray(bookings) && bookings.length > 0 && (
-          <Card className="mt-8 bg-white">
+          <Card className="mt-8">
             <CardHeader>
               <CardTitle>Booking Summary</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-2xl font-bold text-blue-800">
                     {bookings.length}
                   </div>
-                  <div className="text-sm text-blue-800">Total Bookings</div>
+                  <div className="text-sm text-blue-600">Total Bookings</div>
                 </div>
                 
                 <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">
+                  <div className="text-2xl font-bold text-green-800">
                     {bookings.filter((b: any) => b.status === 'COMPLETED').length}
                   </div>
-                  <div className="text-sm text-green-800">Completed</div>
+                  <div className="text-sm text-green-600">Completed</div>
                 </div>
                 
                 <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                  <div className="text-2xl font-bold text-yellow-600">
+                  <div className="text-2xl font-bold text-yellow-800">
                     {bookings.filter((b: any) => ['PENDING_DRIVER_ACCEPTANCE', 'ACCEPTED', 'CONFIRMED', 'IN_PROGRESS'].includes(b.status)).length}
                   </div>
-                  <div className="text-sm text-yellow-800">Active</div>
+                  <div className="text-sm text-yellow-600">Active</div>
                 </div>
                 
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">
+                  <div className="text-2xl font-bold text-purple-800">
                     PKR {bookings
                       .filter((b: any) => ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(b.status))
                       .reduce((sum: number, b: any) => sum + (b.driver_earnings || 0), 0)
                       .toLocaleString()}
                   </div>
-                  <div className="text-sm text-purple-800">Total Earnings</div>
+                  <div className="text-sm text-purple-600">Total Earnings</div>
                 </div>
               </div>
             </CardContent>

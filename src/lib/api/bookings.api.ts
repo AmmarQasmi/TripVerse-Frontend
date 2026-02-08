@@ -81,4 +81,14 @@ export const bookingsApi = {
   cancelBooking: async (id: string) => {
     return httpClient.patch<any>(API_ENDPOINTS.HOTEL_BOOKINGS.CANCEL(id))
   },
+
+  getRoomUnavailableDates: async (hotelId: string, roomTypeId: string) => {
+    const url = `${API_ENDPOINTS.HOTEL_BOOKINGS.ROOM_UNAVAILABLE_DATES(hotelId)}?room_type_id=${roomTypeId}`
+    return httpClient.get<{
+      hotel_id: number
+      room_type_id: number
+      total_rooms: number
+      unavailable_dates: string[]
+    }>(url)
+  },
 }

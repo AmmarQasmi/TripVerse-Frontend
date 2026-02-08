@@ -4,19 +4,83 @@ import { Car, CarSearchParams, CarApiResponse } from '@/types'
 import { DriverBooking } from '@/types/api'
 
 export const carsApi = {
+  // Autocomplete location suggestions
+  autocompleteLocation: async (input: string, country?: string) => {
+    const params = new URLSearchParams()
+    params.append('input', input)
+    if (country) params.append('country', country)
+    return httpClient.get<{
+      suggestions: Array<{
+        place_id: string
+        description: string
+        structured_formatting: {
+          main_text: string
+          secondary_text: string
+        }
+      }>
+    }>(`${API_ENDPOINTS.CARS.PLACES_AUTOCOMPLETE}?${params.toString()}`)
+  },
+
+  // Get popular cities with available drivers
+  getPopularCities: async () => {
+    return httpClient.get<Array<{
+      city: string
+      region: string
+      available_drivers: number
+    }>>(API_ENDPOINTS.CARS.CITIES_POPULAR)
+  },
+
+  // Explore city info (weather, places, facts)
+  exploreCityInfo: async (cityName: string) => {
+    return httpClient.get<{
+      city: string
+      weather: {
+        temperature: number
+        condition: string
+        humidity: number
+        windSpeed: number
+        icon: string
+        cityName: string
+      } | null
+      places_to_visit: Array<{
+        name: string
+        address: string
+        rating: number
+        photo: string | null
+      }>
+      restaurants: Array<{
+        name: string
+        address: string
+        rating: number
+        photo: string | null
+      }>
+      facts: string
+      wiki_url: string
+      thumbnail: string | null
+      best_time_to_visit: string
+    }>(API_ENDPOINTS.CARS.CITIES_EXPLORE(cityName))
+  },
+
   // Search available cars
   search: async (params: CarSearchParams) => {
     const searchParams = new URLSearchParams()
     
     // Map frontend params to backend params
+    if (params.query) searchParams.append('location_query', params.query)
+    if (params.city_id) searchParams.append('city_id', params.city_id)
     if (params.location) searchParams.append('city_id', params.location)
     if (params.startDate) searchParams.append('start_date', params.startDate)
     if (params.endDate) searchParams.append('end_date', params.endDate)
+    if (params.start_date) searchParams.append('start_date', params.start_date)
+    if (params.end_date) searchParams.append('end_date', params.end_date)
     if (params.seats) searchParams.append('seats', params.seats.toString())
     if (params.type) searchParams.append('transmission', params.type)
+    if (params.transmission) searchParams.append('transmission', params.transmission)
     if (params.fuel_type) searchParams.append('fuel_type', params.fuel_type)
     if (params.minPrice) searchParams.append('min_price', params.minPrice.toString())
     if (params.maxPrice) searchParams.append('max_price', params.maxPrice.toString())
+    if (params.min_price) searchParams.append('min_price', params.min_price.toString())
+    if (params.max_price) searchParams.append('max_price', params.max_price.toString())
 
     return httpClient.get<{
       data: CarApiResponse[]
@@ -27,6 +91,15 @@ export const carsApi = {
         totalPages: number
       }
     }>(`${API_ENDPOINTS.CARS.SEARCH}?${searchParams.toString()}`)
+  },
+
+  // Get unavailable dates for a car
+  getUnavailableDates: async (carId: string) => {
+    return httpClient.get<{
+      car_id: number
+      unavailable_dates: string[]
+      booking_ranges: Array<{ start_date: string; end_date: string; status: string }>
+    }>(`/cars/${carId}/unavailable-dates`)
   },
 
   // Get car details by ID
@@ -117,6 +190,14 @@ export const carsApi = {
     }>(`/cars/bookings/${bookingId}/confirm`)
   },
 
+  // Cancel a booking
+  cancelBooking: async (bookingId: number) => {
+    return httpClient.post<{
+      message: string
+      booking_id: number
+    }>(`/cars/bookings/${bookingId}/cancel`)
+  },
+
   // Get user's bookings
   getUserBookings: async (status?: string) => {
     const params = status ? `?status=${status}` : ''
@@ -127,16 +208,43 @@ export const carsApi = {
         make: string
         model: string
         year: number
+        color?: string
+        seats?: number
+        transmission?: string
+        fuel_type?: string
+        license_plate?: string
+        image?: string | null
       }
       driver: {
+        id?: number
         name: string
+        email?: string
+        photo?: string | null
+        city?: string | null
+        isVerified?: boolean
       }
       pickup_location: string
       dropoff_location: string
+      estimated_distance?: number | null
       start_date: string
       end_date: string
       total_amount: number
+      driver_earnings?: number
+      platform_fee?: number
+      currency?: string
+      customer_notes?: string | null
+      driver_notes?: string | null
+      requested_at?: string | null
+      accepted_at?: string | null
+      confirmed_at?: string | null
+      started_at?: string | null
+      completed_at?: string | null
       created_at: string
+      payment?: {
+        id: number
+        status: string
+        amount: number
+      } | null
     }>>(`/cars/bookings/my-bookings${params}`)
   },
 
@@ -264,6 +372,7 @@ export const carsApi = {
         }
         images: string[]
         is_active: boolean
+        is_listed: boolean
         booking_stats: {
           total_bookings: number
           active_bookings: number

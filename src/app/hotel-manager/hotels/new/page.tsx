@@ -182,7 +182,7 @@ export default function CreateHotelPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <PageHeader
         title="Create New Hotel"
         subtitle="Add a new hotel to your listings"
@@ -195,18 +195,18 @@ export default function CreateHotelPage() {
           animate={{ opacity: 1, y: 0 }}
         >
           {error && (
-            <Card className="bg-red-50 border-red-500 mb-6">
+            <Card className="bg-red-50 border-red-200 mb-6">
               <CardContent className="p-4">
-                <p className="text-red-900">{error}</p>
+                <p className="text-red-600">{error}</p>
               </CardContent>
             </Card>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information */}
-            <Card className="bg-white border border-gray-200">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-gray-900">Basic Information</CardTitle>
+                <CardTitle>Basic Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Input
@@ -285,7 +285,7 @@ export default function CreateHotelPage() {
                           onChange={() => toggleAmenity(amenity)}
                           className="rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"
                         />
-                        <span className="text-sm text-gray-700 capitalize">
+                        <span className="text-sm text-gray-600 capitalize">
                           {amenity.replace('_', ' ')}
                         </span>
                       </label>
@@ -296,9 +296,9 @@ export default function CreateHotelPage() {
             </Card>
 
             {/* Images */}
-            <Card className="bg-white border border-gray-200">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-gray-900">Images</CardTitle>
+                <CardTitle>Images</CardTitle>
               </CardHeader>
               <CardContent>
                 <ImageUploader
@@ -312,10 +312,10 @@ export default function CreateHotelPage() {
             </Card>
 
             {/* Room Types */}
-            <Card className="bg-white border border-gray-200">
+            <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <CardTitle className="text-gray-900">Room Types</CardTitle>
+                  <CardTitle>Room Types</CardTitle>
                   <Button
                     type="button"
                     variant="outline"
@@ -346,7 +346,7 @@ export default function CreateHotelPage() {
                         className="bg-gray-50 p-4 rounded-lg flex justify-between items-center border border-gray-200"
                       >
                         <div>
-                          <p className="text-gray-900 font-medium">{roomType.name}</p>
+                          <p className="font-medium">{roomType.name}</p>
                           <p className="text-gray-600 text-sm">
                             PKR {roomType.base_price.toLocaleString()} per night • {roomType.total_rooms} rooms
                           </p>
@@ -356,7 +356,7 @@ export default function CreateHotelPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => removeRoomType(index)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-red-400 hover:text-red-300"
                         >
                           Remove
                         </Button>

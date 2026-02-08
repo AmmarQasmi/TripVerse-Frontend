@@ -68,15 +68,15 @@ export default function HotelManagerDashboard() {
   }
 
   if (isLoading) {
-    return <PageLoader message="Loading dashboard..." />
+    return <PageLoader message="Loading dashboard..." variant="skeleton" />
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Card className="bg-red-50 border-red-500">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="bg-red-50 border-red-200">
           <CardContent className="p-6">
-            <p className="text-red-900">{error}</p>
+            <p className="text-red-600">{error}</p>
             <Button
               onClick={() => window.location.reload()}
               variant="outline"
@@ -97,7 +97,7 @@ export default function HotelManagerDashboard() {
   const { verification_status, stats, recent_bookings } = dashboard
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -401,7 +401,7 @@ export default function HotelManagerDashboard() {
                             className="w-12 h-12 md:w-16 md:h-16 mb-2"
                             style={{ color: '#0891b2' }}
                           />
-                          <p className="text-xs font-semibold text-gray-900">{stats.active_hotels} of {stats.total_hotels} active</p>
+                          <p className="text-xs font-semibold text-gray-600">{stats.active_hotels} of {stats.total_hotels} active</p>
                         </div>
                       </div>
                     </Link>
@@ -489,7 +489,7 @@ export default function HotelManagerDashboard() {
                             className="w-12 h-12 md:w-16 md:h-16 mb-2"
                             style={{ color: '#0891b2' }}
                           />
-                          <p className="text-xs font-semibold text-gray-900">View all bookings</p>
+                          <p className="text-xs font-semibold text-gray-600">View all bookings</p>
                         </div>
                       </div>
                     </Link>
@@ -577,7 +577,7 @@ export default function HotelManagerDashboard() {
                             className="w-12 h-12 md:w-16 md:h-16 mb-2"
                             style={{ color: '#0891b2' }}
                           />
-                          <p className="text-xs font-semibold text-gray-900">Track earnings</p>
+                          <p className="text-xs font-semibold text-gray-600">Track earnings</p>
                         </div>
                       </div>
                     </Link>
@@ -615,10 +615,10 @@ export default function HotelManagerDashboard() {
               <div className="space-y-3">
                 {recent_bookings.length > 0 ? (
                   recent_bookings.map((booking) => (
-                    <div key={booking.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div key={booking.id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <div className="font-semibold text-gray-900">
+                          <div className="font-semibold">
                             {booking.hotel.name}
                           </div>
                           <div className="text-sm text-gray-600">
@@ -636,7 +636,7 @@ export default function HotelManagerDashboard() {
                     </div>
                   ))
                 ) : (
-                  <div className="p-8 text-center text-gray-500">
+                  <div className="p-8 text-center text-gray-600">
                     <p>{verification_status.is_verified ? 'No bookings yet. Start by adding a hotel!' : 'No bookings available. Complete verification to start receiving bookings.'}</p>
                   </div>
                 )}

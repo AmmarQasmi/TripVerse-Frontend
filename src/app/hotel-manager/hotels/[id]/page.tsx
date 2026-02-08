@@ -299,7 +299,7 @@ export default function ManageHotelPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gray-50">
         <PageHeader
           title="Loading..."
           subtitle="Fetching hotel details"
@@ -307,7 +307,7 @@ export default function ManageHotelPage() {
           backLabel="Back to Hotels"
         />
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-gray-900 text-xl">Loading hotel details...</div>
+          <div className="text-xl">Loading hotel details...</div>
         </div>
       </div>
     )
@@ -315,7 +315,7 @@ export default function ManageHotelPage() {
 
   if (!hotel) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gray-50">
         <PageHeader
           title="Hotel Not Found"
           subtitle="The hotel you're looking for doesn't exist"
@@ -323,9 +323,9 @@ export default function ManageHotelPage() {
           backLabel="Back to Hotels"
         />
         <div className="container mx-auto px-4 py-8">
-          <Card className="bg-gray-50 border-gray-200">
+          <Card>
             <CardContent className="p-6 text-center">
-              <p className="text-gray-900">Hotel not found or you don't have permission to access it.</p>
+              <p>Hotel not found or you don't have permission to access it.</p>
             </CardContent>
           </Card>
         </div>
@@ -344,7 +344,7 @@ export default function ManageHotelPage() {
   }) || []
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <PageHeader
         title={hotel.name}
         subtitle="Manage your hotel listing"
@@ -358,24 +358,24 @@ export default function ManageHotelPage() {
           className="space-y-6"
         >
           {error && (
-            <Card className="bg-red-500/20 border-red-500">
+            <Card className="bg-red-50 border-red-200">
               <CardContent className="p-4">
-                <p className="text-red-200">{error}</p>
+                <p className="text-red-600">{error}</p>
               </CardContent>
             </Card>
           )}
 
           {success && (
-            <Card className="bg-green-500/20 border-green-500">
+            <Card className="bg-green-50 border-green-500">
               <CardContent className="p-4">
-                <p className="text-green-200">{success}</p>
+                <p className="text-green-600">{success}</p>
               </CardContent>
             </Card>
           )}
 
           {/* Hotel Overview & Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="bg-gray-50 border-gray-200">
+            <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-gray-600">Status</span>
@@ -392,7 +392,7 @@ export default function ManageHotelPage() {
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                     hotel.is_active
                       ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
+                      : 'bg-gray-100 text-gray-600'
                   }`}>
                     {hotel.is_active ? 'Yes' : 'No'}
                   </span>
@@ -400,18 +400,18 @@ export default function ManageHotelPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-50 border-gray-200">
+            <Card>
               <CardContent className="p-6">
-                <div className="text-3xl font-bold text-gray-900 mb-1">
+                <div className="text-3xl font-bold mb-1">
                   {hotel.total_bookings || 0}
                 </div>
                 <div className="text-gray-600 text-sm">Total Bookings</div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-50 border-gray-200">
+            <Card>
               <CardContent className="p-6">
-                <div className="text-3xl font-bold text-green-600 mb-1">
+                <div className="text-3xl font-bold text-green-800 mb-1">
                   PKR {(hotel.total_earnings || 0).toLocaleString()}
                 </div>
                 <div className="text-gray-600 text-sm">Total Earnings</div>
@@ -420,15 +420,15 @@ export default function ManageHotelPage() {
           </div>
 
           {/* Availability Toggle */}
-          <Card className="bg-gray-50 border-gray-200">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-gray-900">Listing Availability</CardTitle>
+              <CardTitle>Listing Availability</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-900 font-medium">
+                    <p className="font-medium">
                       {hotel.is_listed ? 'Hotel is listed and visible to customers' : 'Hotel is unlisted and hidden from customers'}
                     </p>
                     <p className="text-gray-600 text-sm mt-1">
@@ -445,8 +445,8 @@ export default function ManageHotelPage() {
                 </div>
                 
                 {!hotel.is_active && (
-                  <div className="p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
-                    <p className="text-yellow-200 text-sm">
+                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-yellow-800 text-sm">
                       <strong>Status: Inactive</strong> - Your hotel is listed but not active. 
                       It will only be visible to customers after an admin activates it. 
                       Please wait for admin approval or contact support if you believe this is an error.
@@ -455,8 +455,8 @@ export default function ManageHotelPage() {
                 )}
                 
                 {hotel.is_active && !hotel.is_listed && (
-                  <div className="p-4 bg-blue-500/20 border border-blue-500/50 rounded-lg">
-                    <p className="text-blue-200 text-sm">
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-blue-800 text-sm">
                       <strong>Status: Active but Unlisted</strong> - Your hotel is active but currently unlisted. 
                       Click "List Hotel" above to make it visible to customers.
                     </p>
@@ -464,8 +464,8 @@ export default function ManageHotelPage() {
                 )}
                 
                 {hotel.is_active && hotel.is_listed && (
-                  <div className="p-4 bg-green-500/20 border border-green-500/50 rounded-lg">
-                    <p className="text-green-200 text-sm">
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-green-600 text-sm">
                       <strong>Status: Active and Listed</strong> - Your hotel is active and listed. 
                       It is currently visible to customers and accepting bookings.
                     </p>
@@ -476,10 +476,10 @@ export default function ManageHotelPage() {
           </Card>
 
           {/* Edit Hotel Info */}
-          <Card className="bg-gray-50 border-gray-200">
+          <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle className="text-gray-900">Hotel Information</CardTitle>
+                <CardTitle>Hotel Information</CardTitle>
                 {!isEditing && (
                   <Button variant="outline" onClick={() => setIsEditing(true)}>
                     Edit
@@ -538,7 +538,7 @@ export default function ManageHotelPage() {
                             onChange={() => toggleAmenity(amenity)}
                             className="rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"
                           />
-                          <span className="text-sm text-gray-700 capitalize">
+                          <span className="text-sm text-gray-600 capitalize">
                             {amenity.replace('_', ' ')}
                           </span>
                         </label>
@@ -577,25 +577,25 @@ export default function ManageHotelPage() {
                 <div className="space-y-3">
                   <div>
                     <span className="text-gray-600 text-sm">Name:</span>
-                    <p className="text-gray-900">{hotel.name}</p>
+                    <p>{hotel.name}</p>
                   </div>
                   {hotel.description && (
                     <div>
                       <span className="text-gray-600 text-sm">Description:</span>
-                      <p className="text-gray-900">{hotel.description}</p>
+                      <p>{hotel.description}</p>
                     </div>
                   )}
                   <div>
                     <span className="text-gray-600 text-sm">Address:</span>
-                    <p className="text-gray-900">{hotel.address}</p>
+                    <p>{hotel.address}</p>
                   </div>
                   <div>
                     <span className="text-gray-600 text-sm">Location:</span>
-                    <p className="text-gray-900">{hotel.location}</p>
+                    <p>{hotel.location}</p>
                   </div>
                   <div>
                     <span className="text-gray-600 text-sm">Star Rating:</span>
-                    <p className="text-gray-900">{hotel.rating} ⭐</p>
+                    <p>{hotel.rating} ⭐</p>
                   </div>
                   {hotel.amenities && hotel.amenities.length > 0 && (
                     <div>
@@ -604,7 +604,7 @@ export default function ManageHotelPage() {
                         {hotel.amenities.map((amenity, index) => (
                           <span
                             key={index}
-                            className="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded-full capitalize"
+                            className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full capitalize"
                           >
                             {amenity.replace('_', ' ')}
                           </span>
@@ -618,10 +618,10 @@ export default function ManageHotelPage() {
           </Card>
 
           {/* Room Types Management */}
-          <Card className="bg-gray-50 border-gray-200">
+          <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle className="text-gray-900">Room Types</CardTitle>
+                <CardTitle>Room Types</CardTitle>
                 {!showRoomTypeForm && !editingRoomType && (
                   <Button
                     variant="outline"
@@ -634,7 +634,7 @@ export default function ManageHotelPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {showRoomTypeForm && (
-                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <div className="p-4 rounded-lg border border-gray-200">
                   <RoomTypeForm
                     onSubmit={handleAddRoomType}
                     onCancel={() => setShowRoomTypeForm(false)}
@@ -643,7 +643,7 @@ export default function ManageHotelPage() {
               )}
 
               {editingRoomType && (
-                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <div className="p-4 rounded-lg border border-gray-200">
                   <RoomTypeForm
                     initialData={{
                       id: editingRoomType.id,
@@ -682,14 +682,14 @@ export default function ManageHotelPage() {
           </Card>
 
           {/* Images Management */}
-          <Card className="bg-gray-50 border-gray-200">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-gray-900">Images</CardTitle>
+              <CardTitle>Images</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {hotelImages.length > 0 && (
                 <div>
-                  <h3 className="text-gray-900 font-medium mb-3">Current Images</h3>
+                  <h3 className="font-medium mb-3">Current Images</h3>
                   <ImageGallery
                     images={hotelImages}
                     onDelete={(id) => handleDeleteImage(String(id))}
@@ -699,7 +699,7 @@ export default function ManageHotelPage() {
               )}
 
               <div>
-                <h3 className="text-gray-900 font-medium mb-3">Upload New Images</h3>
+                <h3 className="font-medium mb-3">Upload New Images</h3>
                 <ImageUploader
                   onImagesSelected={(files) => setNewImages(files)}
                   maxImages={10}

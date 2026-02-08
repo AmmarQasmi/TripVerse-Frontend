@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { DoughnutChart } from '@/components/client/DoughnutChart'
@@ -10,6 +10,8 @@ import { DisputeWarningBadge } from '@/components/shared/DisputeWarningBadge'
 import { DriverBookingsModal } from '@/components/driver/DriverBookingsModal'
 import { StatsModal } from '@/components/client/StatsModal'
 import { PageLoader } from '@/components/shared/PageLoader'
+import { CarListingForm } from '@/components/driver/CarListingForm'
+import { ChatInterface } from '@/components/cars/ChatInterface'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/features/auth/useAuth'
@@ -17,6 +19,7 @@ import { driversApi } from '@/lib/api/drivers.api'
 import type { DriverDashboard, DriverSuspensionStatus } from '@/lib/api/drivers.api'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCar, faClipboardList, faCreditCard } from '@fortawesome/free-solid-svg-icons'
+import { carsApi } from '@/lib/api/cars.api'
 
 export default function DriverDashboard() {
   const { user } = useAuth()
@@ -28,6 +31,9 @@ export default function DriverDashboard() {
   const [showBookingsModal, setShowBookingsModal] = useState(false)
   const [modalType, setModalType] = useState<string | null>(null)
   const [modalData, setModalData] = useState<any[]>([])
+  const [showAddCarModal, setShowAddCarModal] = useState(false)
+  const [isSubmittingCar, setIsSubmittingCar] = useState(false)
+  const [chatBooking, setChatBooking] = useState<any>(null)
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -61,6 +67,67 @@ export default function DriverDashboard() {
     })
   }
 
+  const [actionLoading, setActionLoading] = useState<number | null>(null)
+
+  const handleAcceptBooking = async (bookingId: number) => {
+    try {
+      setActionLoading(bookingId)
+      await carsApi.respondToBooking(bookingId, 'accept')
+      const dashboardData = await driversApi.getDashboard()
+      setDashboard(dashboardData)
+    } catch (err: any) {
+      console.error('Failed to accept booking:', err)
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleRejectBooking = async (bookingId: number) => {
+    try {
+      setActionLoading(bookingId)
+      await carsApi.respondToBooking(bookingId, 'reject')
+      const dashboardData = await driversApi.getDashboard()
+      setDashboard(dashboardData)
+    } catch (err: any) {
+      console.error('Failed to reject booking:', err)
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleAddCar = async (formData: any) => {
+    try {
+      setIsSubmittingCar(true)
+      const response = await carsApi.create({
+        make: formData.make,
+        model: formData.model,
+        year: formData.year,
+        color: formData.color,
+        seats: formData.seats,
+        transmission: formData.transmission,
+        fuel_type: formData.fuel_type,
+        base_price_per_day: formData.base_price_per_day,
+        distance_rate_per_km: formData.distance_rate_per_km,
+        license_plate: formData.license_plate,
+      })
+
+      if (formData.images && formData.images.length > 0) {
+        await carsApi.uploadCarImages(response.id, formData.images)
+      }
+
+      setShowAddCarModal(false)
+      router.push('/driver/cars')
+    } catch (err: any) {
+      console.error('Error adding car:', err)
+    } finally {
+      setIsSubmittingCar(false)
+    }
+  }
+
+  const canChat = (status: string) => {
+    return ['ACCEPTED', 'CONFIRMED', 'IN_PROGRESS'].includes(status)
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'CONFIRMED':
@@ -81,15 +148,15 @@ export default function DriverDashboard() {
   }
 
   if (isLoading) {
-    return <PageLoader message="Loading dashboard..." />
+    return <PageLoader variant="skeleton" />
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Card className="bg-red-50 border-red-500">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="bg-red-50 border-red-200">
           <CardContent className="p-6">
-            <p className="text-red-900">{error}</p>
+            <p className="text-red-600">{error}</p>
             <Button
               onClick={() => window.location.reload()}
               variant="outline"
@@ -110,7 +177,7 @@ export default function DriverDashboard() {
   const { verification_status, stats, recent_bookings } = dashboard
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -213,10 +280,10 @@ export default function DriverDashboard() {
               />
               <DoughnutChart
                 label="Car Listings"
-                value={stats.car_listings_count}
+                value={stats.active_cars_count}
                 gradient="bg-gradient-to-br from-orange-500 to-red-500"
                 delay={0.4}
-                subtitle={`${stats.active_cars_count} active`}
+                subtitle={`${stats.car_listings_count} total`}
                 onClick={() => {
                   router.push('/driver/cars')
                 }}
@@ -265,7 +332,7 @@ export default function DriverDashboard() {
                   className="group"
                 >
                   {verification_status.is_verified ? (
-                    <Link href="/driver/cars/new">
+                    <div onClick={() => setShowAddCarModal(true)} className="cursor-pointer">
                       <div 
                         className="relative w-full max-w-[200px] mx-auto aspect-square rounded-2xl overflow-hidden backdrop-blur-md bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 opacity-95 shadow-2xl hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-75 group flex flex-col items-center justify-center"
                         style={{
@@ -342,7 +409,7 @@ export default function DriverDashboard() {
                           <p className="text-cyan-200 text-xs px-2">List a new vehicle</p>
                         </motion.div>
                       </div>
-                    </Link>
+                    </div>
                   ) : (
                     <div 
                       className="relative w-full max-w-[200px] mx-auto aspect-square rounded-2xl overflow-hidden opacity-50 cursor-not-allowed backdrop-blur-md bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 shadow-2xl transition-all duration-75 flex flex-col items-center justify-center"
@@ -443,7 +510,7 @@ export default function DriverDashboard() {
                             className="w-12 h-12 md:w-16 md:h-16 mb-2"
                             style={{ color: '#0891b2' }}
                           />
-                          <p className="text-xs font-semibold text-gray-900">{stats.active_cars_count} of {stats.car_listings_count} active</p>
+                          <p className="text-xs font-semibold text-gray-600">{stats.active_cars_count} of {stats.car_listings_count} active</p>
                         </div>
                       </div>
                     </Link>
@@ -531,7 +598,7 @@ export default function DriverDashboard() {
                             className="w-12 h-12 md:w-16 md:h-16 mb-2"
                             style={{ color: '#0891b2' }}
                           />
-                          <p className="text-xs font-semibold text-gray-900">View all bookings</p>
+                          <p className="text-xs font-semibold text-gray-600">View all bookings</p>
                         </div>
                       </div>
                     </Link>
@@ -619,7 +686,7 @@ export default function DriverDashboard() {
                             className="w-12 h-12 md:w-16 md:h-16 mb-2"
                             style={{ color: '#0891b2' }}
                           />
-                          <p className="text-xs font-semibold text-gray-900">Track earnings</p>
+                          <p className="text-xs font-semibold text-gray-600">Track earnings</p>
                         </div>
                       </div>
                     </Link>
@@ -657,10 +724,10 @@ export default function DriverDashboard() {
                     <div className="space-y-3">
                 {recent_bookings.length > 0 ? (
                   recent_bookings.map((booking) => (
-                          <div key={booking.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                          <div key={booking.id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                             <div className="flex justify-between items-start mb-2">
                               <div>
-                                <div className="font-semibold text-gray-900">
+                                <div className="font-semibold">
                             {booking.car.make} {booking.car.model}
                                 </div>
                                 <div className="text-sm text-gray-600">
@@ -668,12 +735,45 @@ export default function DriverDashboard() {
                                 </div>
                               </div>
                               <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
-                                {booking.status}
+                                {booking.status.replace(/_/g, ' ')}
                               </span>
                             </div>
-                            <div className="mt-3">
-                              <p className="text-gray-600 text-sm">Your Earning</p>
-                              <p className="font-bold text-green-600 text-lg">PKR {booking.driver_earnings.toLocaleString()}</p>
+                            <div className="flex items-center justify-between mt-3">
+                              <div>
+                                <p className="text-gray-600 text-sm">Your Earning</p>
+                                <p className="font-bold text-green-600 text-lg">PKR {booking.driver_earnings.toLocaleString()}</p>
+                              </div>
+                              {booking.status === 'PENDING_DRIVER_ACCEPTANCE' && (
+                                <div className="flex space-x-2">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleAcceptBooking(booking.id)}
+                                    disabled={actionLoading === booking.id}
+                                    className="bg-green-600 hover:bg-green-700 text-white text-xs px-3"
+                                  >
+                                    {actionLoading === booking.id ? '...' : 'Accept'}
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleRejectBooking(booking.id)}
+                                    disabled={actionLoading === booking.id}
+                                    className="border-red-500/50 text-red-400 hover:bg-red-500/20 text-xs px-3"
+                                  >
+                                    Reject
+                                  </Button>
+                                </div>
+                              )}
+                              {canChat(booking.status) && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setChatBooking(booking)}
+                                  className="text-xs px-3 border-cyan-500/50 text-cyan-600 hover:bg-cyan-50"
+                                >
+                                  💬 Chat
+                                </Button>
+                              )}
                             </div>
                           </div>
                         ))
@@ -706,6 +806,61 @@ export default function DriverDashboard() {
         data={modalData}
         totalAmount={modalType === 'Total Earnings' ? stats.total_earnings : undefined}
       />
+
+      {/* Add Car Modal */}
+      <AnimatePresence>
+        {showAddCarModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            onClick={() => !isSubmittingCar && setShowAddCarModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white border border-gray-200 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl z-10">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-2xl font-bold">List a New Car</h2>
+                    <p className="text-gray-600 text-sm mt-1">Fill in the details to add your car</p>
+                  </div>
+                  <button
+                    onClick={() => !isSubmittingCar && setShowAddCarModal(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors p-2"
+                  >
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div className="p-6">
+                <CarListingForm
+                  onSubmit={handleAddCar}
+                  isLoading={isSubmittingCar}
+                  onCancel={() => setShowAddCarModal(false)}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Chat Interface */}
+      {chatBooking && (
+        <ChatInterface
+          bookingId={chatBooking.id}
+          driverName={user?.full_name || 'Driver'}
+          customerName={chatBooking.customer?.name || 'Customer'}
+          onClose={() => setChatBooking(null)}
+        />
+      )}
     </div>
   )
 }

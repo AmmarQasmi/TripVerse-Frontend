@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/Button'
 
 interface CarFiltersProps {
   filters: CarFilterState
@@ -10,56 +9,12 @@ interface CarFiltersProps {
 }
 
 export interface CarFilterState {
-  priceRange: [number, number]
-  carType: string[]
-  transmission: string[]
-  fuelType: string[]
-  passengerCapacity: number
-  amenities: string[]
-  verifiedDriversOnly: boolean
+  transmission: string
+  fuelType: string
+  minSeats: number
+  maxPrice: number
   sortBy: string
 }
-
-const carTypes = [
-  { value: 'ECONOMY', label: 'Economy' },
-  { value: 'COMPACT', label: 'Compact' },
-  { value: 'SEDAN', label: 'Sedan' },
-  { value: 'SUV', label: 'SUV' },
-  { value: 'LUXURY', label: 'Luxury' },
-  { value: 'VAN', label: 'Van' },
-  { value: 'CONVERTIBLE', label: 'Convertible' },
-]
-
-const transmissions = [
-  { value: 'automatic', label: 'Automatic' },
-  { value: 'manual', label: 'Manual' },
-]
-
-const fuelTypes = [
-  { value: 'petrol', label: 'Petrol' },
-  { value: 'diesel', label: 'Diesel' },
-  { value: 'electric', label: 'Electric' },
-  { value: 'hybrid', label: 'Hybrid' },
-]
-
-const amenities = [
-  { value: 'AC', label: 'Air Conditioning' },
-  { value: 'GPS', label: 'GPS Navigation' },
-  { value: 'BLUETOOTH', label: 'Bluetooth' },
-  { value: 'BACKUP_CAMERA', label: 'Backup Camera' },
-  { value: 'LEATHER_SEATS', label: 'Leather Seats' },
-  { value: 'SUNROOF', label: 'Sunroof' },
-  { value: 'HEATED_SEATS', label: 'Heated Seats' },
-  { value: 'PARKING_SENSORS', label: 'Parking Sensors' },
-]
-
-const sortOptions = [
-  { value: 'price_low', label: 'Price: Low to High' },
-  { value: 'price_high', label: 'Price: High to Low' },
-  { value: 'rating', label: 'Rating: High to Low' },
-  { value: 'best_value', label: 'Best Value' },
-  { value: 'newest', label: 'Newest First' },
-]
 
 export function CarFilters({ filters, onFiltersChange, onClearFilters }: CarFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(true)
@@ -68,28 +23,26 @@ export function CarFilters({ filters, onFiltersChange, onClearFilters }: CarFilt
     onFiltersChange({ [key]: value })
   }
 
-  const toggleArrayFilter = (key: 'carType' | 'transmission' | 'fuelType' | 'amenities', value: string) => {
-    const currentArray = filters[key] as string[]
-    const newArray = currentArray.includes(value)
-      ? currentArray.filter(item => item !== value)
-      : [...currentArray, value]
-    updateFilter(key, newArray)
-  }
-
-  const handlePriceRangeChange = (index: number, value: number) => {
-    const newRange: [number, number] = [...filters.priceRange]
-    newRange[index] = value
-    updateFilter('priceRange', newRange)
-  }
+  const hasActiveFilters =
+    filters.transmission !== '' ||
+    filters.fuelType !== '' ||
+    filters.minSeats > 1 ||
+    filters.maxPrice < 10000 ||
+    filters.sortBy !== 'newest'
 
   return (
     <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-lg border border-white/20 p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-white">Filters</h3>
+        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+          <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+          Filters
+        </h3>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-gray-300 hover:text-white transition-colors text-xl font-bold w-6 h-6 flex items-center justify-center"
+          className="text-gray-300 hover:text-white transition-colors text-xl font-bold w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10"
         >
           {isExpanded ? '−' : '+'}
         </button>
@@ -97,183 +50,104 @@ export function CarFilters({ filters, onFiltersChange, onClearFilters }: CarFilt
 
       {isExpanded && (
         <div className="space-y-6">
-          {/* Price Range */}
-          <div>
-            <label className="block text-sm font-medium text-white mb-3">
-              Price Range (PKR per day)
-            </label>
-            <div className="space-y-3">
-              <div className="flex space-x-4">
-                <div className="flex-1">
-                  <input
-                    type="number"
-                    placeholder="Min"
-                    value={filters.priceRange[0] || ''}
-                    onChange={(e) => handlePriceRangeChange(0, parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                  />
-                </div>
-                <div className="flex-1">
-                  <input
-                    type="number"
-                    placeholder="Max"
-                    value={filters.priceRange[1] || ''}
-                    onChange={(e) => handlePriceRangeChange(1, parseInt(e.target.value) || 10000)}
-                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                  />
-                </div>
-              </div>
-              <div className="text-xs text-gray-300">
-                Range: PKR {filters.priceRange[0].toLocaleString()} - {filters.priceRange[1].toLocaleString()}
-              </div>
-            </div>
-          </div>
-
-          {/* Car Type */}
-          <div>
-            <label className="block text-sm font-medium text-white mb-3">
-              Car Type
-            </label>
-            <div className="space-y-2">
-              {carTypes.map((type) => (
-                <label key={type.value} className="flex items-center space-x-3 cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={filters.carType.includes(type.value)}
-                    onChange={() => toggleArrayFilter('carType', type.value)}
-                    className="rounded border-white/30 bg-white/10 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0"
-                  />
-                  <span className="text-sm text-gray-200">
-                    {type.label}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-
           {/* Transmission */}
           <div>
-            <label className="block text-sm font-medium text-white mb-3">
-              Transmission
-            </label>
-            <div className="space-y-2">
-              {transmissions.map((transmission) => (
-                <label key={transmission.value} className="flex items-center space-x-3 cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={filters.transmission.includes(transmission.value)}
-                    onChange={() => toggleArrayFilter('transmission', transmission.value)}
-                    className="rounded border-white/30 bg-white/10 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0"
-                  />
-                  <span className="text-sm text-gray-200">{transmission.label}</span>
-                </label>
-              ))}
-            </div>
+            <label className="block text-sm font-medium text-gray-200 mb-2">Transmission</label>
+            <select
+              value={filters.transmission}
+              onChange={(e) => updateFilter('transmission', e.target.value)}
+              className="w-full px-3 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
+            >
+              <option value="" className="bg-gray-800">All</option>
+              <option value="automatic" className="bg-gray-800">Automatic</option>
+              <option value="manual" className="bg-gray-800">Manual</option>
+            </select>
           </div>
 
           {/* Fuel Type */}
           <div>
-            <label className="block text-sm font-medium text-white mb-3">
-              Fuel Type
-            </label>
-            <div className="space-y-2">
-              {fuelTypes.map((fuel) => (
-                <label key={fuel.value} className="flex items-center space-x-3 cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={filters.fuelType.includes(fuel.value)}
-                    onChange={() => toggleArrayFilter('fuelType', fuel.value)}
-                    className="rounded border-white/30 bg-white/10 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0"
-                  />
-                  <span className="text-sm text-gray-200">{fuel.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Passenger Capacity */}
-          <div>
-            <label className="block text-sm font-medium text-white mb-3">
-              Passenger Capacity
-            </label>
+            <label className="block text-sm font-medium text-gray-200 mb-2">Fuel Type</label>
             <select
-              value={filters.passengerCapacity}
-              onChange={(e) => updateFilter('passengerCapacity', parseInt(e.target.value))}
-              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+              value={filters.fuelType}
+              onChange={(e) => updateFilter('fuelType', e.target.value)}
+              className="w-full px-3 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
             >
-              <option value={0} className="bg-gray-800">Any</option>
-              <option value={2} className="bg-gray-800">2 passengers</option>
-              <option value={4} className="bg-gray-800">4 passengers</option>
-              <option value={5} className="bg-gray-800">5 passengers</option>
-              <option value={7} className="bg-gray-800">7 passengers</option>
-              <option value={8} className="bg-gray-800">8+ passengers</option>
+              <option value="" className="bg-gray-800">All</option>
+              <option value="petrol" className="bg-gray-800">Petrol</option>
+              <option value="diesel" className="bg-gray-800">Diesel</option>
+              <option value="electric" className="bg-gray-800">Electric</option>
+              <option value="hybrid" className="bg-gray-800">Hybrid</option>
             </select>
           </div>
 
-          {/* Amenities */}
+          {/* Minimum Seats */}
           <div>
-            <label className="block text-sm font-medium text-white mb-3">
-              Amenities
+            <label className="block text-sm font-medium text-gray-200 mb-2">
+              Minimum Seats: <span className="text-cyan-400 font-semibold">{filters.minSeats === 1 ? 'Any' : filters.minSeats}</span>
             </label>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {amenities.map((amenity) => (
-                <label key={amenity.value} className="flex items-center space-x-3 cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={filters.amenities.includes(amenity.value)}
-                    onChange={() => toggleArrayFilter('amenities', amenity.value)}
-                    className="rounded border-white/30 bg-white/10 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0"
-                  />
-                  <span className="text-sm text-gray-200">
-                    {amenity.label}
-                  </span>
-                </label>
-              ))}
+            <input
+              type="range"
+              min="1"
+              max="8"
+              value={filters.minSeats}
+              onChange={(e) => updateFilter('minSeats', Number(e.target.value))}
+              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+            />
+            <div className="flex justify-between text-xs text-gray-400 mt-1 px-0.5">
+              <span>Any</span>
+              <span>4</span>
+              <span>8</span>
             </div>
           </div>
 
-          {/* Verified Drivers Only */}
+          {/* Max Price */}
           <div>
-            <label className="flex items-center space-x-3 cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-colors">
-              <input
-                type="checkbox"
-                checked={filters.verifiedDriversOnly}
-                onChange={(e) => updateFilter('verifiedDriversOnly', e.target.checked)}
-                className="rounded border-white/30 bg-white/10 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0"
-              />
-              <span className="text-sm font-medium text-gray-200">
-                Verified Drivers Only
-              </span>
+            <label className="block text-sm font-medium text-gray-200 mb-2">
+              Max Price: <span className="text-cyan-400 font-semibold">{filters.maxPrice >= 10000 ? 'No limit' : `Rs. ${filters.maxPrice.toLocaleString()}`}</span>
             </label>
+            <input
+              type="range"
+              min="500"
+              max="10000"
+              step="500"
+              value={filters.maxPrice}
+              onChange={(e) => updateFilter('maxPrice', Number(e.target.value))}
+              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+            />
+            <div className="flex justify-between text-xs text-gray-400 mt-1 px-0.5">
+              <span>Rs. 500</span>
+              <span>Rs. 5k</span>
+              <span>No limit</span>
+            </div>
           </div>
 
           {/* Sort By */}
           <div>
-            <label className="block text-sm font-medium text-white mb-3">
-              Sort By
-            </label>
+            <label className="block text-sm font-medium text-gray-200 mb-2">Sort By</label>
             <select
               value={filters.sortBy}
               onChange={(e) => updateFilter('sortBy', e.target.value)}
-              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+              className="w-full px-3 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
             >
-              {sortOptions.map((option) => (
-                <option key={option.value} value={option.value} className="bg-gray-800">
-                  {option.label}
-                </option>
-              ))}
+              <option value="newest" className="bg-gray-800">Newest First</option>
+              <option value="price_low" className="bg-gray-800">Price: Low to High</option>
+              <option value="price_high" className="bg-gray-800">Price: High to Low</option>
             </select>
           </div>
 
           {/* Clear Filters Button */}
-          <div className="pt-4 border-t border-white/20">
-            <Button
+          <div className="pt-3 border-t border-white/10">
+            <button
               onClick={onClearFilters}
-              variant="outline"
-              className="w-full border-white/30 text-white hover:bg-white/10 bg-white/5"
+              disabled={!hasActiveFilters}
+              className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                hasActiveFilters
+                  ? 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
+                  : 'bg-white/5 text-gray-500 border border-white/10 cursor-not-allowed'
+              }`}
             >
               Clear All Filters
-            </Button>
+            </button>
           </div>
         </div>
       )}

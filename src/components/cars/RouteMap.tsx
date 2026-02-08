@@ -1,7 +1,5 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-
 interface RouteMapProps {
   pickupLocation: string
   dropoffLocation: string
@@ -9,147 +7,78 @@ interface RouteMapProps {
   onDistanceCalculated?: (distance: number) => void
 }
 
-export function RouteMap({ pickupLocation, dropoffLocation, distance, onDistanceCalculated }: RouteMapProps) {
-  const [isCalculating, setIsCalculating] = useState(false)
-  const [mapUrl, setMapUrl] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (pickupLocation && dropoffLocation) {
-      // Create Google Maps directions URL (opens in new tab)
-      // Using the standard Google Maps URL format that doesn't require API key
-      const encodedPickup = encodeURIComponent(pickupLocation)
-      const encodedDropoff = encodeURIComponent(dropoffLocation)
-      // For embed, we'll use a static map or link to Google Maps
-      // Since we don't have API key in frontend, we'll show a link instead
-      setMapUrl(null)
-
-      // Calculate distance via backend if not provided
-      if (!distance && onDistanceCalculated) {
-        calculateDistance()
-      }
-    } else {
-      setMapUrl(null)
-    }
-  }, [pickupLocation, dropoffLocation])
-
-  const calculateDistance = async () => {
-    if (!pickupLocation || !dropoffLocation) return
-
-    setIsCalculating(true)
-    try {
-      // We'll calculate distance when price is calculated, so this is just for display
-      // The actual calculation happens in the backend
-      setIsCalculating(false)
-    } catch (error) {
-      console.error('Failed to calculate distance:', error)
-      setIsCalculating(false)
-    }
-  }
+export function RouteMap({ pickupLocation, dropoffLocation, distance }: RouteMapProps) {
+  const googleMapsUrl = pickupLocation && dropoffLocation
+    ? `https://www.google.com/maps/dir/${encodeURIComponent(pickupLocation)}/${encodeURIComponent(dropoffLocation)}`
+    : null
 
   if (!pickupLocation || !dropoffLocation) {
     return (
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-700/50">
-        <div className="relative h-64 bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-700/50">
+        <div className="relative h-28 bg-gradient-to-br from-gray-700/60 to-gray-800/60 flex items-center justify-center">
           <div className="text-center">
-            <div className="text-5xl mb-4">🗺️</div>
-            <p className="text-gray-400">Enter pickup and dropoff locations to view route</p>
+            <svg className="w-8 h-8 text-gray-500 mx-auto mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            <p className="text-gray-500 text-xs">Enter locations to preview route</p>
           </div>
         </div>
       </div>
     )
   }
 
-  const googleMapsUrl = pickupLocation && dropoffLocation 
-    ? `https://www.google.com/maps/dir/${encodeURIComponent(pickupLocation)}/${encodeURIComponent(dropoffLocation)}`
-    : null
-
   return (
-    <div className="space-y-4">
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-700/50">
-        <div className="relative h-80 bg-gradient-to-br from-gray-700 to-gray-800">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-6xl mb-4">🗺️</div>
-              <h3 className="text-xl font-bold text-white mb-2">Route Preview</h3>
-              <p className="text-gray-400 mb-4">View the route on Google Maps</p>
-              {googleMapsUrl && (
-                <a
-                  href={googleMapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-75"
-                >
-                  View Route on Google Maps
-                </a>
-              )}
+    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-700/50">
+      {/* Route visualization */}
+      <div className="p-3.5">
+        <div className="flex items-stretch gap-3">
+          {/* Route line */}
+          <div className="flex flex-col items-center py-1">
+            <div className="w-3 h-3 rounded-full bg-green-400 ring-2 ring-green-400/30 flex-shrink-0" />
+            <div className="w-0.5 flex-1 bg-gradient-to-b from-green-400/60 via-gray-500/40 to-red-400/60 my-1 min-h-[20px]" />
+            <div className="w-3 h-3 rounded-full bg-red-400 ring-2 ring-red-400/30 flex-shrink-0" />
+          </div>
+          {/* Locations */}
+          <div className="flex-1 min-w-0 space-y-2">
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">Pickup</p>
+              <p className="text-sm text-white truncate leading-tight">{pickupLocation}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">Drop-off</p>
+              <p className="text-sm text-white truncate leading-tight">{dropoffLocation}</p>
             </div>
           </div>
-          
-          {/* Route visualization */}
-          <div className="absolute top-4 left-4 right-4">
-            <div className="bg-black/50 backdrop-blur-sm rounded-lg p-3 text-white text-sm">
-              <div className="flex items-center space-x-2 mb-2">
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <span className="truncate">{pickupLocation}</span>
-              </div>
-              <div className="flex items-center space-x-2 pl-5">
-                <div className="w-px h-4 bg-gray-400"></div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <span className="truncate">{dropoffLocation}</span>
+          {/* Distance badge */}
+          {distance ? (
+            <div className="flex items-center flex-shrink-0">
+              <div className="bg-teal-500/10 border border-teal-500/20 rounded-lg px-3 py-2 text-center">
+                <p className="text-base font-bold text-teal-400 leading-tight">{distance.toFixed(1)}</p>
+                <p className="text-[10px] text-teal-400/70">km</p>
               </div>
             </div>
-          </div>
-        </div>
-        
-        {/* Route Info */}
-        <div className="p-4 border-t border-gray-700/50 bg-gray-800/30">
-          <div className="space-y-2">
-            <div className="flex items-start space-x-3">
-              <div className="mt-1">
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              </div>
-              <div className="flex-1">
-                <p className="text-xs text-gray-400 uppercase">Pickup</p>
-                <p className="text-white font-medium">{pickupLocation}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3 pl-5">
-              <div className="w-px h-6 bg-gray-600"></div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <div className="mt-1">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              </div>
-              <div className="flex-1">
-                <p className="text-xs text-gray-400 uppercase">Dropoff</p>
-                <p className="text-white font-medium">{dropoffLocation}</p>
-              </div>
-            </div>
-            {distance && (
-              <div className="mt-3 pt-3 border-t border-gray-700/50">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-400">Estimated Distance:</span>
-                  <span className="text-lg font-bold text-white">{distance.toFixed(1)} km</span>
-                </div>
-              </div>
-            )}
-            {isCalculating && (
-              <div className="mt-3 pt-3 border-t border-gray-700/50">
-                <div className="flex items-center space-x-2">
-                  <svg className="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span className="text-sm text-gray-400">Calculating distance...</span>
-                </div>
-              </div>
-            )}
-          </div>
+          ) : null}
         </div>
       </div>
+
+      {/* Open in Google Maps link */}
+      {googleMapsUrl && (
+        <a
+          href={googleMapsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 py-2.5 border-t border-gray-700/50 bg-gray-800/30 hover:bg-gray-700/40 transition-colors group"
+        >
+          <svg className="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span className="text-xs font-medium text-teal-400 group-hover:text-teal-300 transition-colors">View Route on Google Maps</span>
+          <svg className="w-3 h-3 text-teal-400/60 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      )}
     </div>
   )
 }
-

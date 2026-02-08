@@ -6,104 +6,67 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import { CarCard } from '@/components/cars/CarCard'
-import { CarSearchForm } from '@/components/cars/CarSearchForm'
+import { CarSearchForm, CarSearchParams as CarSearchFormData } from '@/components/cars/CarSearchForm'
 import { CarFilters, CarFilterState } from '@/components/cars/CarFilters'
-import { CarDestinationsCarousel } from '@/components/cars/CarDestinationsCarousel'
+import { CityExplorer } from '@/components/cars/CityExplorer'
 import { useCarSearch } from '@/features/cars/useCarSearch'
 import { useAuth } from '@/features/auth/useAuth'
-import { CarSearchParams } from '@/types'
-
-interface CarSearchFormData {
-  pickupLocation: string
-  dropoffLocation: string
-  pickupDate: string
-  dropoffDate: string
-  pickupTime: string
-  dropoffTime: string
-  carType: string
-}
 
 export default function CarsPage() {
   const router = useRouter()
   const { user, isLoading: authLoading } = useAuth()
   const [searchParams, setSearchParams] = useState<CarSearchFormData>({
     pickupLocation: user?.city?.region || '',
-    dropoffLocation: '',
     pickupDate: '',
-    dropoffDate: '',
     pickupTime: '10:00',
-    dropoffTime: '10:00',
+    passengers: 0,
     carType: '',
   })
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
 
-  // Read URL params immediately on mount (before auth check)
+  // Read URL params immediately on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search)
       const pickupLocation = urlParams.get('pickupLocation')
-      const dropoffLocation = urlParams.get('dropoffLocation')
       const pickupDate = urlParams.get('pickupDate')
-      const returnDate = urlParams.get('returnDate')
       const pickupTime = urlParams.get('pickupTime')
-      const dropoffTime = urlParams.get('dropoffTime')
-      const vehicleType = urlParams.get('vehicleType')
+      const passengers = urlParams.get('passengers')
+      const carType = urlParams.get('carType')
 
-      if (pickupLocation || pickupDate || returnDate) {
+      if (pickupLocation || pickupDate) {
         setSearchParams(prev => ({
           ...prev,
           pickupLocation: pickupLocation || prev.pickupLocation,
-          dropoffLocation: dropoffLocation || prev.dropoffLocation,
           pickupDate: pickupDate || prev.pickupDate,
-          dropoffDate: returnDate || prev.dropoffDate,
           pickupTime: pickupTime || prev.pickupTime,
-          dropoffTime: dropoffTime || prev.dropoffTime,
-          carType: vehicleType || prev.carType,
+          passengers: passengers ? parseInt(passengers) : prev.passengers,
+          carType: carType || prev.carType,
         }))
       }
     }
-  }, []) // Run immediately on mount
+  }, [])
 
-  // Check authentication and restore cached data on mount
+  // Check authentication
   useEffect(() => {
-    if (authLoading) return // Wait for auth to load
+    if (authLoading) return
     
     if (!user) {
-      // User not authenticated - redirect to login with current URL as redirect
       const currentUrl = window.location.pathname + window.location.search
       router.push(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`)
       return
     }
 
-    // User is authenticated - proceed with restoring cached data
     if (typeof window !== 'undefined' && !hasCheckedAuth) {
       setHasCheckedAuth(true)
       
-      // First, try to get data from URL params
       const urlParams = new URLSearchParams(window.location.search)
       const pickupLocation = urlParams.get('pickupLocation')
-      const dropoffLocation = urlParams.get('dropoffLocation')
       const pickupDate = urlParams.get('pickupDate')
-      const returnDate = urlParams.get('returnDate')
-      const pickupTime = urlParams.get('pickupTime')
-      const dropoffTime = urlParams.get('dropoffTime')
-      const vehicleType = urlParams.get('vehicleType')
 
-      if (pickupLocation || pickupDate || returnDate) {
-        // Use URL params if available
-        setSearchParams(prev => ({
-          ...prev,
-          pickupLocation: pickupLocation || prev.pickupLocation,
-          dropoffLocation: dropoffLocation || prev.dropoffLocation,
-          pickupDate: pickupDate || prev.pickupDate,
-          dropoffDate: returnDate || prev.dropoffDate,
-          pickupTime: pickupTime || prev.pickupTime,
-          dropoffTime: dropoffTime || prev.dropoffTime,
-          carType: vehicleType || prev.carType,
-        }))
-      } else {
+      if (!pickupLocation && !pickupDate) {
         // Try to restore from cache
-        const cachedData = localStorage.getItem('cached_rental_search')
+        const cachedData = localStorage.getItem('cached_car_search')
         if (cachedData) {
           try {
             const cached = JSON.parse(cachedData)
@@ -111,27 +74,14 @@ export default function CarsPage() {
               setSearchParams(prev => ({
                 ...prev,
                 pickupLocation: cached.pickupLocation || prev.pickupLocation,
-                dropoffLocation: cached.dropoffLocation || prev.dropoffLocation,
                 pickupDate: cached.pickupDate || prev.pickupDate,
-                dropoffDate: cached.returnDate || prev.dropoffDate,
                 pickupTime: cached.pickupTime || prev.pickupTime,
-                dropoffTime: cached.dropoffTime || prev.dropoffTime,
-                carType: cached.vehicleType || prev.carType,
+                passengers: cached.passengers || prev.passengers,
+                carType: cached.carType || prev.carType,
               }))
-              
-              // Update URL to reflect cached data
-              const newUrlParams = new URLSearchParams()
-              if (cached.pickupLocation) newUrlParams.set('pickupLocation', cached.pickupLocation)
-              if (cached.dropoffLocation) newUrlParams.set('dropoffLocation', cached.dropoffLocation)
-              if (cached.pickupDate) newUrlParams.set('pickupDate', cached.pickupDate)
-              if (cached.returnDate) newUrlParams.set('returnDate', cached.returnDate)
-              if (cached.pickupTime) newUrlParams.set('pickupTime', cached.pickupTime)
-              if (cached.dropoffTime) newUrlParams.set('dropoffTime', cached.dropoffTime)
-              if (cached.vehicleType) newUrlParams.set('vehicleType', cached.vehicleType)
-              window.history.replaceState({}, '', `${window.location.pathname}?${newUrlParams.toString()}`)
             }
           } catch (error) {
-            console.error('Error parsing cached rental search data:', error)
+            console.error('Error parsing cached car search data:', error)
           }
         }
       }
@@ -139,14 +89,11 @@ export default function CarsPage() {
   }, [user, authLoading, router, hasCheckedAuth])
   
   const [filters, setFilters] = useState<CarFilterState>({
-    priceRange: [0, 10000],
-    carType: [],
-    transmission: [],
-    fuelType: [],
-    passengerCapacity: 0,
-    amenities: [],
-    verifiedDriversOnly: true,
-    sortBy: 'best_value',
+    transmission: '',
+    fuelType: '',
+    minSeats: 1,
+    maxPrice: 10000,
+    sortBy: 'newest',
   })
   
   const [isInitialLoad, setIsInitialLoad] = useState(true)
@@ -154,24 +101,32 @@ export default function CarsPage() {
   
   // Check if any filters are active
   const hasActiveFilters = 
-    filters.passengerCapacity > 0 ||
-    filters.transmission.length > 0 ||
-    filters.fuelType.length > 0 ||
-    filters.priceRange[0] > 0 ||
-    filters.priceRange[1] < 10000 ||
-    filters.carType.length > 0 ||
-    filters.amenities.length > 0
+    filters.transmission !== '' ||
+    filters.fuelType !== '' ||
+    filters.minSeats > 1 ||
+    filters.maxPrice < 10000 ||
+    filters.sortBy !== 'newest'
   
   const { data: cars, isLoading } = useCarSearch({
-    query: searchParams.pickupLocation,
-    city_id: showAllCars ? undefined : user?.city?.id?.toString(),
+    query: searchParams.pickupLocation || undefined,
+    city_id: searchParams.pickupLocation
+      ? undefined  // Don't send city_id when we have a text query from search
+      : showAllCars 
+        ? undefined 
+        : user?.city?.id?.toString(),
     start_date: searchParams.pickupDate,
-    end_date: searchParams.dropoffDate,
-    seats: filters.passengerCapacity > 0 ? filters.passengerCapacity : undefined,
-    transmission: filters.transmission.length > 0 ? filters.transmission[0] : undefined,
-    fuel_type: filters.fuelType.length > 0 ? filters.fuelType[0] : undefined,
-    min_price: filters.priceRange[0] > 0 ? filters.priceRange[0] : undefined,
-    max_price: filters.priceRange[1] < 10000 ? filters.priceRange[1] : undefined,
+    seats: searchParams.passengers > 0 
+      ? searchParams.passengers 
+      : filters.minSeats > 1 
+        ? filters.minSeats 
+        : undefined,
+    transmission: searchParams.carType 
+      ? searchParams.carType 
+      : filters.transmission 
+        ? filters.transmission 
+        : undefined,
+    fuel_type: filters.fuelType || undefined,
+    max_price: filters.maxPrice < 10000 ? filters.maxPrice : undefined,
   })
 
   // Auto-load all cars on first visit if no user location
@@ -189,6 +144,14 @@ export default function CarsPage() {
 
   const handleSearch = (newParams: CarSearchFormData) => {
     setSearchParams(newParams)
+    // When user searches with a pickup location, disable showAllCars so it filters properly
+    if (newParams.pickupLocation) {
+      setShowAllCars(false)
+    }
+    // Scroll to car listings section
+    setTimeout(() => {
+      document.getElementById('car-listings')?.scrollIntoView({ behavior: 'smooth' })
+    }, 100)
   }
 
   const handleFiltersChange = (newFilters: Partial<CarFilterState>) => {
@@ -197,14 +160,11 @@ export default function CarsPage() {
 
   const handleClearFilters = () => {
     setFilters({
-      priceRange: [0, 10000],
-      carType: [],
-      transmission: [],
-      fuelType: [],
-      passengerCapacity: 0,
-      amenities: [],
-      verifiedDriversOnly: true,
-      sortBy: 'best_value',
+      transmission: '',
+      fuelType: '',
+      minSeats: 1,
+      maxPrice: 10000,
+      sortBy: 'newest',
     })
   }
 
@@ -254,7 +214,7 @@ export default function CarsPage() {
         {/* Scroll Indicator removed per design request */}
       </section>
 
-      {/* Popular Destinations */}
+      {/* Explore Cities */}
       <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -263,16 +223,19 @@ export default function CarsPage() {
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl font-bold text-white text-center mb-12">
-              Popular pickup cities
+            <h2 className="text-3xl font-bold text-white text-center mb-3">
+              Explore Cities
             </h2>
-            <CarDestinationsCarousel />
+            <p className="text-gray-400 text-center mb-10 max-w-2xl mx-auto">
+              Discover weather, top attractions, and restaurants in cities with available drivers
+            </p>
+            <CityExplorer />
           </motion.div>
         </div>
       </section>
 
       {/* Car Listings Section */}
-      <section className="py-16 px-4">
+      <section id="car-listings" className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
           {/* View Mode Toggle and Info */}
           <motion.div
@@ -341,11 +304,10 @@ export default function CarsPage() {
                   <div className="mt-4 p-3 bg-cyan-500/20 border border-cyan-500/30 rounded-lg">
                     <p className="text-xs text-cyan-300 font-medium">
                       Filters active: {[
-                        filters.transmission.length > 0 && `${filters.transmission.length} transmission`,
-                        filters.fuelType.length > 0 && `${filters.fuelType.length} fuel type`,
-                        filters.passengerCapacity > 0 && `${filters.passengerCapacity} seats`,
-                        filters.priceRange[0] > 0 && `Min PKR ${filters.priceRange[0]}`,
-                        filters.priceRange[1] < 10000 && `Max PKR ${filters.priceRange[1]}`
+                        filters.transmission && `${filters.transmission}`,
+                        filters.fuelType && `${filters.fuelType}`,
+                        filters.minSeats > 1 && `${filters.minSeats}+ seats`,
+                        filters.maxPrice < 10000 && `Max PKR ${filters.maxPrice.toLocaleString()}`
                       ].filter(Boolean).join(', ')}
                     </p>
                   </div>
