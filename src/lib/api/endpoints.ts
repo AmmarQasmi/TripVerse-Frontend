@@ -200,4 +200,12 @@ export const API_ENDPOINTS = {
     SEARCH: '/flights/search',
     CREATE_BOOKING_LINK: '/flights/create-booking-link',
   },
+
+  // AI Chat endpoints
+  CHAT: {
+    SESSIONS: '/chat/sessions',
+    MESSAGE: '/chat/message',
+    SESSION_BY_ID: (id: number) => `/chat/sessions/${id}`,
+    DELETE_SESSION: (id: number) => `/chat/sessions/${id}`,
+  },
 } as const
