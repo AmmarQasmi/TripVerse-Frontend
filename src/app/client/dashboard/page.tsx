@@ -6,11 +6,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlane, faCar } from '@fortawesome/free-solid-svg-icons'
+import { Sparkles } from 'lucide-react'
 import { DoughnutChart } from '@/components/client/DoughnutChart'
 import { StatsModal } from '@/components/client/StatsModal'
 import { TripCard, NewTripCard } from '@/components/client/TripCard'
 import { SupportCard } from '@/components/client/SupportCard'
 import { Button } from '@/components/ui/Button'
+import { ChatWidget } from '@/components/chat/ChatWidget'
 import { useAuth } from '@/features/auth/useAuth'
 import { useUserHotelBookings } from '@/features/bookings/useHotelBooking'
 import { useUserBookings as useUserCarBookings } from '@/features/cars/useCarSearch'
@@ -19,6 +21,7 @@ export default function ClientDashboard() {
   const { user, isLoading } = useAuth()
   const router = useRouter()
   const [modalType, setModalType] = useState<string | null>(null)
+  const [isChatOpen, setIsChatOpen] = useState(false)
   
   // Add redirect if not authenticated
   useEffect(() => {
@@ -242,8 +245,8 @@ export default function ClientDashboard() {
               <NewTripCard />
             </div>
 
-            {/* Three Round Buttons - Right */}
-            <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Round Buttons - Right */}
+            <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-6">
               {/* Flight Button */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -470,6 +473,82 @@ export default function ClientDashboard() {
                   </div>
                 </Link>
               </motion.div>
+
+              {/* AI Itinerary Button */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4, duration: 0.5, type: "spring", stiffness: 200 }}
+                whileHover={{ 
+                  scale: 1.1,
+                  transition: { type: "spring", stiffness: 300, damping: 20 }
+                }}
+                className="group"
+              >
+                <button onClick={() => setIsChatOpen(true)} className="w-full">
+                  <div className="relative w-full max-w-[200px] mx-auto aspect-square rounded-full bg-white shadow-2xl flex items-center justify-center overflow-hidden"
+                    style={{
+                      border: '4px solid transparent',
+                      backgroundImage: `
+                        linear-gradient(white, white),
+                        linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)
+                      `,
+                      backgroundOrigin: 'border-box',
+                      backgroundClip: 'padding-box, border-box'
+                    }}
+                  >
+                    {/* Animated Border Glow */}
+                    <motion.div
+                      className="absolute inset-0 rounded-full"
+                      style={{
+                        background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
+                        backgroundSize: '200% 100%',
+                        opacity: 0.9,
+                        filter: 'blur(2px)',
+                        zIndex: -1
+                      }}
+                      animate={{ 
+                        backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
+                      }}
+                      transition={{ 
+                        duration: 3, 
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    />
+                    
+                    {/* Outer Glow */}
+                    <motion.div 
+                      className="absolute inset-0 rounded-full"
+                      style={{
+                        background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
+                        backgroundSize: '200% 100%',
+                        filter: 'blur(4px)',
+                        opacity: 0.4,
+                        zIndex: -2
+                      }}
+                      animate={{ 
+                        backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
+                      }}
+                      transition={{ 
+                        duration: 3, 
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    />
+                    
+                    {/* Icon - AI Sparkles */}
+                    <div className="relative z-10 flex items-center justify-center">
+                      <Sparkles
+                        className="w-16 h-16 md:w-20 md:h-20"
+                        style={{
+                          color: '#0891b2',
+                        }}
+                      />
+                    </div>
+                  </div>
+                </button>
+              </motion.div>
             </div>
           </div>
         </motion.section>
@@ -514,6 +593,13 @@ export default function ClientDashboard() {
           totalAmount={modalType === 'Total Spent' ? totalSpent : undefined}
         />
       )}
+
+      {/* AI Chat Widget */}
+      <ChatWidget
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        initialAgent="ITINERARY_GENERATOR"
+      />
     </div>
   )
 }

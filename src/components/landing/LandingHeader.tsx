@@ -9,11 +9,14 @@ import { useAuth } from '@/features/auth/useAuth'
 import { motion, AnimatePresence } from 'framer-motion'
 import { NotificationBell } from '@/components/shared/NotificationBell'
 import { useCurrentWeatherByCity } from '@/features/weather/useForecast'
+import { ChatWidget } from '@/components/chat/ChatWidget'
+import { Sparkles } from 'lucide-react'
 
 export function LandingHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isChatOpen, setIsChatOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { user, logout } = useAuth()
   const router = useRouter()
@@ -205,6 +208,18 @@ export function LandingHeader() {
                 </button>
               )}
 
+              {/* AI Assistant Button - Only for clients */}
+              {isClient && (
+                <button
+                  onClick={() => setIsChatOpen(true)}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-75 relative group"
+                  aria-label="AI Travel Assistant"
+                  title="AI Assistant"
+                >
+                  <Sparkles className="w-5 h-5 text-cyan-300 group-hover:text-white transition-colors" />
+                </button>
+              )}
+
               {isLoggedIn ? (
                 <>
                   {/* Notifications - Visible to all logged-in users */}
@@ -327,6 +342,12 @@ export function LandingHeader() {
       <MonumentUploadModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
+      />
+
+      {/* AI Chat Widget */}
+      <ChatWidget
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
       />
     </>
   )

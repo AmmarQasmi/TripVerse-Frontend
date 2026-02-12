@@ -534,3 +534,87 @@ export interface WeatherForecast {
     precipitation: number
   }>
 }
+
+// AI Chat types
+export type AiAgentType = 'ITINERARY_GENERATOR' | 'PERSONAL_ASSISTANT'
+export type AiMessageRole = 'user' | 'assistant' | 'system'
+export type AiSessionStatus = 'active' | 'completed' | 'expired'
+
+export interface AiChatSession {
+  id: number
+  userId: number
+  agentType: AiAgentType
+  title: string | null
+  status: AiSessionStatus
+  currentState: string
+  slots: Record<string, string>
+  contextSummary: string | null
+  expiresAt: string
+  createdAt: string
+  updatedAt: string
+  messages?: AiChatMessage[]
+  generatedItinerary?: GeneratedItinerary | null
+}
+
+export interface AiChatMessage {
+  id: number
+  sessionId: number
+  role: AiMessageRole
+  content: string
+  metadata: Record<string, unknown> | null
+  createdAt: string
+}
+
+export interface GeneratedItinerary {
+  id: number
+  sessionId: number
+  userId: number
+  destination: string
+  travelStyle: string | null
+  budget: string | null
+  interests: string | null
+  startDate: string | null
+  endDate: string | null
+  itineraryData: ItineraryData
+  createdAt: string
+}
+
+export interface ItineraryDay {
+  day: number
+  theme: string
+  morning: string
+  afternoon: string
+  evening: string
+  food: string
+  pacing: string
+}
+
+export interface ItineraryData {
+  destination: string
+  duration: string
+  style: string
+  days: ItineraryDay[]
+  tips?: string[]
+}
+
+export interface AdvisorySection {
+  title: string
+  content: string
+  priority?: 'high' | 'medium' | 'low'
+}
+
+export interface AdvisoryData {
+  destination: string
+  purpose: string
+  sections: AdvisorySection[]
+  summary?: string
+}
+
+export interface ChatResponse {
+  sessionId: number
+  message: string
+  agentType: AiAgentType
+  currentState: string
+  isComplete: boolean
+  generatedData?: ItineraryData | AdvisoryData | null
+}
