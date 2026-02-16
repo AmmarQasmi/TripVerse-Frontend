@@ -31,7 +31,7 @@ export interface CreateSessionResponse {
     title: string
     createdAt: string
   }
-  greeting: ChatResponse
+  greeting: string
 }
 
 export const chatApi = {
