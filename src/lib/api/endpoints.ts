@@ -208,4 +208,12 @@ export const API_ENDPOINTS = {
     SESSION_BY_ID: (id: number) => `/chat/sessions/${id}`,
     DELETE_SESSION: (id: number) => `/chat/sessions/${id}`,
   },
+
+  // Itinerary endpoints
+  ITINERARIES: {
+    BASE: '/itineraries',
+    BY_ID: (id: number) => `/itineraries/${id}`,
+    ENRICH: (id: number) => `/itineraries/${id}/enrich`,
+    DELETE: (id: number) => `/itineraries/${id}`,
+  },
 } as const

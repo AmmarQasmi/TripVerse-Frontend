@@ -2,20 +2,23 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { chatApi, CreateSessionPayload, CreateSessionResponse, SendMessagePayload } from '@/lib/api/chat.api'
+import { chatApi, CreateSessionPayload, SendMessagePayload } from '@/lib/api/chat.api'
+import { itinerariesApi } from '@/lib/api/itineraries.api'
 import {
-  AiAgentType,
-  AiChatMessage,
   AiChatSession,
   ChatResponse,
 } from '@/types'
 
-interface LocalMessage {
+export interface LocalMessage {
   id: string
   role: 'user' | 'assistant'
   content: string
   createdAt: string
   isLoading?: boolean
+  /** If this message generated a preview, store the data inline */
+  previewData?: any
+  /** If this message generated an itinerary, store its id */
+  itineraryId?: number
 }
 
 export function useChat() {
@@ -48,32 +51,64 @@ export function useChat() {
   })
 
   // Sync server messages into local state when session loads
+  // Recovers previewData + itineraryId from generatedItinerary so previews survive re-fetches
   useEffect(() => {
     if (activeSession?.messages) {
-      const serverMessages: LocalMessage[] = activeSession.messages.map((m: AiChatMessage) => ({
-        id: `server-${m.id}`,
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-        createdAt: m.createdAt,
-      }))
+      // Build a map of existing local messages to preserve their preview data
+      const localPreviewMap = new Map<string, { previewData?: any; itineraryId?: number }>()
+      messages.forEach((m) => {
+        if (m.previewData || m.itineraryId) {
+          localPreviewMap.set(m.content?.slice(0, 100), { previewData: m.previewData, itineraryId: m.itineraryId })
+        }
+      })
+
+      const serverMessages: LocalMessage[] = activeSession.messages.map((m) => {
+        const meta = (m.metadata || {}) as Record<string, any>
+        const localMatch = localPreviewMap.get(m.content?.slice(0, 100))
+
+        // Recover preview data: first from local state, then from session's generatedItinerary
+        let previewData = localMatch?.previewData
+        let itineraryId = localMatch?.itineraryId || meta.itineraryId
+
+        if (!previewData && meta.hasPreview && activeSession.generatedItinerary) {
+          previewData = activeSession.generatedItinerary.previewData
+          itineraryId = itineraryId || activeSession.generatedItinerary.id
+        }
+
+        return {
+          id: `server-${m.id}`,
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+          createdAt: m.createdAt,
+          ...(previewData ? { previewData } : {}),
+          ...(itineraryId ? { itineraryId } : {}),
+        }
+      })
       setMessages(serverMessages)
     }
   }, [activeSession])
 
-  // Create session mutation
+  // Create session mutation — bot auto-detects intent from first message
   const createSessionMutation = useMutation({
     mutationFn: (payload: CreateSessionPayload) => chatApi.createSession(payload),
-    onSuccess: (data: CreateSessionResponse) => {
+    onSuccess: (data) => {
       setActiveSessionId(data.session.id)
-      // Show the welcome message from greeting
       const welcomeMsg: LocalMessage = {
         id: `local-${++messageIdCounter.current}`,
         role: 'assistant',
-        content: data.greeting.message,
+        content: data.greeting,
         createdAt: new Date().toISOString(),
       }
       setMessages([welcomeMsg])
       queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
+    },
+    onError: () => {
+      setMessages([{
+        id: `local-${++messageIdCounter.current}`,
+        role: 'assistant',
+        content: 'Unable to start a chat session. Please check your connection and try again.',
+        createdAt: new Date().toISOString(),
+      }])
     },
   })
 
@@ -82,7 +117,6 @@ export function useChat() {
     mutationFn: (payload: SendMessagePayload) => chatApi.sendMessage(payload),
     onSuccess: (data: ChatResponse) => {
       setIsTyping(false)
-      // Remove the loading indicator and add real response
       setMessages((prev) => {
         const withoutLoading = prev.filter((m) => !m.isLoading)
         return [
@@ -92,17 +126,26 @@ export function useChat() {
             role: 'assistant' as const,
             content: data.message,
             createdAt: new Date().toISOString(),
+            previewData: data.previewData || undefined,
+            itineraryId: data.itineraryId || undefined,
           },
         ]
       })
-      // Invalidate the session query to refresh server-side data
       if (activeSessionId) {
         queryClient.invalidateQueries({ queryKey: ['chat-session', activeSessionId] })
       }
       queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
     },
-    onError: () => {
+    onError: (error: any) => {
       setIsTyping(false)
+      const status = error?.response?.status
+      const serverMsg = error?.response?.data?.message
+      let errorText = 'Sorry, something went wrong. Please try again.'
+      if (status === 429) {
+        errorText = serverMsg || 'You\'re sending messages too quickly. Please wait a moment.'
+      } else if (status === 401) {
+        errorText = 'Your session has expired. Please refresh the page and log in again.'
+      }
       setMessages((prev) => {
         const withoutLoading = prev.filter((m) => !m.isLoading)
         return [
@@ -110,7 +153,7 @@ export function useChat() {
           {
             id: `local-${++messageIdCounter.current}`,
             role: 'assistant' as const,
-            content: 'Sorry, something went wrong. Please try again.',
+            content: errorText,
             createdAt: new Date().toISOString(),
           },
         ]
@@ -118,25 +161,36 @@ export function useChat() {
     },
   })
 
-  // Delete session mutation
+  // Delete session mutation — optimistic: always clear UI even if backend fails
   const deleteSessionMutation = useMutation({
     mutationFn: (id: number) => chatApi.deleteSession(id),
-    onSuccess: () => {
-      if (activeSessionId) {
-        queryClient.invalidateQueries({ queryKey: ['chat-session', activeSessionId] })
+    onSettled: (_data, _error, deletedId) => {
+      // Whether success or error, remove it from UI and refetch the list
+      if (activeSessionId === deletedId) {
+        setActiveSessionId(null)
+        setMessages([])
       }
-      setActiveSessionId(null)
-      setMessages([])
       queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
+      if (deletedId) {
+        queryClient.removeQueries({ queryKey: ['chat-session', deletedId] })
+      }
     },
   })
 
-  /** Start a new chat session */
+  // Enrich itinerary mutation
+  const enrichMutation = useMutation({
+    mutationFn: (itineraryId: number) => itinerariesApi.enrich(itineraryId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['itineraries'] })
+    },
+  })
+
+  /** Start a new chat session (always ITINERARY_GENERATOR — bot handles both) */
   const startSession = useCallback(
-    (agentType: AiAgentType, title?: string) => {
+    (title?: string) => {
       setMessages([])
       setActiveSessionId(null)
-      createSessionMutation.mutate({ agentType, title })
+      createSessionMutation.mutate({ agentType: 'ITINERARY_GENERATOR', title })
     },
     [createSessionMutation]
   )
@@ -146,7 +200,6 @@ export function useChat() {
     (text: string) => {
       if (!activeSessionId || !text.trim()) return
 
-      // Add user message immediately
       const userMsg: LocalMessage = {
         id: `local-${++messageIdCounter.current}`,
         role: 'user',
@@ -154,7 +207,6 @@ export function useChat() {
         createdAt: new Date().toISOString(),
       }
 
-      // Add a loading placeholder for the assistant
       const loadingMsg: LocalMessage = {
         id: `loading-${++messageIdCounter.current}`,
         role: 'assistant',
@@ -193,8 +245,15 @@ export function useChat() {
     setMessages([])
   }, [])
 
+  /** Trigger enrichment for an itinerary */
+  const enrichItinerary = useCallback(
+    (itineraryId: number) => {
+      return enrichMutation.mutateAsync(itineraryId)
+    },
+    [enrichMutation]
+  )
+
   return {
-    // State
     messages,
     sessions,
     activeSessionId,
@@ -204,17 +263,14 @@ export function useChat() {
     isSending: sendMessageMutation.isPending,
     sessionsLoading,
     sessionLoading,
+    isEnriching: enrichMutation.isPending,
 
-    // Last response data (for generated content)
-    lastResponse: sendMessageMutation.data as ChatResponse | undefined,
-    createResponse: createSessionMutation.data as ChatResponse | undefined,
-
-    // Actions
     startSession,
     sendMessage,
     switchSession,
     deleteSession,
     closeSession,
+    enrichItinerary,
     refetchSessions,
   }
 }

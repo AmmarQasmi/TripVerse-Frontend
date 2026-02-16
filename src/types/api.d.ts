@@ -539,6 +539,7 @@ export interface WeatherForecast {
 export type AiAgentType = 'ITINERARY_GENERATOR' | 'PERSONAL_ASSISTANT'
 export type AiMessageRole = 'user' | 'assistant' | 'system'
 export type AiSessionStatus = 'active' | 'completed' | 'expired'
+export type ItineraryStatus = 'preview' | 'enriching' | 'complete' | 'failed'
 
 export interface AiChatSession {
   id: number
@@ -547,11 +548,11 @@ export interface AiChatSession {
   title: string | null
   status: AiSessionStatus
   currentState: string
-  slots: Record<string, string>
-  contextSummary: string | null
+  context: Record<string, any>
   expiresAt: string
   createdAt: string
   updatedAt: string
+  messageCount?: number
   messages?: AiChatMessage[]
   generatedItinerary?: GeneratedItinerary | null
 }
@@ -567,16 +568,31 @@ export interface AiChatMessage {
 
 export interface GeneratedItinerary {
   id: number
-  sessionId: number
-  userId: number
+  title: string
   destination: string
+  durationDays: number
   travelStyle: string | null
   budget: string | null
-  interests: string | null
-  startDate: string | null
-  endDate: string | null
-  itineraryData: ItineraryData
+  status: ItineraryStatus
+  sessionId: number | null
+  previewData: any
+  enrichedData: any | null
   createdAt: string
+  updatedAt?: string
+}
+
+/** Lightweight itinerary summary (from GET /itineraries list) */
+export interface ItinerarySummary {
+  id: number
+  title: string
+  destination: string
+  durationDays: number
+  travelStyle: string | null
+  budget: string | null
+  status: ItineraryStatus
+  sessionId: number | null
+  createdAt: string
+  updatedAt: string
 }
 
 export interface ItineraryDay {
@@ -613,8 +629,8 @@ export interface AdvisoryData {
 export interface ChatResponse {
   sessionId: number
   message: string
-  agentType: AiAgentType
-  currentState: string
+  context: Record<string, any>
+  previewData?: any
+  itineraryId?: number
   isComplete: boolean
-  generatedData?: ItineraryData | AdvisoryData | null
 }

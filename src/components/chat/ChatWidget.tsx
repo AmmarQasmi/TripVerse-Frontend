@@ -7,26 +7,24 @@ import {
   Send,
   Sparkles,
   Bot,
-  MapPin,
-  Compass,
   MessageSquare,
   Plus,
   Trash2,
   ChevronLeft,
   Loader2,
+  Minus,
+  Maximize2,
 } from 'lucide-react'
-import { useChat } from '@/hooks/useChat'
-import { AiAgentType, AiChatSession } from '@/types'
-import { ItineraryDisplay } from './ItineraryDisplay'
-import { AdvisoryDisplay } from './AdvisoryDisplay'
+import { useChat, LocalMessage } from '@/hooks/useChat'
+import { AiChatSession } from '@/types'
+import { ItineraryPreviewCard } from './ItineraryPreviewCard'
 
 interface ChatWidgetProps {
   isOpen: boolean
   onClose: () => void
-  initialAgent?: AiAgentType
 }
 
-export function ChatWidget({ isOpen, onClose, initialAgent }: ChatWidgetProps) {
+export function ChatWidget({ isOpen, onClose }: ChatWidgetProps) {
   const {
     messages,
     sessions,
@@ -35,17 +33,20 @@ export function ChatWidget({ isOpen, onClose, initialAgent }: ChatWidgetProps) {
     isCreating,
     isSending,
     sessionsLoading,
-    lastResponse,
-    createResponse,
+    isEnriching,
     startSession,
     sendMessage,
     switchSession,
     deleteSession,
     closeSession,
+    enrichItinerary,
   } = useChat()
 
   const [input, setInput] = useState('')
   const [showSidebar, setShowSidebar] = useState(false)
+  // Tracks whether to show session list instead of auto-creating
+  const [showSessionList, setShowSessionList] = useState(false)
+  const [isMinimized, setIsMinimized] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -57,16 +58,30 @@ export function ChatWidget({ isOpen, onClose, initialAgent }: ChatWidgetProps) {
   // Focus input when session becomes active
   useEffect(() => {
     if (activeSessionId && inputRef.current) {
+      setShowSessionList(false) // hide session list when a session is active
       inputRef.current.focus()
     }
   }, [activeSessionId])
 
-  // Auto-start session if initialAgent is provided
+  // Auto-start session ONLY on first open (when no sessions exist yet)
   useEffect(() => {
-    if (isOpen && initialAgent && !activeSessionId && !isCreating) {
-      startSession(initialAgent)
+    if (isOpen && !activeSessionId && !isCreating && !showSessionList && !sessionsLoading) {
+      // If user has existing sessions, show the list; otherwise auto-create
+      if (sessions.length > 0) {
+        setShowSessionList(true)
+      } else {
+        startSession()
+      }
     }
-  }, [isOpen, initialAgent, activeSessionId, isCreating, startSession])
+  }, [isOpen]) // intentionally only depend on isOpen to trigger once on open
+
+  // Reset state when chat closes
+  useEffect(() => {
+    if (!isOpen) {
+      setShowSessionList(false)
+      setShowSidebar(false)
+    }
+  }, [isOpen])
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
@@ -75,28 +90,109 @@ export function ChatWidget({ isOpen, onClose, initialAgent }: ChatWidgetProps) {
     setInput('')
   }
 
-  const handleNewChat = (agentType: AiAgentType) => {
-    startSession(agentType)
+  const handleNewChat = () => {
+    setShowSessionList(false)
     setShowSidebar(false)
+    startSession()
   }
 
-  // Get the latest generated data from responses
-  const generatedData = lastResponse?.generatedData || createResponse?.generatedData
-  const currentAgentType = lastResponse?.agentType || createResponse?.agentType
+  const handleBackToList = () => {
+    closeSession()
+    setShowSidebar(false)
+    setShowSessionList(true)
+  }
+
+  const handleDeleteSession = (sessionId: number) => {
+    deleteSession(sessionId)
+    // If we just deleted the active session, go to session list
+    if (sessionId === activeSessionId) {
+      setShowSessionList(true)
+    }
+  }
+
+  /** Clean markdown artifacts from bot messages */
+  const cleanMessage = (text: string): string => {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '$1')   // bold
+      .replace(/\*(.*?)\*/g, '$1')       // italic
+      .replace(/```[\s\S]*?```/g, '')    // code blocks
+      .replace(/`(.*?)`/g, '$1')         // inline code
+      .replace(/^#+\s/gm, '')            // headings
+      .replace(/^[-*]\s/gm, '• ')        // bullet lists
+      .trim()
+  }
+
+  /** Render a single message bubble */
+  const renderMessage = (msg: LocalMessage) => {
+    const isUser = msg.role === 'user'
+
+    return (
+      <motion.div
+        key={msg.id}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
+      >
+        <div className={`max-w-[85%] flex flex-col gap-2`}>
+          {/* Text bubble */}
+          <div
+            className={`rounded-2xl px-4 py-2.5 ${
+              isUser
+                ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-br-md'
+                : 'bg-gray-100 text-gray-800 rounded-bl-md'
+            }`}
+          >
+            {msg.isLoading ? (
+              <div className="flex items-center gap-1 py-1">
+                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            ) : (
+              <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                {isUser ? msg.content : cleanMessage(msg.content)}
+              </p>
+            )}
+          </div>
+
+          {/* Inline preview card — rendered below the bot message */}
+          {!isUser && msg.previewData && (
+            <ItineraryPreviewCard
+              previewData={msg.previewData}
+              itineraryId={msg.itineraryId}
+              onEnrich={enrichItinerary}
+              isEnriching={isEnriching}
+            />
+          )}
+        </div>
+      </motion.div>
+    )
+  }
 
   return (
     <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]"
-            onClick={onClose}
-          />
+      {isOpen && isMinimized && (
+        /* Minimized floating bar */
+        <motion.div
+          key="minimized-bar"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 40 }}
+          className="fixed bottom-6 right-6 z-[9999]"
+        >
+          <button
+            onClick={() => setIsMinimized(false)}
+            className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-105 group"
+          >
+            <Sparkles className="w-5 h-5 text-cyan-300" />
+            <span className="text-sm font-semibold">AI Travel Assistant</span>
+            <Maximize2 className="w-4 h-4 text-white/60 group-hover:text-white transition-colors" />
+          </button>
+        </motion.div>
+      )}
 
+      {isOpen && !isMinimized && (
+        <>
           {/* Chat Panel */}
           <motion.div
             initial={{ opacity: 0, x: 400, scale: 0.95 }}
@@ -110,7 +206,7 @@ export function ChatWidget({ isOpen, onClose, initialAgent }: ChatWidgetProps) {
               <div className="flex items-center gap-3">
                 {activeSessionId && (
                   <button
-                    onClick={() => { closeSession(); setShowSidebar(false) }}
+                    onClick={handleBackToList}
                     className="p-1 hover:bg-white/10 rounded-lg transition-colors"
                   >
                     <ChevronLeft className="w-5 h-5" />
@@ -130,8 +226,16 @@ export function ChatWidget({ isOpen, onClose, initialAgent }: ChatWidgetProps) {
                   </button>
                 )}
                 <button
+                  onClick={() => setIsMinimized(true)}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  title="Minimize"
+                >
+                  <Minus className="w-5 h-5" />
+                </button>
+                <button
                   onClick={onClose}
                   className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  title="Close"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -150,8 +254,15 @@ export function ChatWidget({ isOpen, onClose, initialAgent }: ChatWidgetProps) {
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     className="absolute left-0 top-0 bottom-0 w-64 bg-gray-50 border-r border-gray-200 z-10 flex flex-col"
                   >
-                    <div className="p-3 border-b border-gray-200">
+                    <div className="p-3 border-b border-gray-200 flex items-center justify-between">
                       <h3 className="text-sm font-semibold text-gray-700">Chat History</h3>
+                      <button
+                        onClick={handleNewChat}
+                        className="p-1 hover:bg-gray-200 rounded-lg transition-colors"
+                        title="New Chat"
+                      >
+                        <Plus className="w-4 h-4 text-gray-500" />
+                      </button>
                     </div>
                     <div className="flex-1 overflow-y-auto p-2 space-y-1">
                       {sessionsLoading ? (
@@ -172,17 +283,13 @@ export function ChatWidget({ isOpen, onClose, initialAgent }: ChatWidgetProps) {
                             onClick={() => { switchSession(s.id); setShowSidebar(false) }}
                           >
                             <div className="flex items-center gap-2 min-w-0">
-                              {s.agentType === 'ITINERARY_GENERATOR' ? (
-                                <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-cyan-600" />
-                              ) : (
-                                <Compass className="w-3.5 h-3.5 flex-shrink-0 text-teal-600" />
-                              )}
+                              <Bot className="w-3.5 h-3.5 flex-shrink-0 text-cyan-600" />
                               <span className="truncate">
-                                {s.title || (s.agentType === 'ITINERARY_GENERATOR' ? 'Itinerary' : 'Advisory')}
+                                {s.title || 'New Chat'}
                               </span>
                             </div>
                             <button
-                              onClick={(e) => { e.stopPropagation(); deleteSession(s.id) }}
+                              onClick={(e) => { e.stopPropagation(); handleDeleteSession(s.id) }}
                               className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 rounded transition-all"
                             >
                               <Trash2 className="w-3.5 h-3.5 text-red-400" />
@@ -197,187 +304,110 @@ export function ChatWidget({ isOpen, onClose, initialAgent }: ChatWidgetProps) {
 
               {/* Main Content */}
               <div className="flex-1 flex flex-col">
-                {!activeSessionId && !isCreating ? (
-                  /* Agent Selection */
-                  <div className="flex-1 flex items-center justify-center p-6">
-                    <div className="w-full max-w-sm space-y-6">
-                      <div className="text-center">
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
-                        >
-                          <Bot className="w-16 h-16 mx-auto text-cyan-600 mb-4" />
-                        </motion.div>
-                        <h3 className="text-xl font-bold text-gray-900">How can I help?</h3>
-                        <p className="text-sm text-gray-500 mt-1">Choose an AI assistant to get started</p>
-                      </div>
-
-                      <div className="space-y-3">
-                        <motion.button
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.2 }}
-                          onClick={() => handleNewChat('ITINERARY_GENERATOR')}
-                          className="w-full p-4 rounded-xl border-2 border-gray-200 hover:border-cyan-400 hover:bg-cyan-50/50 transition-all group text-left"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
-                              <MapPin className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                              <h4 className="font-semibold text-gray-900 group-hover:text-cyan-700 transition-colors">
-                                Itinerary Generator
-                              </h4>
-                              <p className="text-xs text-gray-500">Plan a 4-day trip with activities, food & pacing</p>
-                            </div>
-                          </div>
-                        </motion.button>
-
-                        <motion.button
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.3 }}
-                          onClick={() => handleNewChat('PERSONAL_ASSISTANT')}
-                          className="w-full p-4 rounded-xl border-2 border-gray-200 hover:border-teal-400 hover:bg-teal-50/50 transition-all group text-left"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center">
-                              <Compass className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                              <h4 className="font-semibold text-gray-900 group-hover:text-teal-700 transition-colors">
-                                Travel Advisor
-                              </h4>
-                              <p className="text-xs text-gray-500">Get personalized travel, education or work advice</p>
-                            </div>
-                          </div>
-                        </motion.button>
-                      </div>
-
-                      {/* Quick access to history */}
-                      {sessions.length > 0 && (
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 0.5 }}
-                          className="pt-4 border-t border-gray-200"
-                        >
-                          <p className="text-xs text-gray-400 mb-2">Recent conversations</p>
-                          <div className="space-y-1">
-                            {sessions.slice(0, 3).map((s: AiChatSession) => (
-                              <button
-                                key={s.id}
-                                onClick={() => switchSession(s.id)}
-                                className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 text-sm text-gray-600 transition-colors text-left"
-                              >
-                                {s.agentType === 'ITINERARY_GENERATOR' ? (
-                                  <MapPin className="w-3.5 h-3.5 text-cyan-500" />
-                                ) : (
-                                  <Compass className="w-3.5 h-3.5 text-teal-500" />
-                                )}
-                                <span className="truncate">
-                                  {s.title || (s.agentType === 'ITINERARY_GENERATOR' ? 'Itinerary Chat' : 'Advisory Chat')}
-                                </span>
-                              </button>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
+                {showSessionList && !activeSessionId ? (
+                  /* Session List View (shown after back/delete) */
+                  <div className="flex-1 overflow-y-auto p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-semibold text-gray-700">Your Conversations</h3>
+                      <button
+                        onClick={handleNewChat}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full hover:shadow-md transition-all"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        New Chat
+                      </button>
                     </div>
+                    {sessionsLoading ? (
+                      <div className="flex justify-center py-12">
+                        <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                      </div>
+                    ) : sessions.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                        <Bot className="w-10 h-10 mb-2 opacity-50" />
+                        <p className="text-sm">No conversations yet</p>
+                        <button
+                          onClick={handleNewChat}
+                          className="mt-3 text-xs text-cyan-600 hover:text-cyan-700 underline"
+                        >
+                          Start a new chat
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        {sessions.map((s: AiChatSession) => (
+                          <div
+                            key={s.id}
+                            className="group flex items-center justify-between p-3 rounded-lg cursor-pointer text-sm hover:bg-gray-50 text-gray-700 transition-colors border border-transparent hover:border-gray-200"
+                            onClick={() => { switchSession(s.id); setShowSessionList(false) }}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Bot className="w-4 h-4 flex-shrink-0 text-cyan-600" />
+                              <span className="truncate">{s.title || 'New Chat'}</span>
+                            </div>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleDeleteSession(s.id) }}
+                              className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 rounded transition-all"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  /* Chat Messages */
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {isCreating && messages.length === 0 && (
-                      <div className="flex justify-center py-12">
-                        <div className="flex items-center gap-2 text-gray-400">
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          <span className="text-sm">Starting conversation...</span>
+                  /* Active Chat View */
+                  <>
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                      {isCreating && messages.length === 0 && (
+                        <div className="flex justify-center py-12">
+                          <div className="flex items-center gap-2 text-gray-400">
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            <span className="text-sm">Starting conversation...</span>
+                          </div>
                         </div>
+                      )}
+
+                      {messages.map(renderMessage)}
+                      <div ref={messagesEndRef} />
+                    </div>
+
+                    {/* Input Bar */}
+                    {activeSessionId && (
+                      <div className="border-t border-gray-200 p-3">
+                        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowSidebar(!showSidebar)}
+                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            title="History"
+                          >
+                            <Plus className="w-5 h-5" />
+                          </button>
+                          <input
+                            ref={inputRef}
+                            type="text"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            placeholder="Ask me anything about travel..."
+                            disabled={isSending || isTyping}
+                            className="flex-1 px-4 py-2.5 bg-gray-100 rounded-full text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all disabled:opacity-50"
+                          />
+                          <button
+                            type="submit"
+                            disabled={!input.trim() || isSending || isTyping}
+                            className="p-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                          >
+                            {isSending ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Send className="w-4 h-4" />
+                            )}
+                          </button>
+                        </form>
                       </div>
                     )}
-
-                    {messages.map((msg) => (
-                      <motion.div
-                        key={msg.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${
-                            msg.role === 'user'
-                              ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-br-md'
-                              : 'bg-gray-100 text-gray-800 rounded-bl-md'
-                          }`}
-                        >
-                          {msg.isLoading ? (
-                            <div className="flex items-center gap-1 py-1">
-                              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                            </div>
-                          ) : (
-                            <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-
-                    {/* Generated content display */}
-                    {generatedData && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                      >
-                        {currentAgentType === 'ITINERARY_GENERATOR' && 'days' in generatedData ? (
-                          <ItineraryDisplay data={generatedData} />
-                        ) : 'sections' in generatedData ? (
-                          <AdvisoryDisplay data={generatedData} />
-                        ) : null}
-                      </motion.div>
-                    )}
-
-                    <div ref={messagesEndRef} />
-                  </div>
-                )}
-
-                {/* Input Bar — only show when a session is active */}
-                {activeSessionId && (
-                  <div className="border-t border-gray-200 p-3">
-                    <form onSubmit={handleSubmit} className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setShowSidebar(!showSidebar)}
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                        title="New Chat"
-                      >
-                        <Plus className="w-5 h-5" />
-                      </button>
-                      <input
-                        ref={inputRef}
-                        type="text"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder="Type your message..."
-                        disabled={isSending || isTyping}
-                        className="flex-1 px-4 py-2.5 bg-gray-100 rounded-full text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all disabled:opacity-50"
-                      />
-                      <button
-                        type="submit"
-                        disabled={!input.trim() || isSending || isTyping}
-                        className="p-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                      >
-                        {isSending ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Send className="w-4 h-4" />
-                        )}
-                      </button>
-                    </form>
-                  </div>
+                  </>
                 )}
               </div>
             </div>

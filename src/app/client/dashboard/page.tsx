@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlane, faCar } from '@fortawesome/free-solid-svg-icons'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, MapPin, Loader2, CheckCircle, Clock, AlertCircle, Trash2 } from 'lucide-react'
 import { DoughnutChart } from '@/components/client/DoughnutChart'
 import { StatsModal } from '@/components/client/StatsModal'
 import { TripCard, NewTripCard } from '@/components/client/TripCard'
@@ -16,6 +16,9 @@ import { ChatWidget } from '@/components/chat/ChatWidget'
 import { useAuth } from '@/features/auth/useAuth'
 import { useUserHotelBookings } from '@/features/bookings/useHotelBooking'
 import { useUserBookings as useUserCarBookings } from '@/features/cars/useCarSearch'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { itinerariesApi } from '@/lib/api/itineraries.api'
+import { ItinerarySummary } from '@/types'
 
 export default function ClientDashboard() {
   const { user, isLoading } = useAuth()
@@ -41,6 +44,19 @@ export default function ClientDashboard() {
   const isClient = user?.role === 'client'
   const { data: hotelBookings, isLoading: hotelLoading } = useUserHotelBookings()
   const { data: carBookings, isLoading: carLoading } = useUserCarBookings()
+
+  // Fetch saved itineraries
+  const queryClient = useQueryClient()
+  const { data: itineraries = [], isLoading: itinerariesLoading } = useQuery({
+    queryKey: ['itineraries'],
+    queryFn: () => itinerariesApi.list(),
+    staleTime: 30_000,
+    enabled: isClient,
+  })
+  const deleteItineraryMutation = useMutation({
+    mutationFn: (id: number) => itinerariesApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['itineraries'] }),
+  })
   
   // Don't render if user is not a client (will redirect)
   if (user && user.role !== 'client') {
@@ -553,6 +569,103 @@ export default function ClientDashboard() {
           </div>
         </motion.section>
 
+        {/* My Itineraries Section */}
+        <motion.section
+          className="mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center">
+            <motion.span
+              className="animated-gradient-text"
+              initial={{ backgroundPosition: '0% 50%' }}
+              animate={{ backgroundPosition: '100% 50%' }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+              style={{
+                background: 'linear-gradient(90deg, #000 40%, #0891b2 50%, #000 60%)',
+                backgroundSize: '200% auto',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              My Itineraries
+            </motion.span>
+          </h2>
+
+          {itinerariesLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-cyan-500" />
+            </div>
+          ) : itineraries.length === 0 ? (
+            <div className="text-center py-8">
+              <MapPin className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+              <p className="text-gray-500 text-sm">No itineraries yet. Chat with the AI to plan your first trip!</p>
+              <button
+                onClick={() => setIsChatOpen(true)}
+                className="mt-3 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full text-sm font-medium hover:shadow-lg transition-all"
+              >
+                <Sparkles className="w-4 h-4 inline mr-1" />
+                Plan a Trip
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {itineraries.map((it: ItinerarySummary) => {
+                const statusConfig: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
+                  preview: { icon: <Clock className="w-3 h-3" />, label: 'Preview', color: 'bg-amber-100 text-amber-700' },
+                  enriching: { icon: <Loader2 className="w-3 h-3 animate-spin" />, label: 'Enriching...', color: 'bg-blue-100 text-blue-700' },
+                  complete: { icon: <CheckCircle className="w-3 h-3" />, label: 'Complete', color: 'bg-emerald-100 text-emerald-700' },
+                  failed: { icon: <AlertCircle className="w-3 h-3" />, label: 'Failed', color: 'bg-red-100 text-red-700' },
+                }
+                const status = statusConfig[it.status] || statusConfig.preview
+
+                return (
+                  <motion.div
+                    key={it.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="group bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
+                  >
+                    <Link href={`/client/itinerary/${it.id}`}>
+                      <div className="p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-gray-900 text-sm truncate">{it.title}</h3>
+                            <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                              <MapPin className="w-3 h-3" />
+                              {it.destination}
+                            </p>
+                          </div>
+                          <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${status.color}`}>
+                            {status.icon}
+                            {status.label}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-gray-400 mt-2">
+                          <span>{it.durationDays} days</span>
+                          {it.travelStyle && <span>{it.travelStyle}</span>}
+                          {it.budget && <span>{it.budget}</span>}
+                        </div>
+                      </div>
+                    </Link>
+                    <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex justify-end">
+                      <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteItineraryMutation.mutate(it.id) }}
+                        className="p-1 opacity-0 group-hover:opacity-100 hover:bg-red-50 rounded transition-all"
+                        title="Delete itinerary"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                      </button>
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </div>
+          )}
+        </motion.section>
+
 
         {/* SECTION 7: Feedback & Support */}
         <motion.section
@@ -598,7 +711,6 @@ export default function ClientDashboard() {
       <ChatWidget
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
-        initialAgent="ITINERARY_GENERATOR"
       />
     </div>
   )
