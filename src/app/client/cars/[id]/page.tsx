@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { CarImageCarousel } from '@/components/cars/CarImageCarousel'
 import CarBookingModal from '@/components/cars/CarBookingModal'
@@ -21,6 +21,25 @@ export default function CarDetailPage() {
   const { data: car, isLoading, error } = useCarById(carId)
   const { requireAuth, isAuthenticated } = useRequireAuth()
   const [showBookingModal, setShowBookingModal] = useState(false)
+  const [initialBookingData, setInitialBookingData] = useState<any>(null)
+
+  // Load cached search parameters
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const cachedData = localStorage.getItem('cached_car_search')
+      if (cachedData) {
+        try {
+          const cached = JSON.parse(cachedData)
+          setInitialBookingData({
+            pickupLocation: cached.pickupLocation || '',
+            pickupDate: cached.pickupDate || '',
+          })
+        } catch (error) {
+          console.error('Error parsing cached car search data:', error)
+        }
+      }
+    }
+  }, [])
 
   const handleBookNow = () => {
     if (!requireAuth()) {
@@ -314,6 +333,7 @@ export default function CarDetailPage() {
           isOpen={showBookingModal}
           onClose={() => setShowBookingModal(false)}
           car={car}
+          initialData={initialBookingData}
         />
       )}
     </div>

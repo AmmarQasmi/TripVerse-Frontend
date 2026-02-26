@@ -177,7 +177,7 @@ export function TripCard({
 }
 
 // New Trip Card Component
-export function NewTripCard() {
+export function NewTripCard({ onClick }: { onClick?: () => void }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -189,7 +189,7 @@ export function NewTripCard() {
       }}
       className="group"
     >
-      <Link href="/client/hotels">
+      <button onClick={onClick} className="w-full">
         <div 
           className="relative w-full max-w-[200px] mx-auto aspect-square rounded-2xl overflow-hidden backdrop-blur-md bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 opacity-95 shadow-2xl hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-75 group flex items-center justify-center"
           style={{
@@ -263,10 +263,10 @@ export function NewTripCard() {
               </svg>
             </div>
             <p className="text-white font-semibold text-sm mb-0.5">Plan New Trip</p>
-            <p className="text-cyan-300 text-xs px-2">Explore hotels & cars</p>
+            <p className="text-cyan-300 text-xs px-2">AI Travel Assistant</p>
           </motion.div>
         </div>
-      </Link>
+      </button>
     </motion.div>
   )
 }

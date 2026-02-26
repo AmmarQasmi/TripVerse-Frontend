@@ -28,6 +28,11 @@ yarn-error.log*
 # local env files
 .env*.local
 
+# Environment files with secrets
+.env
+.env.production
+.env.staging
+
 # vercel
 .vercel
 

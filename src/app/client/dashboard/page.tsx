@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlane, faCar } from '@fortawesome/free-solid-svg-icons'
-import { Sparkles, MapPin, Loader2, CheckCircle, Clock, AlertCircle, Trash2 } from 'lucide-react'
+import { MapPin, Loader2, CheckCircle, Clock, AlertCircle, Trash2 } from 'lucide-react'
 import { DoughnutChart } from '@/components/client/DoughnutChart'
 import { StatsModal } from '@/components/client/StatsModal'
 import { TripCard, NewTripCard } from '@/components/client/TripCard'
@@ -19,6 +19,7 @@ import { useUserBookings as useUserCarBookings } from '@/features/cars/useCarSea
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { itinerariesApi } from '@/lib/api/itineraries.api'
 import { ItinerarySummary } from '@/types'
+import { TravelBotIcon } from '@/components/icons/TravelBotIcon'
 
 export default function ClientDashboard() {
   const { user, isLoading } = useAuth()
@@ -258,11 +259,11 @@ export default function ClientDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Plan New Trip Card - Left */}
             <div className="lg:col-span-1">
-              <NewTripCard />
+              <NewTripCard onClick={() => setIsChatOpen(true)} />
             </div>
 
             {/* Round Buttons - Right */}
-            <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-3 gap-6">
               {/* Flight Button */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -490,81 +491,7 @@ export default function ClientDashboard() {
                 </Link>
               </motion.div>
 
-              {/* AI Itinerary Button */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4, duration: 0.5, type: "spring", stiffness: 200 }}
-                whileHover={{ 
-                  scale: 1.1,
-                  transition: { type: "spring", stiffness: 300, damping: 20 }
-                }}
-                className="group"
-              >
-                <button onClick={() => setIsChatOpen(true)} className="w-full">
-                  <div className="relative w-full max-w-[200px] mx-auto aspect-square rounded-full bg-white shadow-2xl flex items-center justify-center overflow-hidden"
-                    style={{
-                      border: '4px solid transparent',
-                      backgroundImage: `
-                        linear-gradient(white, white),
-                        linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)
-                      `,
-                      backgroundOrigin: 'border-box',
-                      backgroundClip: 'padding-box, border-box'
-                    }}
-                  >
-                    {/* Animated Border Glow */}
-                    <motion.div
-                      className="absolute inset-0 rounded-full"
-                      style={{
-                        background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
-                        backgroundSize: '200% 100%',
-                        opacity: 0.9,
-                        filter: 'blur(2px)',
-                        zIndex: -1
-                      }}
-                      animate={{ 
-                        backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
-                      }}
-                      transition={{ 
-                        duration: 3, 
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    />
-                    
-                    {/* Outer Glow */}
-                    <motion.div 
-                      className="absolute inset-0 rounded-full"
-                      style={{
-                        background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
-                        backgroundSize: '200% 100%',
-                        filter: 'blur(4px)',
-                        opacity: 0.4,
-                        zIndex: -2
-                      }}
-                      animate={{ 
-                        backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
-                      }}
-                      transition={{ 
-                        duration: 3, 
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    />
-                    
-                    {/* Icon - AI Sparkles */}
-                    <div className="relative z-10 flex items-center justify-center">
-                      <Sparkles
-                        className="w-16 h-16 md:w-20 md:h-20"
-                        style={{
-                          color: '#0891b2',
-                        }}
-                      />
-                    </div>
-                  </div>
-                </button>
-              </motion.div>
+
             </div>
           </div>
         </motion.section>
@@ -606,7 +533,7 @@ export default function ClientDashboard() {
                 onClick={() => setIsChatOpen(true)}
                 className="mt-3 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full text-sm font-medium hover:shadow-lg transition-all"
               >
-                <Sparkles className="w-4 h-4 inline mr-1" />
+                <TravelBotIcon className="w-4 h-4 inline mr-1" />
                 Plan a Trip
               </button>
             </div>
