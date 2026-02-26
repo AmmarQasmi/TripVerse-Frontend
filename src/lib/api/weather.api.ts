@@ -33,12 +33,14 @@ export const weatherApi = {
       return httpClient.get<CurrentWeatherResponse>(url)
     }
     
-    // Fallback to coordinate-based or default location
-    const url = lat && lon 
-      ? API_ENDPOINTS.WEATHER.LOCATION(lat, lon)
-      : API_ENDPOINTS.WEATHER.CURRENT
-    
-    return httpClient.get<CurrentWeather>(url)
+    // Use coordinates if provided
+    if (lat && lon) {
+      const url = `${API_ENDPOINTS.WEATHER.COORDINATES_CURRENT}?lat=${lat}&lon=${lon}`
+      return httpClient.get<CurrentWeatherResponse>(url)
+    }
+
+    // No params provided - this shouldn't happen, but fallback to current
+    throw new Error('Either cityName or coordinates (lat, lon) must be provided')
   },
 
   getForecast: async (cityName?: string, lat?: number, lon?: number, days: number = 7) => {
@@ -48,16 +50,13 @@ export const weatherApi = {
       return httpClient.get<WeatherForecastResponse>(url)
     }
 
-    // Fallback to coordinate-based
-    const searchParams = new URLSearchParams({ days: days.toString() })
-    
+    // Use coordinates if provided
     if (lat && lon) {
-      searchParams.append('lat', lat.toString())
-      searchParams.append('lon', lon.toString())
+      const url = `${API_ENDPOINTS.WEATHER.COORDINATES_FORECAST}?lat=${lat}&lon=${lon}&days=${days}`
+      return httpClient.get<WeatherForecastResponse>(url)
     }
 
-    return httpClient.get<WeatherForecast>(
-      `${API_ENDPOINTS.WEATHER.FORECAST}?${searchParams.toString()}`
-    )
+    // No params provided - this shouldn't happen
+    throw new Error('Either cityName or coordinates (lat, lon) must be provided')
   },
 }

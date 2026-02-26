@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/features/auth/useAuth'
+import { TravelBotIcon } from '@/components/icons/TravelBotIcon'
 
 export function Header() {
   const { user, logout } = useAuth()
@@ -12,6 +13,7 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center space-x-2">
+            <TravelBotIcon className="w-8 h-8 text-cyan-600" />
             <span className="text-2xl font-bold text-primary-600">
               TripVerse
             </span>

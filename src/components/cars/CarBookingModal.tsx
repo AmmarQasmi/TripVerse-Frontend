@@ -14,6 +14,10 @@ interface CarBookingModalProps {
   isOpen: boolean
   onClose: () => void
   car: CarApiResponse
+  initialData?: {
+    pickupLocation?: string
+    pickupDate?: string
+  }
 }
 
 interface PriceBreakdown {
@@ -24,7 +28,7 @@ interface PriceBreakdown {
   platform_fee: number
 }
 
-export default function CarBookingModal({ isOpen, onClose, car }: CarBookingModalProps) {
+export default function CarBookingModal({ isOpen, onClose, car, initialData }: CarBookingModalProps) {
   const [step, setStep] = useState(1)
   const [pickupLocation, setPickupLocation] = useState('')
   const [dropoffLocation, setDropoffLocation] = useState('')
@@ -65,6 +69,18 @@ export default function CarBookingModal({ isOpen, onClose, car }: CarBookingModa
     date.setDate(date.getDate() + days)
     return date.toISOString().split('T')[0]
   }
+
+  // Initialize with cached data when modal opens
+  useEffect(() => {
+    if (isOpen && initialData) {
+      if (initialData.pickupLocation) {
+        setPickupLocation(initialData.pickupLocation)
+      }
+      if (initialData.pickupDate) {
+        setPickupDate(initialData.pickupDate)
+      }
+    }
+  }, [isOpen, initialData])
 
   // Reset on close
   useEffect(() => {

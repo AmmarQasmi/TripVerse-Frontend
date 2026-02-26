@@ -31,3 +31,17 @@ export function useCurrentWeatherByCity(cityName?: string) {
     refetchOnWindowFocus: false, // Don't refetch on window focus
   })
 }
+
+/**
+ * Hook to fetch current weather by coordinates (for geolocation)
+ * Only enabled when both lat and lon are provided
+ */
+export function useCurrentWeatherByCoordinates(lat?: number, lon?: number) {
+  return useQuery<CurrentWeatherResponse>({
+    queryKey: ['weather', 'current', 'coordinates', lat, lon],
+    queryFn: () => weatherApi.getCurrentWeather(undefined, lat, lon) as Promise<CurrentWeatherResponse>,
+    enabled: !!(lat && lon), // Only fetch when both coordinates are provided
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    refetchOnWindowFocus: false,
+  })
+}

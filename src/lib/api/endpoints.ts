@@ -148,7 +148,8 @@ export const API_ENDPOINTS = {
   WEATHER: {
     FORECAST: '/weather/forecast',
     CURRENT: '/weather/current',
-    LOCATION: (lat: number, lon: number) => `/weather/location/${lat}/${lon}`,
+    COORDINATES_CURRENT: '/weather/coordinates/current',
+    COORDINATES_FORECAST: '/weather/coordinates/forecast',
   },
 
   // Admin endpoints

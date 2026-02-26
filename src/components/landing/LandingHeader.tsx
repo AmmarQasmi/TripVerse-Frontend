@@ -9,17 +9,71 @@ import { useAuth } from '@/features/auth/useAuth'
 import { motion, AnimatePresence } from 'framer-motion'
 import { NotificationBell } from '@/components/shared/NotificationBell'
 import { useCurrentWeatherByCity } from '@/features/weather/useForecast'
+import { useCurrentWeatherByCoordinates } from '@/features/weather/useForecast'
 import { ChatWidget } from '@/components/chat/ChatWidget'
-import { Sparkles } from 'lucide-react'
+import { TravelBotIcon } from '@/components/icons/TravelBotIcon'
+import { LocationPermissionModal } from '@/components/shared/LocationPermissionModal'
+import { useGeolocation } from '@/hooks/useGeolocation'
+import { geocodingApi } from '@/lib/api/geocoding.api'
+
+const DEFAULT_CITY = 'Lahore' // Default fallback city
 
 export function LandingHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
+  const [showLocationModal, setShowLocationModal] = useState(false)
+  const [detectedCity, setDetectedCity] = useState<string | null>(null)
+  const [isLoadingCity, setIsLoadingCity] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { user, logout } = useAuth()
   const router = useRouter()
+  const geolocation = useGeolocation()
+
+  // Check if user has made a location permission choice
+  useEffect(() => {
+    const locationPermission = localStorage.getItem('tripverse_location_permission')
+    
+    if (!locationPermission && user?.role === 'client') {
+      // First time - show the modal after a short delay
+      const timer = setTimeout(() => {
+        setShowLocationModal(true)
+      }, 2000)
+      return () => clearTimeout(timer)
+    } else if (locationPermission === 'granted') {
+      // Auto-request location if previously granted
+      geolocation.requestLocation()
+    }
+  }, [user])
+
+  // When geolocation is obtained, convert to city name
+  useEffect(() => {
+    if (geolocation.latitude && geolocation.longitude) {
+      setIsLoadingCity(true)
+      geocodingApi
+        .getCityFromCoordinates(geolocation.latitude, geolocation.longitude)
+        .then(city => {
+          setDetectedCity(city)
+          setIsLoadingCity(false)
+        })
+        .catch(err => {
+          console.error('Failed to get city from coordinates:', err)
+          setIsLoadingCity(false)
+        })
+    }
+  }, [geolocation.latitude, geolocation.longitude])
+
+  const handleAcceptLocation = () => {
+    localStorage.setItem('tripverse_location_permission', 'granted')
+    setShowLocationModal(false)
+    geolocation.requestLocation()
+  }
+
+  const handleDeclineLocation = () => {
+    localStorage.setItem('tripverse_location_permission', 'denied')
+    setShowLocationModal(false)
+  }
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -54,8 +108,23 @@ export function LandingHeader() {
 
   const isLoggedIn = !!user
   const isClient = user?.role === 'client'
-  const cityName = user?.city?.name
-  const { data: weather, isLoading: weatherLoading } = useCurrentWeatherByCity(cityName)
+  
+  // Fetch weather based on what's available: coordinates (priority) > city name > default
+  const hasCoordinates = !!(geolocation.latitude && geolocation.longitude)
+  const fallbackCity = user?.city?.name || DEFAULT_CITY
+  
+  // Use coordinates if available, otherwise use city name
+  const { data: weatherByCoords } = useCurrentWeatherByCoordinates(
+    hasCoordinates ? geolocation.latitude! : undefined,
+    hasCoordinates ? geolocation.longitude! : undefined
+  )
+  const { data: weatherByCity } = useCurrentWeatherByCity(
+    !hasCoordinates ? fallbackCity : undefined
+  )
+  
+  // Pick the appropriate weather data
+  const weather = weatherByCoords || weatherByCity
+  const weatherLoading = (!weatherByCoords && !weatherByCity) && (isLoadingCity || geolocation.loading)
 
   // Get dashboard path based on role
   const getDashboardPath = () => {
@@ -173,18 +242,22 @@ export function LandingHeader() {
               )}
 
               {/* Weather Display (only for logged-in clients) */}
-              {isClient && cityName && (
+              {isClient && (
                 <div className="flex items-center space-x-2 px-3 py-1 rounded-lg bg-white/10 backdrop-blur-sm ml-4">
-                  {weatherLoading ? (
+                  {weatherLoading || isLoadingCity ? (
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span className="text-xs text-white/70">Loading...</span>
+                      <span className="text-xs text-white/70">
+                        {isLoadingCity ? 'Detecting location...' : 'Loading...'}
+                      </span>
                     </div>
                   ) : weather ? (
                     <Link href="/client/weather" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
                       <span className="text-lg">{weather.icon}</span>
                       <span className="text-sm font-medium text-white">{weather.temperature}°C</span>
-                      <span className="text-xs text-white/80 hidden sm:inline">{weather.cityName}</span>
+                      <span className="text-xs text-white/80 hidden sm:inline">
+                        {hasCoordinates && detectedCity ? `📍 ${detectedCity}` : weather.cityName}
+                      </span>
                     </Link>
                   ) : null}
                 </div>
@@ -216,7 +289,7 @@ export function LandingHeader() {
                   aria-label="AI Travel Assistant"
                   title="AI Assistant"
                 >
-                  <Sparkles className="w-5 h-5 text-cyan-300 group-hover:text-white transition-colors" />
+                  <TravelBotIcon className="w-5 h-5 text-cyan-300 group-hover:text-white transition-colors" />
                 </button>
               )}
 
@@ -348,6 +421,14 @@ export function LandingHeader() {
       <ChatWidget
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
+      />
+
+      {/* Location Permission Modal */}
+      <LocationPermissionModal
+        isOpen={showLocationModal}
+        onAccept={handleAcceptLocation}
+        onDecline={handleDeclineLocation}
+        onClose={() => setShowLocationModal(false)}
       />
     </>
   )

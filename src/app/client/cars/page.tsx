@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -14,40 +14,67 @@ import { useAuth } from '@/features/auth/useAuth'
 
 export default function CarsPage() {
   const router = useRouter()
+  const urlSearchParams = useSearchParams()
   const { user, isLoading: authLoading } = useAuth()
+
+  // Read URL params synchronously via useSearchParams (correct for Next.js App Router)
+  const urlPickupLocation = urlSearchParams.get('pickupLocation')
+  const urlPickupDate = urlSearchParams.get('pickupDate')
+  const urlPickupTime = urlSearchParams.get('pickupTime')
+  const urlPassengers = urlSearchParams.get('passengers')
+  const urlCarType = urlSearchParams.get('carType')
+  const hasURLParams = !!(urlPickupLocation || urlPickupDate)
+
+  // Initialize state directly from URL params (Priority 1)
   const [searchParams, setSearchParams] = useState<CarSearchFormData>({
-    pickupLocation: user?.city?.region || '',
-    pickupDate: '',
-    pickupTime: '10:00',
-    passengers: 0,
-    carType: '',
+    pickupLocation: urlPickupLocation || '',
+    pickupDate: urlPickupDate || '',
+    pickupTime: urlPickupTime || '10:00',
+    passengers: urlPassengers ? parseInt(urlPassengers) : 0,
+    carType: urlCarType || '',
   })
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
+  // hasInitialized: true if URL params already provided a location
+  const [hasInitialized, setHasInitialized] = useState(hasURLParams)
 
-  // Read URL params immediately on mount
+  // Priority 2: Cached search data (only if no URL params)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search)
-      const pickupLocation = urlParams.get('pickupLocation')
-      const pickupDate = urlParams.get('pickupDate')
-      const pickupTime = urlParams.get('pickupTime')
-      const passengers = urlParams.get('passengers')
-      const carType = urlParams.get('carType')
-
-      if (pickupLocation || pickupDate) {
-        setSearchParams(prev => ({
-          ...prev,
-          pickupLocation: pickupLocation || prev.pickupLocation,
-          pickupDate: pickupDate || prev.pickupDate,
-          pickupTime: pickupTime || prev.pickupTime,
-          passengers: passengers ? parseInt(passengers) : prev.passengers,
-          carType: carType || prev.carType,
-        }))
+    if (hasURLParams) return
+    const cachedData = localStorage.getItem('cached_car_search')
+    if (cachedData) {
+      try {
+        const cached = JSON.parse(cachedData)
+        if (cached.pickupLocation || cached.pickupDate) {
+          setSearchParams(prev => ({
+            ...prev,
+            pickupLocation: cached.pickupLocation ?? prev.pickupLocation,
+            pickupDate: cached.pickupDate ?? prev.pickupDate,
+            pickupTime: cached.pickupTime ?? prev.pickupTime,
+            passengers: cached.passengers ?? prev.passengers,
+            carType: cached.carType ?? prev.carType,
+          }))
+          setHasInitialized(true)
+        }
+      } catch (error) {
+        console.error('Error parsing cached car search data:', error)
       }
     }
-  }, [])
+  }, [hasURLParams])
 
-  // Check authentication
+  // Priority 3: Fallback to user's region only if URL/cache didn't provide a location
+  useEffect(() => {
+    if (authLoading || !user || hasInitialized) return
+
+    if (user?.city?.region) {
+      setSearchParams(prev => ({
+        ...prev,
+        pickupLocation: user.city.region,
+      }))
+    }
+    setHasInitialized(true)
+  }, [user, authLoading, hasInitialized])
+
+  // Check authentication and redirect if needed
   useEffect(() => {
     if (authLoading) return
     
@@ -56,37 +83,7 @@ export default function CarsPage() {
       router.push(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`)
       return
     }
-
-    if (typeof window !== 'undefined' && !hasCheckedAuth) {
-      setHasCheckedAuth(true)
-      
-      const urlParams = new URLSearchParams(window.location.search)
-      const pickupLocation = urlParams.get('pickupLocation')
-      const pickupDate = urlParams.get('pickupDate')
-
-      if (!pickupLocation && !pickupDate) {
-        // Try to restore from cache
-        const cachedData = localStorage.getItem('cached_car_search')
-        if (cachedData) {
-          try {
-            const cached = JSON.parse(cachedData)
-            if (cached.pickupLocation || cached.pickupDate) {
-              setSearchParams(prev => ({
-                ...prev,
-                pickupLocation: cached.pickupLocation || prev.pickupLocation,
-                pickupDate: cached.pickupDate || prev.pickupDate,
-                pickupTime: cached.pickupTime || prev.pickupTime,
-                passengers: cached.passengers || prev.passengers,
-                carType: cached.carType || prev.carType,
-              }))
-            }
-          } catch (error) {
-            console.error('Error parsing cached car search data:', error)
-          }
-        }
-      }
-    }
-  }, [user, authLoading, router, hasCheckedAuth])
+  }, [user, authLoading, router])
   
   const [filters, setFilters] = useState<CarFilterState>({
     transmission: '',
@@ -133,14 +130,17 @@ export default function CarsPage() {
   useEffect(() => {
     if (isInitialLoad) {
       if (user?.city?.region) {
-        setSearchParams(prev => ({ ...prev, pickupLocation: user.city.region || '' }))
+        // Only set region as pickup location if URL params / cache didn't already provide one
+        if (!hasInitialized) {
+          setSearchParams(prev => ({ ...prev, pickupLocation: user.city.region || '' }))
+        }
         setShowAllCars(false)
       } else {
         setShowAllCars(true) // Show all cars if no user location
       }
       setIsInitialLoad(false)
     }
-  }, [user?.city?.region, isInitialLoad])
+  }, [user?.city?.region, isInitialLoad, hasInitialized])
 
   const handleSearch = (newParams: CarSearchFormData) => {
     setSearchParams(newParams)
