@@ -18,6 +18,9 @@ export default function DriverBookingsPage() {
   const queryClient = useQueryClient()
   const [statusFilter, setStatusFilter] = useState<'all' | 'PENDING_DRIVER_ACCEPTANCE' | 'ACCEPTED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'REJECTED'>('all')
   const [selectedBooking, setSelectedBooking] = useState<number | null>(null)
+  const [cashCollectionBooking, setCashCollectionBooking] = useState<any>(null)
+  const [cashConfirmed, setCashConfirmed] = useState(false)
+  const [isCashSubmitting, setIsCashSubmitting] = useState(false)
   
   const { bookings, isLoading } = useDriverCarBookings()
 
@@ -83,16 +86,45 @@ export default function DriverBookingsPage() {
     }
   }
 
-  const handleCompleteTrip = async (bookingId: number) => {
+  const handleCompleteTrip = async (booking: any) => {
     try {
-      await carsApi.completeTrip(bookingId)
+      await carsApi.completeTrip(booking.id)
       queryClient.invalidateQueries({ queryKey: ['cars', 'bookings', 'driver'] })
       queryClient.invalidateQueries({ queryKey: ['driver-car-bookings'] })
       showToast('Trip completed successfully!', 'success')
+      // For cash bookings: open the cash collection modal
+      if (booking.payment_method === 'cash') {
+        setCashConfirmed(false)
+        setCashCollectionBooking(booking)
+      }
     } catch (error: any) {
       console.error('Failed to complete trip:', error)
       const errorMessage = error?.response?.data?.message || 'Failed to complete trip'
       showToast(errorMessage, 'error')
+    }
+  }
+
+  const handleCollectCash = async () => {
+    if (!cashCollectionBooking || !cashConfirmed) return
+    setIsCashSubmitting(true)
+    try {
+      const result = await carsApi.collectCash(
+        cashCollectionBooking.id,
+        parseFloat(cashCollectionBooking.total_amount),
+      )
+      queryClient.invalidateQueries({ queryKey: ['cars', 'bookings', 'driver'] })
+      queryClient.invalidateQueries({ queryKey: ['driver-car-bookings'] })
+      showToast(
+        `Cash collected! PKR ${result.your_earnings.toLocaleString()} earned (after PKR ${result.platform_fee_deducted.toLocaleString()} platform fee).`,
+        'success',
+      )
+      setCashCollectionBooking(null)
+    } catch (error: any) {
+      console.error('Failed to collect cash:', error)
+      const errorMessage = error?.response?.data?.message || 'Failed to record cash collection'
+      showToast(errorMessage, 'error')
+    } finally {
+      setIsCashSubmitting(false)
     }
   }
 
@@ -172,7 +204,7 @@ export default function DriverBookingsPage() {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => handleCompleteTrip(booking.id)}
+              onClick={() => handleCompleteTrip(booking)}
             >
               Complete Trip
             </Button>
@@ -205,6 +237,7 @@ export default function DriverBookingsPage() {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-white">
       <PageHeader 
         title="My Car Bookings"
@@ -394,5 +427,90 @@ export default function DriverBookingsPage() {
         )}
       </div>
     </div>
+
+    {/* Cash Collection Modal */}
+    {cashCollectionBooking && (
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">Collect Cash Payment</h2>
+            <p className="text-sm text-gray-500 mt-1">Trip #{cashCollectionBooking.id} has been completed</p>
+          </div>
+
+          {/* Amount to collect */}
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center mb-5">
+            <p className="text-sm text-green-700 font-medium mb-1">Collect from customer</p>
+            <p className="text-3xl font-bold text-green-800">
+              PKR {parseFloat(cashCollectionBooking.total_amount || 0).toLocaleString()}
+            </p>
+            <p className="text-xs text-green-600 mt-1">
+              Your net earnings: PKR {parseFloat(cashCollectionBooking.driver_earnings || 0).toLocaleString()} (after 5% platform fee)
+            </p>
+          </div>
+
+          {/* Breakdown */}
+          <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm mb-5">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Total fare</span>
+              <span className="font-medium text-gray-900">PKR {parseFloat(cashCollectionBooking.total_amount || 0).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Platform commission (5%)</span>
+              <span className="font-medium text-red-600">− PKR {parseFloat(cashCollectionBooking.platform_fee || 0).toLocaleString()}</span>
+            </div>
+            <hr className="border-gray-200" />
+            <div className="flex justify-between font-semibold">
+              <span className="text-gray-900">Your earnings</span>
+              <span className="text-green-700">PKR {parseFloat(cashCollectionBooking.driver_earnings || 0).toLocaleString()}</span>
+            </div>
+          </div>
+
+          {/* Confirmation checkbox */}
+          <label className="flex items-start gap-3 cursor-pointer mb-6">
+            <input
+              type="checkbox"
+              checked={cashConfirmed}
+              onChange={(e) => setCashConfirmed(e.target.checked)}
+              className="mt-1 w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500"
+            />
+            <span className="text-sm text-gray-700">
+              I confirm I have collected <span className="font-semibold text-gray-900">PKR {parseFloat(cashCollectionBooking.total_amount || 0).toLocaleString()}</span> in cash from the customer.
+            </span>
+          </label>
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            <button
+              onClick={() => { setCashCollectionBooking(null); setCashConfirmed(false) }}
+              className="flex-1 py-2.5 rounded-xl border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCollectCash}
+              disabled={!cashConfirmed || isCashSubmitting}
+              className="flex-1 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            >
+              {isCashSubmitting ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Processing...
+                </>
+              ) : (
+                'Confirm Collection'
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   )
 }

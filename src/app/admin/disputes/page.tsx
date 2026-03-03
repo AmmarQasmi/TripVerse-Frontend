@@ -16,6 +16,7 @@ export default function AdminDisputesPage() {
   const [flaggedOnly, setFlaggedOnly] = useState(false)
   const [selectedDispute, setSelectedDispute] = useState<any>(null)
   const [resolution, setResolution] = useState('')
+  const [fineAmount, setFineAmount] = useState<string>('')
 
   const { disputes, isLoading, resolveDispute } = useDisputesAdmin()
 
@@ -29,7 +30,10 @@ export default function AdminDisputesPage() {
         (dispute.description &&
           dispute.description.toLowerCase().includes(searchQuery.toLowerCase()))
       const matchesStatus = statusFilter === 'all' || dispute.status === statusFilter
-      const matchesCategory = categoryFilter === 'all' || dispute.category === categoryFilter
+      const matchesCategory = categoryFilter === 'all' ||
+        dispute.category === categoryFilter ||
+        dispute.extra_categories?.includes(categoryFilter) ||
+        dispute.score_breakdown?.extra_categories?.includes(categoryFilter)
       const matchesFlagged = !flaggedOnly || dispute.flagged_for_manual_review
       return matchesSearch && matchesStatus && matchesCategory && matchesFlagged
     }) || []
@@ -40,12 +44,23 @@ export default function AdminDisputesPage() {
       return
     }
     try {
-      await resolveDispute({ disputeId, resolution })
+      await resolveDispute({
+        disputeId,
+        resolution,
+        fine_amount: fineAmount ? parseFloat(fineAmount) : undefined,
+      })
       setSelectedDispute(null)
       setResolution('')
+      setFineAmount('')
     } catch (error) {
       console.error('Failed to resolve dispute:', error)
     }
+  }
+
+  const openDispute = (dispute: any) => {
+    setSelectedDispute(dispute)
+    const suggestedFine = dispute?.score_breakdown?.suggested_fine
+    setFineAmount(suggestedFine !== undefined && suggestedFine > 0 ? String(suggestedFine) : '')
   }
 
   const getSeverityColor = (score: number) => {
@@ -62,8 +77,19 @@ export default function AdminDisputesPage() {
       cleanliness: '🧹',
       safety: '🚨',
       fraud: '🔒',
+      harassment: '😤',
+      rash_driving: '💨',
+      verbal_abuse: '🗣️',
     }
     return icons[cat] || '📋'
+  }
+
+  const getFineTierLabel = (score: number) => {
+    if (score <= 3)  return { label: 'Tier 1 — Warning Only',             color: 'bg-gray-100 text-gray-600' }
+    if (score <= 6)  return { label: 'Tier 2 — Minor (PKR 500)',          color: 'bg-yellow-100 text-yellow-700' }
+    if (score <= 9)  return { label: 'Tier 3 — Moderate (PKR 1,000)',    color: 'bg-orange-100 text-orange-700' }
+    if (score <= 12) return { label: 'Tier 4 — Serious (PKR 2,500)',     color: 'bg-red-100 text-red-700' }
+    return { label: 'Tier 5 — Severe (PKR 5,000)', color: 'bg-red-200 text-red-900' }
   }
 
   const getStatusColor = (status: string) => {
@@ -145,6 +171,9 @@ export default function AdminDisputesPage() {
               <option value="cleanliness">🧹 Cleanliness</option>
               <option value="safety">🚨 Safety</option>
               <option value="fraud">🔒 Fraud</option>
+              <option value="harassment">😤 Harassment</option>
+              <option value="rash_driving">💨 Rash Driving</option>
+              <option value="verbal_abuse">🗣️ Verbal Abuse</option>
             </select>
           </div>
           <div className="md:w-44 flex items-end pb-1">
@@ -209,11 +238,18 @@ export default function AdminDisputesPage() {
                           >
                             {dispute.status?.toUpperCase()}
                           </span>
+                          {/* Primary category */}
                           {dispute.category && (
                             <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
                               {getCategoryIcon(dispute.category)} {dispute.category}
                             </span>
                           )}
+                          {/* Extra categories */}
+                          {(dispute.extra_categories || dispute.score_breakdown?.extra_categories)?.map((cat: string) => (
+                            <span key={cat} className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded-full">
+                              {getCategoryIcon(cat)} {cat}
+                            </span>
+                          ))}
                           {dispute.severity_score !== undefined && (
                             <span
                               className={`px-2 py-0.5 text-xs rounded-full font-semibold ${getSeverityColor(dispute.severity_score)}`}
@@ -271,14 +307,14 @@ export default function AdminDisputesPage() {
                       {/* Actions */}
                       <div className="ml-6 flex flex-col gap-2 shrink-0">
                         {dispute.status === 'pending' && (
-                          <Button size="sm" onClick={() => setSelectedDispute(dispute)}>
+                          <Button size="sm" onClick={() => openDispute(dispute)}>
                             Resolve
                           </Button>
                         )}
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setSelectedDispute(dispute)}
+                          onClick={() => openDispute(dispute)}
                         >
                           Details
                         </Button>
@@ -317,14 +353,71 @@ export default function AdminDisputesPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Scoring Summary */}
+                {/* ──── Customer's Submission ──── */}
+                <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg space-y-3">
+                  <h4 className="text-sm font-semibold text-blue-800">📋 Customer's Complaint</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedDispute.category && (
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                        {getCategoryIcon(selectedDispute.category)} {selectedDispute.category}
+                      </span>
+                    )}
+                    {(selectedDispute.extra_categories || selectedDispute.score_breakdown?.extra_categories)?.map((cat: string) => (
+                      <span key={cat} className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded-full font-medium">
+                        {getCategoryIcon(cat)} {cat}
+                      </span>
+                    ))}
+                  </div>
+                  {selectedDispute.incident_at && (
+                    <p className="text-xs text-gray-600">
+                      <span className="font-medium">⏰ Incident at:</span>{' '}{formatDate(selectedDispute.incident_at)}
+                    </p>
+                  )}
+                  <div className="bg-white rounded p-3 border border-blue-100">
+                    <p className="text-xs text-blue-500 font-medium mb-1">Customer's statement:</p>
+                    <p className="text-sm text-gray-800">{selectedDispute.description}</p>
+                  </div>
+                  {selectedDispute.attachments?.length > 0 && (
+                    <div>
+                      <p className="text-xs text-blue-600 font-medium mb-1">
+                        Evidence ({selectedDispute.attachments.length} file{selectedDispute.attachments.length !== 1 ? 's' : ''}):
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedDispute.attachments.map((att: any, idx: number) => (
+                          <a key={idx} href={att.file_url} target="_blank" rel="noopener noreferrer">
+                            {att.file_type?.startsWith('image/') ? (
+                              <img src={att.file_url} alt={`Evidence ${idx + 1}`}
+                                className="w-16 h-16 object-cover rounded border border-blue-200 hover:opacity-80 transition" />
+                            ) : (
+                              <div className="w-16 h-16 flex items-center justify-center bg-gray-100 rounded border text-xs text-gray-500 text-center">
+                                🎥<br/>Video
+                              </div>
+                            )}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-400">
+                    Booking: #{selectedDispute.booking_car_id || selectedDispute.booking_hotel_id}{' '}
+                    ({selectedDispute.booking_car_id ? '🚗 Car' : '🏨 Hotel'}) • Filed {formatDate(selectedDispute.created_at)}
+                  </p>
+                </div>
+
+                {/* ──── Scoring Summary ──── */}
                 <div className="p-4 bg-gray-50 rounded-lg space-y-2">
                   <div className="flex flex-wrap gap-2">
+                    {/* Primary + extra categories */}
                     {selectedDispute.category && (
                       <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
                         {getCategoryIcon(selectedDispute.category)} {selectedDispute.category}
                       </span>
                     )}
+                    {(selectedDispute.extra_categories || selectedDispute.score_breakdown?.extra_categories)?.map((cat: string) => (
+                      <span key={cat} className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded-full">
+                        {getCategoryIcon(cat)} {cat}
+                      </span>
+                    ))}
                     {selectedDispute.severity_score !== undefined && (
                       <span
                         className={`px-2 py-0.5 text-xs rounded-full font-semibold ${getSeverityColor(selectedDispute.severity_score)}`}
@@ -389,15 +482,44 @@ export default function AdminDisputesPage() {
                   <>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Resolution
+                        Resolution <span className="text-red-500">*</span>
                       </label>
                       <textarea
                         value={resolution}
                         onChange={(e) => setResolution(e.target.value)}
                         rows={4}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                        placeholder="Describe how you resolved this dispute..."
+                        placeholder="Describe the action taken and reason for any penalty..."
                       />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Fine Amount (PKR)
+                      </label>
+                      {selectedDispute.score_breakdown?.suggested_fine !== undefined && (
+                        <div className="mb-2 p-2 bg-blue-50 rounded text-xs text-blue-700 flex flex-wrap items-center gap-2">
+                          <span>🤖 System suggests <strong>PKR {Number(selectedDispute.score_breakdown.suggested_fine).toLocaleString()}</strong> (score: {selectedDispute.severity_score})</span>
+                          {selectedDispute.severity_score !== undefined && (
+                            <span className={`px-2 py-0.5 rounded-full font-medium ${getFineTierLabel(selectedDispute.severity_score).color}`}>
+                              {getFineTierLabel(selectedDispute.severity_score).label}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={fineAmount}
+                        onChange={(e) => setFineAmount(e.target.value)}
+                        placeholder="e.g. 500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      />
+                      {fineAmount && Number(fineAmount) > 0 && (
+                        <p className="text-xs text-amber-600 mt-1">
+                          PKR {Number(fineAmount).toLocaleString()} will be deducted from provider's wallet and credited to admin.
+                        </p>
+                      )}
                     </div>
                     <div className="flex gap-3 pt-2">
                       <Button
@@ -407,7 +529,7 @@ export default function AdminDisputesPage() {
                       >
                         Resolve Dispute
                       </Button>
-                      <Button variant="outline" onClick={() => setSelectedDispute(null)} className="flex-1">
+                      <Button variant="outline" onClick={() => { setSelectedDispute(null); setFineAmount('') }} className="flex-1">
                         Close
                       </Button>
                     </div>
@@ -415,7 +537,7 @@ export default function AdminDisputesPage() {
                 )}
 
                 {selectedDispute.status !== 'pending' && (
-                  <Button variant="outline" onClick={() => setSelectedDispute(null)} className="w-full">
+                  <Button variant="outline" onClick={() => { setSelectedDispute(null); setFineAmount('') }} className="w-full">
                     Close
                   </Button>
                 )}

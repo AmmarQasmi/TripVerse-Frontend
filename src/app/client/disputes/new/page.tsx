@@ -10,27 +10,31 @@ import { useUserHotelBookings } from '@/features/bookings/useHotelBooking'
 import { useUserCarBookings } from '@/features/bookings/useCarBooking'
 import { useCreateDispute, DisputeCategory } from '@/features/bookings/useCreateDispute'
 
-const CATEGORY_OPTIONS: { value: DisputeCategory; label: string; icon: string; hint: string }[] = [
-  { value: 'service',     label: 'Service Quality',  icon: '⭐', hint: 'Poor service, rudeness, no-show, etc.' },
-  { value: 'pricing',     label: 'Pricing Dispute',   icon: '💰', hint: 'Overcharged, hidden fees, billing errors.' },
-  { value: 'cleanliness', label: 'Cleanliness',       icon: '🧹', hint: 'Dirty car / room, hygiene concerns.' },
-  { value: 'safety',      label: 'Safety Concern',    icon: '🚨', hint: 'Dangerous driving, unsafe conditions. Evidence required.' },
-  { value: 'fraud',       label: 'Fraud / Scam',      icon: '🔒', hint: 'Deliberate deception or theft. Evidence required.' },
+const CATEGORY_OPTIONS: { value: DisputeCategory; label: string; icon: string; evidenceRequired?: boolean }[] = [
+  { value: 'service',      label: 'Service Quality',   icon: '⭐' },
+  { value: 'pricing',      label: 'Pricing Dispute',   icon: '💰' },
+  { value: 'cleanliness',  label: 'Cleanliness',       icon: '🧹' },
+  { value: 'safety',       label: 'Safety Concern',    icon: '🚨', evidenceRequired: true },
+  { value: 'fraud',        label: 'Fraud / Scam',      icon: '🔒', evidenceRequired: true },
+  { value: 'harassment',   label: 'Harassment',        icon: '😤' },
+  { value: 'rash_driving', label: 'Rash Driving',      icon: '💨' },
+  { value: 'verbal_abuse', label: 'Verbal Abuse',      icon: '🗣️' },
 ]
 
-const EVIDENCE_REQUIRED: Record<DisputeCategory, boolean> = {
-  service: false, pricing: false, cleanliness: false, safety: true, fraud: true,
-}
-
-// Filing window in hours per category (matches backend)
+// Filing window in hours per category (matches backend) — used for window warning
 const FILING_WINDOW_HOURS: Record<DisputeCategory, number> = {
   service: 48, pricing: 168, cleanliness: 48, safety: 168, fraud: 720,
+  harassment: 72, rash_driving: 72, verbal_abuse: 72,
 }
 
-function isWithinWindow(bookingEndDate: string | undefined, category: DisputeCategory): boolean {
-  if (!bookingEndDate) return true
+function maxWindowHours(cats: DisputeCategory[]): number {
+  return Math.max(...cats.map((c) => FILING_WINDOW_HOURS[c]))
+}
+
+function isWithinWindow(bookingEndDate: string | undefined, cats: DisputeCategory[]): boolean {
+  if (!bookingEndDate || cats.length === 0) return true
   const hrs = (Date.now() - new Date(bookingEndDate).getTime()) / 3_600_000
-  return hrs <= FILING_WINDOW_HOURS[category]
+  return hrs <= maxWindowHours(cats)
 }
 
 export default function NewDisputePage() {
@@ -43,15 +47,14 @@ export default function NewDisputePage() {
   const preBookingId = searchParams.get('bookingId') ? Number(searchParams.get('bookingId')) : null
   const isPreSelected = !!preBookingId
 
-  const [bookingType, setBookingType]       = useState<'hotel' | 'car'>(preType)
+  const [bookingType, setBookingType]             = useState<'hotel' | 'car'>(preType)
   const [selectedBookingId, setSelectedBookingId] = useState<number | null>(preBookingId)
-  const [category, setCategory]             = useState<DisputeCategory>('service')
-  const [description, setDescription]       = useState('')
-  const [incidentAt, setIncidentAt]         = useState('')
-  const [evidenceFiles, setEvidenceFiles]   = useState<File[]>([])
-  const [errors, setErrors]                 = useState<Record<string, string>>({})
-  const [submitted, setSubmitted]           = useState(false)
-  const [scoreResult, setScoreResult]       = useState<any>(null)
+  const [selectedCategories, setSelectedCategories] = useState<DisputeCategory[]>([])
+  const [customDescription, setCustomDescription]   = useState('')
+  const [incidentAt, setIncidentAt]               = useState('')
+  const [evidenceFiles, setEvidenceFiles]         = useState<File[]>([])
+  const [errors, setErrors]                       = useState<Record<string, string>>({})
+  const [submitted, setSubmitted]                 = useState(false)
 
   // Sync if URL params change after mount
   useEffect(() => {
@@ -63,7 +66,7 @@ export default function NewDisputePage() {
   const { data: carBookingsData,  isLoading: loadingCar  } = useUserCarBookings()
   const { createDispute, isPending } = useCreateDispute()
 
-  const carBookings         = (carBookingsData as any)?.bookings ?? carBookingsData ?? []
+  const carBookings           = (carBookingsData as any)?.bookings ?? carBookingsData ?? []
   const eligibleHotelBookings = (hotelBookings ?? []).filter(
     (b: any) => b.status === 'CHECKED_OUT' || b.status === 'CONFIRMED',
   )
@@ -79,27 +82,38 @@ export default function NewDisputePage() {
 
   const isLoading = loadingHotel || loadingCar
 
-  const evidenceRequired = EVIDENCE_REQUIRED[category]
+  const evidenceRequired = selectedCategories.includes('safety') || selectedCategories.includes('fraud')
 
   // ── Handlers ────────────────────────────────────────────────────────────
+  const toggleCategory = (cat: DisputeCategory) => {
+    setSelectedCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat],
+    )
+    setErrors((prev) => { const n = { ...prev }; delete n.categories; return n })
+  }
+
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     if (evidenceFiles.length + files.length > 5) {
-      setErrors(prev => ({ ...prev, evidence: 'Maximum 5 files allowed.' }))
+      setErrors((prev) => ({ ...prev, evidence: 'Maximum 5 files allowed.' }))
       return
     }
-    setEvidenceFiles(prev => [...prev, ...files])
-    setErrors(prev => { const n = { ...prev }; delete n.evidence; return n })
+    setEvidenceFiles((prev) => [...prev, ...files])
+    setErrors((prev) => { const n = { ...prev }; delete n.evidence; return n })
   }
 
-  const removeFile = (idx: number) => setEvidenceFiles(prev => prev.filter((_, i) => i !== idx))
+  const removeFile = (idx: number) => setEvidenceFiles((prev) => prev.filter((_, i) => i !== idx))
 
   const validate = () => {
     const errs: Record<string, string> = {}
-    if (!selectedBookingId) errs.booking = 'Please select a booking.'
-    if (description.trim().length < 20) errs.description = 'Description must be at least 20 characters.'
+    if (!selectedBookingId)
+      errs.booking = 'Please select a booking.'
+    if (selectedCategories.length === 0)
+      errs.categories = 'Please select at least one complaint reason.'
+    if (!incidentAt)
+      errs.incidentAt = 'Please provide the date and time of the incident.'
     if (evidenceRequired && evidenceFiles.length === 0)
-      errs.evidence = `At least one evidence file is required for ${category} complaints.`
+      errs.evidence = 'At least one evidence file is required for safety / fraud complaints.'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -107,17 +121,20 @@ export default function NewDisputePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validate()) return
+    // Use customer's free-text if provided, otherwise auto-generate from categories
+    const description = customDescription.trim()
+      ? customDescription.trim()
+      : `Complaint filed regarding: ${selectedCategories.join(', ')}`
     try {
-      const result = await createDispute({
+      await createDispute({
         ...(bookingType === 'hotel'
           ? { booking_hotel_id: selectedBookingId! }
           : { booking_car_id: selectedBookingId! }),
-        category,
-        description: description.trim(),
+        categories: selectedCategories,
+        description,
         incident_at: incidentAt || undefined,
         evidence: evidenceFiles.length > 0 ? evidenceFiles : undefined,
       })
-      setScoreResult((result as any)?.scoring)
       setSubmitted(true)
     } catch (err: any) {
       setErrors({
@@ -144,58 +161,16 @@ export default function NewDisputePage() {
   if (submitted) {
     return (
       <div className="min-h-screen bg-white">
-        <PageHeader title="Complaint Submitted" subtitle="Your complaint has been received" backUrl={backUrl} backLabel={backLabel} />
-        <div className="container mx-auto px-4 py-12 max-w-xl text-center">
-          <div className="text-6xl mb-4">✅</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Complaint Submitted</h2>
-          <p className="text-gray-600 mb-6">
-            Our automated system has evaluated your complaint. An admin will review it shortly.
-          </p>
-
-          {scoreResult && (
-            <Card className="text-left mb-6">
-              <CardHeader><CardTitle className="text-base">Automated Scoring Summary</CardTitle></CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Severity Score</span>
-                  <span className="font-semibold text-gray-800">{scoreResult.score}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Recommended Action</span>
-                  <span className="font-semibold capitalize text-blue-700">
-                    {scoreResult.recommendedAction?.replace(/_/g, ' ')}
-                  </span>
-                </div>
-                {scoreResult.flags?.length > 0 && (
-                  <div>
-                    <p className="text-gray-500 mb-1">Flags</p>
-                    <div className="flex flex-wrap gap-2">
-                      {scoreResult.flags.map((f: string) => (
-                        <span key={f} className="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded-full">
-                          {f.replace(/_/g, ' ')}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          <div className="flex gap-3 justify-center">
-            <Button onClick={() => router.push(backUrl)}>
-              {bookingType === 'car' ? 'Back to Car Bookings' : 'Back to Hotel Bookings'}
-            </Button>
-            <Button variant="outline" onClick={() => router.push('/client/dashboard')}>
-              Dashboard
-            </Button>
-          </div>
+        <PageHeader title="Complaint" backUrl={backUrl} backLabel={backLabel} />
+        <div className="container mx-auto px-4 py-20 max-w-md text-center">
+          <div className="text-6xl mb-6">✅</div>
+          <h2 className="text-2xl font-bold text-gray-800">Complaint Successfully Filed</h2>
         </div>
       </div>
     )
   }
 
-  // ── Step numbering (step 1 is hidden when pre-selected) ─────────────────
+  // ── Step numbering (step 1 hidden when pre-selected) ─────────────────────
   const stepNum = (n: number) => isPreSelected ? n - 1 : n
 
   return (
@@ -222,7 +197,6 @@ export default function NewDisputePage() {
 
           {/* ── Step 1: Booking selector (skipped when pre-selected) ───────── */}
           {isPreSelected ? (
-            /* Pre-selected booking summary card */
             <Card className="border-blue-200 bg-blue-50">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
@@ -247,13 +221,12 @@ export default function NewDisputePage() {
                           : `${preSelectedBooking.check_in ?? ''} – ${preSelectedBooking.check_out ?? ''}`}
                       </p>
                     )}
-                    {/* Window warning per selected category */}
-                    {preSelectedBooking && !isWithinWindow(
+                    {preSelectedBooking && selectedCategories.length > 0 && !isWithinWindow(
                       bookingType === 'car' ? preSelectedBooking.end_date : preSelectedBooking.check_out,
-                      category,
+                      selectedCategories,
                     ) && (
                       <p className="text-xs text-red-500 mt-1">
-                        ⚠️ This booking may be outside the {FILING_WINDOW_HOURS[category]}h filing window for "{category}" complaints.
+                        ⚠️ This booking may be outside the filing window for your selected categories.
                       </p>
                     )}
                   </div>
@@ -268,7 +241,6 @@ export default function NewDisputePage() {
               </CardContent>
             </Card>
           ) : (
-            /* Full booking picker */
             <Card>
               <CardHeader><CardTitle className="text-base">1. Select the Booking</CardTitle></CardHeader>
               <CardContent className="space-y-4">
@@ -330,119 +302,130 @@ export default function NewDisputePage() {
             </Card>
           )}
 
-          {/* ── Step 2: Category ───────────────────────────────────────────── */}
-          <Card>
+          {/* ── Step 2: Complaint Reasons (multi-select) ──────────────────── */}
+          <Card className={errors.categories ? 'border-red-400' : ''}>
             <CardHeader>
-              <CardTitle className="text-base">{stepNum(2)}. Complaint Category</CardTitle>
+              <CardTitle className="text-base">
+                {stepNum(2)}. Reason(s) for Complaint{' '}
+                <span className="text-red-500">*</span>
+              </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {CATEGORY_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setCategory(opt.value)}
-                  className={`text-left p-3 rounded-lg border transition-colors ${
-                    category === opt.value
-                      ? 'bg-blue-50 border-blue-500'
-                      : 'bg-white border-gray-200 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span>{opt.icon}</span>
-                    <span className="font-medium text-sm">{opt.label}</span>
-                    {EVIDENCE_REQUIRED[opt.value] && (
-                      <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">
-                        Evidence req.
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-500">{opt.hint}</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Filing window: {FILING_WINDOW_HOURS[opt.value] < 168
-                      ? `${FILING_WINDOW_HOURS[opt.value]}h`
-                      : `${FILING_WINDOW_HOURS[opt.value] / 24} days`} after booking completion
-                  </p>
-                </button>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* ── Step 3: Description + incident time ───────────────────────── */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{stepNum(3)}. Describe the Issue</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => {
-                    setDescription(e.target.value)
-                    if (e.target.value.trim().length >= 20)
-                      setErrors(prev => { const n = { ...prev }; delete n.description; return n })
-                  }}
-                  rows={5}
-                  placeholder="Please describe exactly what happened. Minimum 20 characters."
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none ${
-                    errors.description ? 'border-red-400' : 'border-gray-300'
-                  }`}
-                />
-                <div className="flex justify-between mt-1">
-                  {errors.description
-                    ? <p className="text-xs text-red-500">{errors.description}</p>
-                    : <span />}
-                  <p className={`text-xs ${description.length < 20 ? 'text-gray-400' : 'text-green-600'}`}>
-                    {description.length} / 20 min chars
+            <CardContent>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {CATEGORY_OPTIONS.map((opt) => {
+                  const selected = selectedCategories.includes(opt.value)
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => toggleCategory(opt.value)}
+                      className={`relative flex flex-col items-center justify-center gap-1.5 p-4 rounded-xl border-2 text-sm font-medium transition-all ${
+                        selected
+                          ? 'bg-blue-600 border-blue-600 text-white shadow-md'
+                          : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
+                      }`}
+                    >
+                      {selected && (
+                        <span className="absolute top-1.5 right-2 text-white text-xs font-bold">✓</span>
+                      )}
+                      <span className="text-2xl">{opt.icon}</span>
+                      <span className="text-center leading-tight">{opt.label}</span>
+                      {opt.evidenceRequired && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                          selected ? 'bg-blue-500 text-white' : 'bg-red-100 text-red-600'
+                        }`}>
+                          Evidence req.
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+              {errors.categories && (
+                <p className="text-xs text-red-500 mt-2">{errors.categories}</p>
+              )}
+              {selectedCategories.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  <p className="text-xs text-gray-400">Selected: {selectedCategories.join(', ')}</p>
+                  <p className="text-xs text-blue-600">
+                    ⏱ Est. resolution:{' '}
+                    {selectedCategories.some(c => c === 'safety' || c === 'fraud')
+                      ? '24–48 hours'
+                      : selectedCategories.some(c => c === 'harassment' || c === 'rash_driving' || c === 'verbal_abuse')
+                      ? '2–3 business days'
+                      : '3–5 business days'}
                   </p>
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  When did this happen?{' '}
-                  <span className="text-gray-400 font-normal">(optional but recommended)</span>
-                </label>
-                <input
-                  type="datetime-local"
-                  value={incidentAt}
-                  onChange={(e) => setIncidentAt(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  Providing the exact incident time improves complaint credibility and scoring.
-                </p>
-              </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* ── Step 4: Evidence ───────────────────────────────────────────── */}
+          {/* ── Step 3: Description (optional) ─────────────────────────────── */}
           <Card>
             <CardHeader>
+              <CardTitle className="text-base">
+                {stepNum(3)}. Describe What Happened{' '}
+                <span className="text-gray-400 font-normal text-sm">(Optional)</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <textarea
+                value={customDescription}
+                onChange={(e) => setCustomDescription(e.target.value)}
+                rows={3}
+                maxLength={500}
+                placeholder="Add any additional details about the incident that may help us investigate..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"
+              />
+              <p className="text-xs text-gray-400 mt-1 text-right">{customDescription.length}/500</p>
+            </CardContent>
+          </Card>
+
+          {/* ── Step 4: When did it happen? ───────────────────────────────── */}
+          <Card className={errors.incidentAt ? 'border-red-400' : ''}>
+            <CardHeader>
+              <CardTitle className="text-base">
+                {stepNum(4)}. Date &amp; Time of Incident <span className="text-red-500">*</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <input
+                type="datetime-local"
+                value={incidentAt}
+                onChange={(e) => {
+                  setIncidentAt(e.target.value)
+                  setErrors((prev) => { const n = { ...prev }; delete n.incidentAt; return n })
+                }}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                  errors.incidentAt ? 'border-red-400' : 'border-gray-300'
+                }`}
+              />
+              {errors.incidentAt && (
+                <p className="text-xs text-red-500 mt-1">{errors.incidentAt}</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* ── Step 5: Evidence ───────────────────────────────────────────── */}
+          <Card className={errors.evidence ? 'border-red-400' : ''}>
+            <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                {stepNum(4)}. Evidence
+                {stepNum(5)}. Evidence
                 {evidenceRequired && (
                   <span className="text-xs font-normal bg-red-100 text-red-600 px-2 py-0.5 rounded">
-                    Required for {category}
+                    Required
                   </span>
                 )}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm text-gray-500">
-                Photos, videos, or screenshots (max 5 files, 10 MB each). Higher quality evidence
-                improves your complaint score.
-              </p>
-
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={evidenceFiles.length >= 5}
                 className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full justify-center"
               >
-                📎 {evidenceFiles.length >= 5 ? 'Maximum files reached' : 'Add evidence files'}
+                📎 {evidenceFiles.length >= 5 ? 'Maximum files reached' : 'Add evidence files (max 5 · 10 MB each)'}
               </button>
               <input
                 ref={fileInputRef}

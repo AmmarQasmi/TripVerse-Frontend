@@ -205,6 +205,7 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
         start_date: pickupDate,
         end_date: endDate,
         customer_notes: customerNotes || undefined,
+        payment_method: paymentMethod,
       })
       
       queryClient.invalidateQueries({ queryKey: ['cars', 'bookings', 'user'] })
