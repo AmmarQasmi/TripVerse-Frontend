@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -9,6 +10,7 @@ import { useUserHotelBookings } from '@/features/bookings/useHotelBooking'
 
 export default function BookingsPage() {
   const { data: hotelBookings, isLoading: hotelLoading } = useUserHotelBookings()
+  const router = useRouter()
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -154,6 +156,16 @@ export default function BookingsPage() {
                     {(booking.status === 'PENDING' || booking.status === 'CONFIRMED' || booking.status === 'PENDING_PAYMENT') && (
                       <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
                         Cancel
+                      </Button>
+                    )}
+                    {(booking.status === 'CHECKED_OUT' || booking.status === 'CONFIRMED') && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-orange-600 hover:text-orange-700 border-orange-300 hover:border-orange-400"
+                        onClick={() => router.push(`/client/disputes/new?type=hotel&bookingId=${booking.id}`)}
+                      >
+                        ⚠️ File Complaint
                       </Button>
                     )}
                   </div>

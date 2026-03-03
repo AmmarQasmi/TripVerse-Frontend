@@ -11,32 +11,67 @@ import { useDisputesAdmin } from '@/features/admin/useDisputesAdmin'
 
 export default function AdminDisputesPage() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'OPEN' | 'IN_REVIEW' | 'RESOLVED' | 'CLOSED'>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [flaggedOnly, setFlaggedOnly] = useState(false)
   const [selectedDispute, setSelectedDispute] = useState<any>(null)
   const [resolution, setResolution] = useState('')
-  
+
   const { disputes, isLoading, resolveDispute } = useDisputesAdmin()
 
-  const filteredDisputes = disputes?.filter((dispute: any) => {
-    const matchesSearch = dispute.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         dispute.bookingId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (dispute.reason && dispute.reason.toLowerCase().includes(searchQuery.toLowerCase()))
-    const matchesStatus = statusFilter === 'all' || dispute.status === statusFilter
-    return matchesSearch && matchesStatus
-  }) || []
+  const filteredDisputes =
+    disputes?.filter((dispute: any) => {
+      const id = String(dispute.id)
+      const bookingId = String(dispute.booking_car_id || dispute.booking_hotel_id || '')
+      const matchesSearch =
+        id.includes(searchQuery) ||
+        bookingId.includes(searchQuery) ||
+        (dispute.description &&
+          dispute.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      const matchesStatus = statusFilter === 'all' || dispute.status === statusFilter
+      const matchesCategory = categoryFilter === 'all' || dispute.category === categoryFilter
+      const matchesFlagged = !flaggedOnly || dispute.flagged_for_manual_review
+      return matchesSearch && matchesStatus && matchesCategory && matchesFlagged
+    }) || []
 
   const handleResolveDispute = async (disputeId: string) => {
     if (!resolution.trim()) {
-      alert('Please provide a resolution before resolving the dispute.')
+      alert('Please provide a resolution.')
       return
     }
-    
     try {
       await resolveDispute({ disputeId, resolution })
       setSelectedDispute(null)
       setResolution('')
     } catch (error) {
       console.error('Failed to resolve dispute:', error)
+    }
+  }
+
+  const getSeverityColor = (score: number) => {
+    if (score <= 0) return 'bg-gray-100 text-gray-600'
+    if (score <= 5) return 'bg-yellow-100 text-yellow-700'
+    if (score <= 9) return 'bg-orange-100 text-orange-700'
+    return 'bg-red-100 text-red-700'
+  }
+
+  const getCategoryIcon = (cat: string) => {
+    const icons: Record<string, string> = {
+      service: '⭐',
+      pricing: '💰',
+      cleanliness: '🧹',
+      safety: '🚨',
+      fraud: '🔒',
+    }
+    return icons[cat] || '📋'
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800'
+      case 'resolved': return 'bg-green-100 text-green-800'
+      case 'rejected': return 'bg-red-100 text-red-800'
+      default: return 'bg-gray-100 text-gray-800'
     }
   }
 
@@ -50,25 +85,10 @@ export default function AdminDisputesPage() {
     })
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'OPEN':
-        return 'bg-red-100 text-red-800'
-      case 'IN_REVIEW':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'RESOLVED':
-        return 'bg-green-100 text-green-800'
-      case 'CLOSED':
-        return 'bg-gray-100 text-gray-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white">
-        <PageHeader 
+        <PageHeader
           title="Dispute Management"
           subtitle="Review and resolve customer disputes"
           backUrl="/admin/dashboard"
@@ -81,293 +101,328 @@ export default function AdminDisputesPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <PageHeader 
+      <PageHeader
         title="Dispute Management"
         subtitle="Review and resolve customer disputes"
         backUrl="/admin/dashboard"
         backLabel="Back to Dashboard"
       />
+
       <div className="container mx-auto px-4 py-8">
-
-      {/* Filters */}
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
-          <Input
-            label="Search Disputes"
-            placeholder="Search by ID, booking, or reason..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        {/* Filters */}
+        <div className="mb-6 flex flex-col md:flex-row gap-4 flex-wrap">
+          <div className="flex-1 min-w-[200px]">
+            <Input
+              label="Search Disputes"
+              placeholder="Search by ID, booking ID, or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="md:w-40">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="resolved">Resolved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+          <div className="md:w-40">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Categories</option>
+              <option value="service">⭐ Service</option>
+              <option value="pricing">💰 Pricing</option>
+              <option value="cleanliness">🧹 Cleanliness</option>
+              <option value="safety">🚨 Safety</option>
+              <option value="fraud">🔒 Fraud</option>
+            </select>
+          </div>
+          <div className="md:w-44 flex items-end pb-1">
+            <label className="flex items-center gap-2 cursor-pointer text-sm">
+              <input
+                type="checkbox"
+                checked={flaggedOnly}
+                onChange={(e) => setFlaggedOnly(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              <span className="text-gray-700 font-medium">🚩 Flagged only</span>
+            </label>
+          </div>
         </div>
-        <div className="md:w-48">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Status Filter
-          </label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">All Status</option>
-            <option value="OPEN">Open</option>
-            <option value="IN_REVIEW">In Review</option>
-            <option value="RESOLVED">Resolved</option>
-            <option value="CLOSED">Closed</option>
-          </select>
-        </div>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
-            <CardContent className="p-0">
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-emerald-100/90">Total Disputes</p>
-                  <p className="text-3xl font-bold text-white">{disputes?.length || 0}</p>
-                </div>
-                <div className="text-4xl">⚠️</div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
-            <CardContent className="p-0">
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-emerald-100/90">Open Disputes</p>
-                  <p className="text-3xl font-bold text-white">
-                    {disputes?.filter((d: any) => d.status === 'OPEN').length || 0}
-                  </p>
-                </div>
-                <div className="text-4xl">🔴</div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
-            <CardContent className="p-0">
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-emerald-100/90">In Review</p>
-                  <p className="text-3xl font-bold text-white">
-                    {disputes?.filter((d: any) => d.status === 'IN_REVIEW').length || 0}
-                  </p>
-                </div>
-                <div className="text-4xl">🟡</div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
-            <CardContent className="p-0">
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-emerald-100/90">Resolved</p>
-                  <p className="text-3xl font-bold text-white">
-                    {disputes?.filter((d: any) => d.status === 'RESOLVED').length || 0}
-                  </p>
-                </div>
-                <div className="text-4xl">✅</div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Disputes List */}
-      <div className="space-y-4">
-        {isLoading ? (
-          Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              </CardContent>
-            </Card>
-          ))
-        ) : filteredDisputes.length > 0 ? (
-          filteredDisputes.map((dispute: any) => (
-            <div key={dispute.id} className="rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500">
-              <Card className="hover:shadow-md transition-shadow bg-white rounded-xl">
-                <CardContent className="p-6">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <span className="font-semibold text-lg">#{dispute.id}</span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(dispute.status)}`}>
-                        {dispute.status}
-                      </span>
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                        {dispute.bookingType}
-                      </span>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          {[
+            { label: 'Total Disputes', value: disputes?.length || 0, icon: '⚠️', delay: 0.1 },
+            { label: 'Pending Review', value: disputes?.filter((d: any) => d.status === 'pending').length || 0, icon: '🔴', delay: 0.2 },
+            { label: 'Flagged', value: disputes?.filter((d: any) => d.flagged_for_manual_review).length || 0, icon: '🚩', delay: 0.3 },
+            { label: 'Resolved', value: disputes?.filter((d: any) => d.status === 'resolved').length || 0, icon: '✅', delay: 0.4 },
+          ].map((stat) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: stat.delay }}
+            >
+              <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="flex items-center">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-emerald-100/90">{stat.label}</p>
+                      <p className="text-3xl font-bold text-white">{stat.value}</p>
                     </div>
-                    
-                    <div className="mb-3">
-                      <h4 className="font-medium text-gray-900 mb-1">Reason: {dispute.reason}</h4>
-                      <p className="text-sm text-gray-600">{dispute.description}</p>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                      <div>
-                        <span className="font-medium">Booking ID:</span> {dispute.bookingId}
-                      </div>
-                      <div>
-                        <span className="font-medium">Submitted:</span> {formatDate(dispute.createdAt)}
-                      </div>
-                      <div>
-                        <span className="font-medium">User ID:</span> {dispute.userId}
-                      </div>
-                    </div>
-
-                    {dispute.resolution && (
-                      <div className="mt-4 p-3 bg-green-50 rounded-lg">
-                        <h5 className="font-medium text-green-900 mb-1">Resolution:</h5>
-                        <p className="text-sm text-green-800">{dispute.resolution}</p>
-                        <p className="text-xs text-green-600 mt-1">
-                          Resolved on {dispute.updatedAt && formatDate(dispute.updatedAt)}
-                        </p>
-                      </div>
-                    )}
+                    <div className="text-4xl">{stat.icon}</div>
                   </div>
-                  
-                  <div className="ml-6 flex flex-col space-y-2">
-                    {dispute.status === 'OPEN' && (
-                      <>
-                        <Button 
-                          size="sm" 
-                          onClick={() => setSelectedDispute(dispute)}
-                        >
-                          Review Dispute
-                        </Button>
-                        <Button 
-                          variant="outline" 
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Disputes List */}
+        <div className="space-y-4">
+          {filteredDisputes.length > 0 ? (
+            filteredDisputes.map((dispute: any) => (
+              <div
+                key={dispute.id}
+                className="rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500"
+              >
+                <Card className="hover:shadow-md transition-shadow bg-white rounded-xl">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        {/* Badges row */}
+                        <div className="flex items-center flex-wrap gap-2 mb-3">
+                          <span className="font-semibold text-lg">#{dispute.id}</span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(dispute.status)}`}
+                          >
+                            {dispute.status?.toUpperCase()}
+                          </span>
+                          {dispute.category && (
+                            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                              {getCategoryIcon(dispute.category)} {dispute.category}
+                            </span>
+                          )}
+                          {dispute.severity_score !== undefined && (
+                            <span
+                              className={`px-2 py-0.5 text-xs rounded-full font-semibold ${getSeverityColor(dispute.severity_score)}`}
+                            >
+                              Score: {dispute.severity_score}
+                            </span>
+                          )}
+                          {dispute.flagged_for_manual_review && (
+                            <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full font-semibold animate-pulse">
+                              🚩 Needs Review
+                            </span>
+                          )}
+                          {dispute.automated_action && (
+                            <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
+                              Auto: {dispute.automated_action.replace(/_/g, ' ')}
+                            </span>
+                          )}
+                          {dispute.automated_action_applied && (
+                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
+                              ✅ Applied
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{dispute.description}</p>
+
+                        {/* Meta */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-gray-600">
+                          <div>
+                            <span className="font-medium">Booking:</span>{' '}
+                            #{dispute.booking_car_id || dispute.booking_hotel_id}{' '}
+                            ({dispute.booking_car_id ? '🚗 Car' : '🏨 Hotel'})
+                          </div>
+                          <div>
+                            <span className="font-medium">Filed:</span>{' '}
+                            {formatDate(dispute.created_at)}
+                          </div>
+                          {dispute.incident_at && (
+                            <div>
+                              <span className="font-medium">Incident:</span>{' '}
+                              {formatDate(dispute.incident_at)}
+                            </div>
+                          )}
+                        </div>
+
+                        {dispute.resolution && (
+                          <div className="mt-4 p-3 bg-green-50 rounded-lg">
+                            <h5 className="font-medium text-green-900 mb-1">Resolution:</h5>
+                            <p className="text-sm text-green-800">{dispute.resolution}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="ml-6 flex flex-col gap-2 shrink-0">
+                        {dispute.status === 'pending' && (
+                          <Button size="sm" onClick={() => setSelectedDispute(dispute)}>
+                            Resolve
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => setSelectedDispute(dispute)}
                         >
-                          Start Resolution
+                          Details
                         </Button>
-                      </>
-                    )}
-                    {dispute.status === 'IN_REVIEW' && (
-                      <Button 
-                        size="sm"
-                        onClick={() => setSelectedDispute(dispute)}
-                      >
-                        Add Resolution
-                      </Button>
-                    )}
-                    <Button variant="outline" size="sm">
-                      View Details
-                    </Button>
-                  </div>
-                </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ))
+          ) : (
+            <div className="rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500">
+              <Card className="bg-white rounded-xl">
+                <CardContent className="p-12 text-center">
+                  <div className="text-gray-500 text-lg mb-4">⚠️ No disputes found</div>
+                  <p className="text-gray-600">
+                    {searchQuery || statusFilter !== 'all' || categoryFilter !== 'all' || flaggedOnly
+                      ? 'No disputes match your search criteria.'
+                      : 'No disputes have been reported yet.'}
+                  </p>
                 </CardContent>
               </Card>
             </div>
-          ))
-        ) : (
-          <div className="rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500">
-            <Card className="bg-white rounded-xl">
-              <CardContent className="p-12 text-center">
-                <div className="text-gray-500 text-lg mb-4">
-                  ⚠️ No disputes found
+          )}
+        </div>
+
+        {/* Resolution / Detail Modal */}
+        {selectedDispute && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Dispute #{selectedDispute.id}</CardTitle>
+                  <Button variant="ghost" onClick={() => setSelectedDispute(null)}>
+                    ✕
+                  </Button>
                 </div>
-                <p className="text-gray-600">
-                  {searchQuery || statusFilter !== 'all' 
-                    ? "No disputes match your search criteria."
-                    : "No disputes have been reported yet."
-                  }
-                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Scoring Summary */}
+                <div className="p-4 bg-gray-50 rounded-lg space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    {selectedDispute.category && (
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                        {getCategoryIcon(selectedDispute.category)} {selectedDispute.category}
+                      </span>
+                    )}
+                    {selectedDispute.severity_score !== undefined && (
+                      <span
+                        className={`px-2 py-0.5 text-xs rounded-full font-semibold ${getSeverityColor(selectedDispute.severity_score)}`}
+                      >
+                        Score: {selectedDispute.severity_score}
+                      </span>
+                    )}
+                    {selectedDispute.flagged_for_manual_review && (
+                      <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full">
+                        🚩 Needs Manual Review
+                      </span>
+                    )}
+                    {selectedDispute.automated_action && (
+                      <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
+                        Recommendation: {selectedDispute.automated_action.replace(/_/g, ' ')}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-sm text-gray-700">
+                    <span className="font-medium">Description:</span> {selectedDispute.description}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Booking:</span> #
+                    {selectedDispute.booking_car_id || selectedDispute.booking_hotel_id}{' '}
+                    ({selectedDispute.booking_car_id ? '🚗 Car' : '🏨 Hotel'})
+                  </p>
+                  {selectedDispute.incident_at && (
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Incident at:</span>{' '}
+                      {formatDate(selectedDispute.incident_at)}
+                    </p>
+                  )}
+
+                  {/* Score breakdown if available */}
+                  {selectedDispute.score_breakdown?.reasons?.length > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 mb-1 mt-2">Scoring Reasons:</p>
+                      <ul className="text-xs text-gray-600 space-y-0.5">
+                        {selectedDispute.score_breakdown.reasons.map((r: string, i: number) => (
+                          <li key={i} className="flex gap-1">
+                            <span>•</span>
+                            <span>{r}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {selectedDispute.score_breakdown?.flags?.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {selectedDispute.score_breakdown.flags.map((f: string) => (
+                        <span key={f} className="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded-full">
+                          {f.replace(/_/g, ' ')}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Resolve form */}
+                {selectedDispute.status === 'pending' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Resolution
+                      </label>
+                      <textarea
+                        value={resolution}
+                        onChange={(e) => setResolution(e.target.value)}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        placeholder="Describe how you resolved this dispute..."
+                      />
+                    </div>
+                    <div className="flex gap-3 pt-2">
+                      <Button
+                        onClick={() => handleResolveDispute(String(selectedDispute.id))}
+                        className="flex-1"
+                        disabled={!resolution.trim()}
+                      >
+                        Resolve Dispute
+                      </Button>
+                      <Button variant="outline" onClick={() => setSelectedDispute(null)} className="flex-1">
+                        Close
+                      </Button>
+                    </div>
+                  </>
+                )}
+
+                {selectedDispute.status !== 'pending' && (
+                  <Button variant="outline" onClick={() => setSelectedDispute(null)} className="w-full">
+                    Close
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>
         )}
-      </div>
-
-      {/* Resolution Modal */}
-      {selectedDispute && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-2xl">
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Resolve Dispute #{selectedDispute.id}</CardTitle>
-                <Button variant="ghost" onClick={() => setSelectedDispute(null)}>
-                  ✕
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium mb-2">Dispute Details:</h4>
-                <p className="text-sm text-gray-600 mb-2">
-                  <span className="font-medium">Reason:</span> {selectedDispute.reason}
-                </p>
-                <p className="text-sm text-gray-600 mb-2">
-                  <span className="font-medium">Description:</span> {selectedDispute.description}
-                </p>
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">Booking ID:</span> {selectedDispute.bookingId}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Resolution
-                </label>
-                <textarea
-                  value={resolution}
-                  onChange={(e) => setResolution(e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Describe how you resolved this dispute..."
-                  required
-                />
-              </div>
-
-              <div className="flex space-x-4 pt-4">
-                <Button 
-                  onClick={() => handleResolveDispute(selectedDispute.id)}
-                  className="flex-1"
-                  disabled={!resolution.trim()}
-                >
-                  Resolve Dispute
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setSelectedDispute(null)} 
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
       </div>
     </div>
   )

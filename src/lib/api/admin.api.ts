@@ -185,9 +185,24 @@ export const adminApi = {
     booking_hotel_id?: number
     booking_car_id?: number
     raised_by?: 'client' | 'driver' | 'admin'
+    category: 'service' | 'pricing' | 'cleanliness' | 'safety' | 'fraud'
     description: string
+    incident_at?: string
+    evidence?: File[]
   }) => {
-    return httpClient.post(API_ENDPOINTS.ADMIN.CREATE_DISPUTE, data)
+    const { evidence, ...fields } = data
+
+    // Use multipart/form-data when evidence files are included
+    if (evidence && evidence.length > 0) {
+      const form = new FormData()
+      Object.entries(fields).forEach(([key, val]) => {
+        if (val !== undefined) form.append(key, String(val))
+      })
+      evidence.forEach((file) => form.append('evidence', file))
+      return httpClient.post(API_ENDPOINTS.ADMIN.CREATE_DISPUTE, form)
+    }
+
+    return httpClient.post(API_ENDPOINTS.ADMIN.CREATE_DISPUTE, fields)
   },
 
   resolveDispute: async (disputeId: number, dto: ResolveDisputeDto) => {
