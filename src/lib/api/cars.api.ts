@@ -145,6 +145,7 @@ export const carsApi = {
     start_date: string
     end_date: string
     customer_notes?: string
+    payment_method?: string
   }) => {
     return httpClient.post<{
       id: number
@@ -270,6 +271,20 @@ export const carsApi = {
       status: string
       message: string
     }>(`/cars/bookings/${bookingId}/complete`)
+  },
+
+  // Collect cash payment (driver confirms cash collected after trip completion)
+  collectCash: async (bookingId: number, collectedAmount: number) => {
+    return httpClient.post<{
+      message: string
+      booking_id: number
+      total_collected: number
+      platform_fee_deducted: number
+      your_earnings: number
+      wallet_balance: number
+    }>(`/cars/bookings/${bookingId}/collect-cash`, {
+      collected_amount: collectedAmount,
+    })
   },
 
   // Get chat messages

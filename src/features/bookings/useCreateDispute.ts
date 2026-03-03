@@ -1,12 +1,22 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { adminApi } from '@/lib/api/admin.api'
 
-export type DisputeCategory = 'service' | 'pricing' | 'cleanliness' | 'safety' | 'fraud'
+export type DisputeCategory =
+  | 'service'
+  | 'pricing'
+  | 'cleanliness'
+  | 'safety'
+  | 'fraud'
+  | 'harassment'
+  | 'rash_driving'
+  | 'verbal_abuse'
 
 export interface CreateDisputeInput {
   booking_hotel_id?: number
   booking_car_id?: number
-  category: DisputeCategory
+  /** Multi-select categories chosen by the customer */
+  categories: DisputeCategory[]
+  /** Auto-generated from selected categories — do not let user type this */
   description: string
   incident_at?: string
   evidence?: File[]

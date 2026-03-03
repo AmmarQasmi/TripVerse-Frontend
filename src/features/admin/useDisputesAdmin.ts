@@ -10,8 +10,15 @@ export function useDisputesAdmin() {
   })
 
   const resolveDispute = useMutation({
-    mutationFn: ({ disputeId, resolution }: { disputeId: string; resolution: string }) =>
-      adminApi.resolveDispute(Number(disputeId), { resolution }),
+    mutationFn: ({
+      disputeId,
+      resolution,
+      fine_amount,
+    }: {
+      disputeId: string
+      resolution: string
+      fine_amount?: number
+    }) => adminApi.resolveDispute(Number(disputeId), { resolution, fine_amount }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-disputes'] })
     },

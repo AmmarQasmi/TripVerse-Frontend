@@ -93,7 +93,8 @@ export interface BanDriverDto {
 
 export interface ResolveDisputeDto {
   resolution: string
-  refund_amount?: number
+  /** Fine amount (PKR) deducted from provider wallet and credited to admin */
+  fine_amount?: number
 }
 
 export interface DriverListResponse {
@@ -185,7 +186,8 @@ export const adminApi = {
     booking_hotel_id?: number
     booking_car_id?: number
     raised_by?: 'client' | 'driver' | 'admin'
-    category: 'service' | 'pricing' | 'cleanliness' | 'safety' | 'fraud'
+    /** Multi-select complaint categories */
+    categories: ('service' | 'pricing' | 'cleanliness' | 'safety' | 'fraud' | 'harassment' | 'rash_driving' | 'verbal_abuse')[]
     description: string
     incident_at?: string
     evidence?: File[]
@@ -195,9 +197,13 @@ export const adminApi = {
     // Use multipart/form-data when evidence files are included
     if (evidence && evidence.length > 0) {
       const form = new FormData()
-      Object.entries(fields).forEach(([key, val]) => {
+      // Append scalar fields
+      const { categories, ...scalars } = fields
+      Object.entries(scalars).forEach(([key, val]) => {
         if (val !== undefined) form.append(key, String(val))
       })
+      // Append each category as a repeated field
+      categories.forEach((cat) => form.append('categories', cat))
       evidence.forEach((file) => form.append('evidence', file))
       return httpClient.post(API_ENDPOINTS.ADMIN.CREATE_DISPUTE, form)
     }

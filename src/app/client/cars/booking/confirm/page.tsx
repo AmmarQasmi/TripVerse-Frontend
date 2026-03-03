@@ -98,7 +98,12 @@ export default function BookingConfirmationPage() {
       queryClient.invalidateQueries({ queryKey: ['cars', 'bookings', 'user'] })
       queryClient.invalidateQueries({ queryKey: ['car-bookings', 'user'] })
       
-      showToast('Payment successful! Booking confirmed. Admin and you have been notified.', 'success')
+      showToast(
+        booking?.payment_method === 'cash'
+          ? 'Booking confirmed! You will pay PKR ' + (booking?.total_amount?.toLocaleString() || '') + ' in cash to the driver at trip end.'
+          : 'Payment successful! Booking confirmed. Admin and you have been notified.',
+        'success',
+      )
       
       // Start countdown to redirect
       const timer = setInterval(() => {
@@ -134,7 +139,12 @@ export default function BookingConfirmationPage() {
   }
 
   const handleConfirmBooking = () => {
-    setShowPaymentModal(true)
+    if (booking?.payment_method === 'cash') {
+      // Cash booking: confirm directly without payment
+      handlePaymentSuccess()
+    } else {
+      setShowPaymentModal(true)
+    }
   }
 
   if (isLoading) {
@@ -225,7 +235,9 @@ export default function BookingConfirmationPage() {
               Confirm Your Booking
             </h1>
             <p className="text-xl text-gray-300">
-              Driver has accepted your request. Please confirm and complete payment to finalize your booking.
+              {booking.payment_method === 'cash'
+                ? 'Driver has accepted your request. Please confirm to finalise your booking. You will pay the driver in cash at the end of the trip.'
+                : 'Driver has accepted your request. Please confirm and complete payment to finalize your booking.'}
             </p>
           </motion.div>
 
@@ -322,12 +334,32 @@ export default function BookingConfirmationPage() {
                     <p className="text-2xl font-bold text-white">
                       PKR {booking.total_amount?.toLocaleString() || '0'}
                     </p>
-                    <p className="text-sm text-gray-300">Includes all fees</p>
+                    <p className="text-sm text-gray-300">
+                      {booking.payment_method === 'cash' ? '💵 Pay in cash to driver' : 'Includes all fees'}
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
+
+          {/* Cash Payment Notice */}
+          {booking.payment_method === 'cash' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.65 }}
+              className="mt-6 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 flex items-start gap-3"
+            >
+              <span className="text-2xl flex-shrink-0">💵</span>
+              <div>
+                <p className="text-yellow-300 font-semibold text-sm mb-1">Cash Payment Selected</p>
+                <p className="text-yellow-200/80 text-sm">
+                  No payment is required right now. The total of <span className="font-bold text-white">PKR {booking.total_amount?.toLocaleString()}</span> will be collected by the driver in cash once your trip is complete.
+                </p>
+              </div>
+            </motion.div>
+          )}
 
           {/* Action Buttons */}
           <motion.div
@@ -341,7 +373,11 @@ export default function BookingConfirmationPage() {
               disabled={isConfirming}
               className="flex-1 bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold py-4 rounded-xl transition-all duration-75 disabled:opacity-50"
             >
-              {isConfirming ? 'Confirming...' : '✅ Confirm Booking & Pay'}
+              {isConfirming
+              ? 'Confirming...'
+              : booking.payment_method === 'cash'
+              ? '✅ Confirm Booking'
+              : '✅ Confirm Booking & Pay'}
             </Button>
             <Button
               onClick={() => router.push('/client/cars/bookings')}
@@ -368,8 +404,8 @@ export default function BookingConfirmationPage() {
         </motion.div>
       </div>
 
-      {/* Payment Modal */}
-      {booking && (
+      {/* Payment Modal — only for online bookings */}
+      {booking && booking.payment_method !== 'cash' && (
         <PaymentModal
           isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
