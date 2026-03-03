@@ -306,12 +306,23 @@ export default function CarBookingsPage() {
 
                       {/* Action Buttons */}
                       <div className="flex items-center gap-2 mt-4 pt-3 border-t border-white/5">
-                        {booking.status === 'ACCEPTED' && (
+        {booking.status === 'ACCEPTED' && (
                           <Link href={`/client/cars/booking/confirm?bookingId=${booking.id}`} className="flex items-center gap-1.5 px-3.5 py-1.5 bg-green-500/15 hover:bg-green-500/25 text-green-400 rounded-lg text-sm font-medium transition-colors border border-green-500/20">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
                             Confirm & Pay
+                          </Link>
+                        )}
+                        {booking.status === 'COMPLETED' && (
+                          <Link
+                            href={`/client/disputes/new?type=car&bookingId=${booking.id}`}
+                            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-orange-500/15 hover:bg-orange-500/25 text-orange-400 rounded-lg text-sm font-medium transition-colors border border-orange-500/20"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            File Complaint
                           </Link>
                         )}
                         {canChat(booking.status) && (
