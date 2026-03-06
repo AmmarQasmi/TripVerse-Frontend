@@ -26,6 +26,14 @@ interface CarFormData {
   color?: string
   license_plate?: string
   images?: File[]
+  // Dual-mode availability
+  available_for_rental: boolean
+  available_for_ride_hailing: boolean
+  // Ride-hailing pricing
+  base_fare?: number
+  per_km_rate?: number
+  per_minute_rate?: number
+  minimum_fare?: number
 }
 
 // Car companies and their models
@@ -59,6 +67,14 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
     distance_rate_per_km: car?.distance_rate_per_km || 0,
     license_plate: car?.license_plate || '',
     images: [],
+    // Dual-mode availability
+    available_for_rental: car?.available_for_rental ?? true,
+    available_for_ride_hailing: car?.available_for_ride_hailing ?? false,
+    // Ride-hailing pricing
+    base_fare: car?.base_fare || 150,
+    per_km_rate: car?.per_km_rate || 25,
+    per_minute_rate: car?.per_minute_rate || 5,
+    minimum_fare: car?.minimum_fare || 200,
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -90,6 +106,14 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
         distance_rate_per_km: car.distance_rate_per_km || 0,
         license_plate: car.license_plate || '',
         images: [],
+        // Dual-mode availability
+        available_for_rental: car.available_for_rental ?? true,
+        available_for_ride_hailing: car.available_for_ride_hailing ?? false,
+        // Ride-hailing pricing
+        base_fare: car.base_fare || 150,
+        per_km_rate: car.per_km_rate || 25,
+        per_minute_rate: car.per_minute_rate || 5,
+        minimum_fare: car.minimum_fare || 200,
       })
       if (car.make && CAR_COMPANIES[car.make]) {
         setAvailableModels(CAR_COMPANIES[car.make])
@@ -130,12 +154,35 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
       newErrors.seats = 'Seats must be between 2 and 8'
     }
 
-    if (formData.base_price_per_day <= 0) {
-      newErrors.base_price_per_day = 'Price per day must be greater than 0'
+    // At least one availability mode must be enabled
+    if (!formData.available_for_rental && !formData.available_for_ride_hailing) {
+      newErrors.availability = 'At least one availability mode must be enabled'
     }
 
-    if (formData.distance_rate_per_km < 0) {
-      newErrors.distance_rate_per_km = 'Distance rate cannot be negative'
+    // Validate rental pricing if rental mode is enabled
+    if (formData.available_for_rental) {
+      if (formData.base_price_per_day <= 0) {
+        newErrors.base_price_per_day = 'Price per day must be greater than 0'
+      }
+      if (formData.distance_rate_per_km < 0) {
+        newErrors.distance_rate_per_km = 'Distance rate cannot be negative'
+      }
+    }
+
+    // Validate ride-hailing pricing if ride-hailing mode is enabled
+    if (formData.available_for_ride_hailing) {
+      if (!formData.base_fare || formData.base_fare <= 0) {
+        newErrors.base_fare = 'Base fare must be greater than 0'
+      }
+      if (!formData.per_km_rate || formData.per_km_rate <= 0) {
+        newErrors.per_km_rate = 'Per KM rate must be greater than 0'
+      }
+      if (!formData.per_minute_rate || formData.per_minute_rate < 0) {
+        newErrors.per_minute_rate = 'Per minute rate cannot be negative'
+      }
+      if (!formData.minimum_fare || formData.minimum_fare <= 0) {
+        newErrors.minimum_fare = 'Minimum fare must be greater than 0'
+      }
     }
 
     // Require at least one image for new car listings
@@ -170,6 +217,12 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
         distance_rate_per_km: 0,
         license_plate: '',
         images: [],
+        available_for_rental: true,
+        available_for_ride_hailing: false,
+        base_fare: 150,
+        per_km_rate: 25,
+        per_minute_rate: 5,
+        minimum_fare: 200,
       })
       setAvailableModels([])
       setErrors({})
@@ -318,44 +371,193 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
         </CardContent>
       </Card>
 
-      {/* Pricing */}
+      {/* Availability Modes */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle>
-            Pricing
+            Availability Modes *
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <p className="text-sm text-gray-600 mb-4">
+            Choose how your car can be booked. You can enable both modes.
+          </p>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Input
-                label="Base Price per Day (PKR) *"
-                type="number"
-                placeholder="5000"
-                value={formData.base_price_per_day}
-                onChange={(e) => handleInputChange('base_price_per_day', parseFloat(e.target.value))}
-                error={errors.base_price_per_day}
-                min={0}
-                step="0.01"
-                required
+            {/* Rental Mode */}
+            <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+              formData.available_for_rental
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}>
+              <input
+                type="checkbox"
+                checked={formData.available_for_rental}
+                onChange={(e) => handleInputChange('available_for_rental', e.target.checked)}
+                className="w-5 h-5 mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-            </div>
-            <div>
-              <Input
-                label="Distance Rate per KM (PKR) *"
-                type="number"
-                placeholder="50"
-                value={formData.distance_rate_per_km}
-                onChange={(e) => handleInputChange('distance_rate_per_km', parseFloat(e.target.value))}
-                error={errors.distance_rate_per_km}
-                min={0}
-                step="0.01"
-                required
+              <div>
+                <p className={`font-medium ${formData.available_for_rental ? 'text-blue-700' : 'text-gray-700'}`}>
+                  Available for Rentals
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Multi-day city-to-city bookings. Customers send requests, you approve.
+                </p>
+              </div>
+            </label>
+
+            {/* Ride-Hailing Mode */}
+            <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+              formData.available_for_ride_hailing
+                ? 'border-teal-500 bg-teal-50'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}>
+              <input
+                type="checkbox"
+                checked={formData.available_for_ride_hailing}
+                onChange={(e) => handleInputChange('available_for_ride_hailing', e.target.checked)}
+                className="w-5 h-5 mt-0.5 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
               />
-            </div>
+              <div>
+                <p className={`font-medium ${formData.available_for_ride_hailing ? 'text-teal-700' : 'text-gray-700'}`}>
+                  Available for Rides
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Within-city rides. Quick bookings when you&apos;re online.
+                </p>
+              </div>
+            </label>
           </div>
+
+          {errors.availability && (
+            <p className="text-sm text-red-500">{errors.availability}</p>
+          )}
         </CardContent>
       </Card>
+
+      {/* Rental Pricing - Only show if rental mode is enabled */}
+      {formData.available_for_rental && (
+        <Card className="shadow-lg border-l-4 border-l-blue-500">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-blue-600">📅</span>
+              Rental Pricing
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Input
+                  label="Base Price per Day (PKR) *"
+                  type="number"
+                  placeholder="5000"
+                  value={formData.base_price_per_day}
+                  onChange={(e) => handleInputChange('base_price_per_day', parseFloat(e.target.value))}
+                  error={errors.base_price_per_day}
+                  min={0}
+                  step="0.01"
+                  required
+                />
+              </div>
+              <div>
+                <Input
+                  label="Distance Rate per KM (PKR) *"
+                  type="number"
+                  placeholder="50"
+                  value={formData.distance_rate_per_km}
+                  onChange={(e) => handleInputChange('distance_rate_per_km', parseFloat(e.target.value))}
+                  error={errors.distance_rate_per_km}
+                  min={0}
+                  step="0.01"
+                  required
+                />
+              </div>
+            </div>
+            <p className="text-xs text-gray-500">
+              Total rental price = (Days × Base Price) + (Estimated KM × Distance Rate) + 5% platform fee
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Ride-Hailing Pricing - Only show if ride-hailing mode is enabled */}
+      {formData.available_for_ride_hailing && (
+        <Card className="shadow-lg border-l-4 border-l-teal-500">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-teal-600">⚡</span>
+              Ride-Hailing Pricing
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Input
+                  label="Base Fare (PKR) *"
+                  type="number"
+                  placeholder="150"
+                  value={formData.base_fare ?? 150}
+                  onChange={(e) => handleInputChange('base_fare', parseFloat(e.target.value))}
+                  error={errors.base_fare}
+                  min={0}
+                  step="1"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">Fixed starting fare</p>
+              </div>
+              <div>
+                <Input
+                  label="Per KM Rate (PKR) *"
+                  type="number"
+                  placeholder="25"
+                  value={formData.per_km_rate ?? 25}
+                  onChange={(e) => handleInputChange('per_km_rate', parseFloat(e.target.value))}
+                  error={errors.per_km_rate}
+                  min={0}
+                  step="1"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">Charged per kilometer</p>
+              </div>
+              <div>
+                <Input
+                  label="Per Minute Rate (PKR) *"
+                  type="number"
+                  placeholder="5"
+                  value={formData.per_minute_rate ?? 5}
+                  onChange={(e) => handleInputChange('per_minute_rate', parseFloat(e.target.value))}
+                  error={errors.per_minute_rate}
+                  min={0}
+                  step="0.5"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">Charged per minute of travel</p>
+              </div>
+              <div>
+                <Input
+                  label="Minimum Fare (PKR) *"
+                  type="number"
+                  placeholder="200"
+                  value={formData.minimum_fare ?? 200}
+                  onChange={(e) => handleInputChange('minimum_fare', parseFloat(e.target.value))}
+                  error={errors.minimum_fare}
+                  min={0}
+                  step="1"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">Minimum charge per ride</p>
+              </div>
+            </div>
+            <div className="bg-teal-50 p-3 rounded-lg">
+              <p className="text-xs text-teal-700">
+                <strong>Example:</strong> A 10km, 20-minute ride would cost: 
+                PKR {(formData.base_fare ?? 150) + (formData.per_km_rate ?? 25) * 10 + (formData.per_minute_rate ?? 5) * 20} 
+                (Base + Distance + Time). 15% platform fee applies.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Images */}
       <Card className="shadow-lg">

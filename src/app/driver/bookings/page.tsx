@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -11,16 +11,54 @@ import { useToast } from '@/components/ui/Toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { ChatInterface } from '@/components/cars/ChatInterface'
 
+// Countdown timer hook for ride-hailing requests
+function useCountdown(targetDate: Date | null, onExpire?: () => void) {
+  const [timeLeft, setTimeLeft] = useState<number>(0)
+
+  useEffect(() => {
+    if (!targetDate) {
+      setTimeLeft(0)
+      return
+    }
+
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime()
+      const target = targetDate.getTime()
+      const diff = Math.max(0, target - now)
+      return Math.floor(diff / 1000)
+    }
+
+    setTimeLeft(calculateTimeLeft())
+
+    const interval = setInterval(() => {
+      const remaining = calculateTimeLeft()
+      setTimeLeft(remaining)
+      if (remaining <= 0 && onExpire) {
+        onExpire()
+      }
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [targetDate, onExpire])
+
+  const minutes = Math.floor(timeLeft / 60)
+  const seconds = timeLeft % 60
+
+  return { timeLeft, minutes, seconds, isExpired: timeLeft <= 0 }
+}
+
 export default function DriverBookingsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { showToast } = useToast()
   const queryClient = useQueryClient()
   const [statusFilter, setStatusFilter] = useState<'all' | 'PENDING_DRIVER_ACCEPTANCE' | 'ACCEPTED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'REJECTED'>('all')
+  const [bookingTypeFilter, setBookingTypeFilter] = useState<'all' | 'rental' | 'ride_hailing'>('all')
   const [selectedBooking, setSelectedBooking] = useState<number | null>(null)
   const [cashCollectionBooking, setCashCollectionBooking] = useState<any>(null)
   const [cashConfirmed, setCashConfirmed] = useState(false)
   const [isCashSubmitting, setIsCashSubmitting] = useState(false)
+  const [acceptingId, setAcceptingId] = useState<number | null>(null)
   
   const { bookings, isLoading } = useDriverCarBookings()
 
@@ -43,11 +81,21 @@ export default function DriverBookingsPage() {
   }
 
   const bookingsArray: any[] = Array.isArray(bookings) ? bookings : []
-  const filteredBookings: any[] = bookingsArray.filter((booking: any) => 
-    statusFilter === 'all' || booking.status === statusFilter
+  const filteredBookings: any[] = bookingsArray.filter((booking: any) => {
+    const matchesStatus = statusFilter === 'all' || booking.status === statusFilter
+    const bookingType = booking.booking_type || 'rental'
+    const matchesType = bookingTypeFilter === 'all' || bookingType === bookingTypeFilter
+    return matchesStatus && matchesType
+  })
+
+  // Get pending ride requests for priority display
+  const pendingRideRequests = bookingsArray.filter((booking: any) => 
+    booking.status === 'PENDING_DRIVER_ACCEPTANCE' && 
+    (booking.booking_type === 'ride_hailing')
   )
 
   const handleAcceptBooking = async (bookingId: number) => {
+    setAcceptingId(bookingId)
     try {
       await carsApi.respondToBooking(bookingId, 'accept')
       queryClient.invalidateQueries({ queryKey: ['cars', 'bookings', 'driver'] })
@@ -57,6 +105,8 @@ export default function DriverBookingsPage() {
       console.error('Failed to accept booking:', error)
       const errorMessage = error?.response?.data?.message || 'Failed to accept booking'
       showToast(errorMessage, 'error')
+    } finally {
+      setAcceptingId(null)
     }
   }
 
@@ -136,6 +186,49 @@ export default function DriverBookingsPage() {
     })
   }
 
+  const formatRideTime = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const isToday = date.toDateString() === now.toDateString()
+    const tomorrow = new Date(now)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const isTomorrow = date.toDateString() === tomorrow.toDateString()
+    
+    const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+    
+    if (isToday) return `Today ${timeStr}`
+    if (isTomorrow) return `Tomorrow ${timeStr}`
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + timeStr
+  }
+
+  // Countdown timer component for ride-hailing requests
+  const RideCountdownTimer = ({ expiresAt, bookingId }: { expiresAt: string, bookingId: number }) => {
+    const expireDate = new Date(expiresAt)
+    const { minutes, seconds, isExpired } = useCountdown(expireDate, () => {
+      queryClient.invalidateQueries({ queryKey: ['driver-car-bookings'] })
+    })
+    
+    if (isExpired) {
+      return (
+        <span className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-bold animate-pulse">
+          ⏰ EXPIRED
+        </span>
+      )
+    }
+    
+    const isUrgent = minutes < 1
+    
+    return (
+      <span className={`px-2 py-1 rounded text-xs font-bold ${
+        isUrgent 
+          ? 'bg-red-100 text-red-700 animate-pulse' 
+          : 'bg-orange-100 text-orange-700'
+      }`}>
+        ⏱️ {minutes}:{seconds.toString().padStart(2, '0')}
+      </span>
+    )
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'CONFIRMED':
@@ -156,6 +249,9 @@ export default function DriverBookingsPage() {
   }
 
   const getStatusActions = (booking: any) => {
+    const isRideHailing = booking.booking_type === 'ride_hailing'
+    const isAccepting = acceptingId === booking.id
+    
     switch (booking.status) {
       case 'PENDING_DRIVER_ACCEPTANCE':
         return (
@@ -164,13 +260,23 @@ export default function DriverBookingsPage() {
               <Button 
                 size="sm" 
                 onClick={() => handleAcceptBooking(booking.id)}
+                disabled={isAccepting}
+                className={isRideHailing ? 'bg-teal-600 hover:bg-teal-700' : ''}
               >
-                Accept
+                {isAccepting ? (
+                  <span className="flex items-center gap-1">
+                    <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Accepting...
+                  </span>
+                ) : isRideHailing ? '⚡ Quick Accept' : 'Accept'}
               </Button>
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={() => handleRejectBooking(booking.id)}
+                disabled={isAccepting}
               >
                 Reject
               </Button>
@@ -248,7 +354,33 @@ export default function DriverBookingsPage() {
       <div className="container mx-auto px-4 py-8">
 
       {/* Status Filter */}
-      <div className="mb-6">
+      <div className="mb-6 space-y-4">
+        {/* Booking Type Filter */}
+        <div className="flex gap-2">
+          {[
+            { value: 'all' as const, label: 'All Bookings', icon: '📋' },
+            { value: 'ride_hailing' as const, label: '🚗 Rides', color: 'teal' },
+            { value: 'rental' as const, label: '📅 Rentals', color: 'blue' },
+          ].map((filter) => (
+            <button
+              key={filter.value}
+              onClick={() => setBookingTypeFilter(filter.value)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                bookingTypeFilter === filter.value
+                  ? filter.value === 'ride_hailing'
+                    ? 'bg-teal-100 text-teal-800 border-2 border-teal-300'
+                    : filter.value === 'rental'
+                      ? 'bg-blue-100 text-blue-800 border-2 border-blue-300'
+                      : 'bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-2 border-transparent'
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Status Filter */}
         <div className="flex flex-wrap gap-2">
           {[
             { value: 'all', label: 'All' },
@@ -288,18 +420,39 @@ export default function DriverBookingsPage() {
             </Card>
           ))
         ) : filteredBookings.length > 0 ? (
-          filteredBookings.map((booking: any) => (
-            <Card key={booking.id} className="hover:shadow-md transition-shadow">
+          filteredBookings.map((booking: any) => {
+            const isRideHailing = booking.booking_type === 'ride_hailing'
+            const isPending = booking.status === 'PENDING_DRIVER_ACCEPTANCE'
+            
+            return (
+            <Card 
+              key={booking.id} 
+              className={`hover:shadow-md transition-shadow ${
+                isRideHailing && isPending ? 'border-2 border-teal-400 ring-1 ring-teal-400/20' : ''
+              }`}
+            >
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-3">
+                      {/* Booking Type Badge */}
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${
+                        isRideHailing 
+                          ? 'bg-teal-100 text-teal-800' 
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {isRideHailing ? '🚗 RIDE' : '📅 RENTAL'}
+                      </span>
                       <h3 className="text-lg font-semibold">
                         {booking.car?.make || 'Car'} {booking.car?.model || ''}
                       </h3>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
                         {booking.status.replace(/_/g, ' ')}
                       </span>
+                      {/* Countdown timer for pending ride requests */}
+                      {isRideHailing && isPending && booking.expires_at && (
+                        <RideCountdownTimer expiresAt={booking.expires_at} bookingId={booking.id} />
+                      )}
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
@@ -307,13 +460,13 @@ export default function DriverBookingsPage() {
                         <span className="font-medium">Customer:</span> {booking.customer?.name || 'N/A'}
                       </div>
                       <div>
-                        <span className="font-medium">Pick-up:</span> {booking.start_date ? formatDate(booking.start_date) : 'N/A'}
+                        <span className="font-medium">{isRideHailing ? 'Pickup Time:' : 'Pick-up:'}</span> {booking.start_date ? (isRideHailing ? formatRideTime(booking.start_date) : formatDate(booking.start_date)) : 'N/A'}
                       </div>
                       <div>
-                        <span className="font-medium">Return:</span> {booking.end_date ? formatDate(booking.end_date) : 'N/A'}
+                        <span className="font-medium">{isRideHailing ? 'Est. Distance:' : 'Return:'}</span> {isRideHailing ? `${booking.estimated_distance || 0} km` : (booking.end_date ? formatDate(booking.end_date) : 'N/A')}
                       </div>
                       <div>
-                        <span className="font-medium">Earnings:</span> PKR {(booking.driver_earnings || 0).toLocaleString()}
+                        <span className="font-medium">Earnings:</span> <span className={isRideHailing ? 'text-teal-700 font-semibold' : ''}>PKR {(booking.driver_earnings || 0).toLocaleString()}</span>
                       </div>
                     </div>
 
@@ -336,7 +489,7 @@ export default function DriverBookingsPage() {
                 </div>
               </CardContent>
             </Card>
-          ))
+          )})
         ) : (
           <Card>
             <CardContent className="p-12 text-center">

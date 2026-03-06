@@ -11,6 +11,9 @@ import { CarFilters, CarFilterState } from '@/components/cars/CarFilters'
 import { CityExplorer } from '@/components/cars/CityExplorer'
 import { useCarSearch } from '@/features/cars/useCarSearch'
 import { useAuth } from '@/features/auth/useAuth'
+import { BookingType } from '@/types'
+
+type SearchBookingMode = 'all' | 'RENTAL' | 'RIDE_HAILING'
 
 export default function CarsPage() {
   const router = useRouter()
@@ -95,6 +98,8 @@ export default function CarsPage() {
   
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [showAllCars, setShowAllCars] = useState(false)
+  const [searchBookingMode, setSearchBookingMode] = useState<SearchBookingMode>('all')
+  const [showAvailableNow, setShowAvailableNow] = useState(false)
   
   // Check if any filters are active
   const hasActiveFilters = 
@@ -124,6 +129,7 @@ export default function CarsPage() {
         : undefined,
     fuel_type: filters.fuelType || undefined,
     max_price: filters.maxPrice < 10000 ? filters.maxPrice : undefined,
+    booking_type: searchBookingMode === 'all' ? undefined : searchBookingMode as BookingType,
   })
 
   // Auto-load all cars on first visit if no user location
@@ -291,6 +297,73 @@ export default function CarsPage() {
             </div>
           </motion.div>
 
+          {/* Booking Mode Selector */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-8 bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 border border-white/10"
+          >
+            <p className="text-sm text-gray-400 mb-3">I need a car for:</p>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => setSearchBookingMode('all')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all ${
+                  searchBookingMode === 'all'
+                    ? 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white shadow-lg'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                All Options
+              </button>
+              <button
+                onClick={() => setSearchBookingMode('RIDE_HAILING')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all ${
+                  searchBookingMode === 'RIDE_HAILING'
+                    ? 'bg-teal-500 text-white shadow-lg'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Within City Rides
+              </button>
+              <button
+                onClick={() => setSearchBookingMode('RENTAL')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all ${
+                  searchBookingMode === 'RENTAL'
+                    ? 'bg-blue-500 text-white shadow-lg'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                City to City Rentals
+              </button>
+            </div>
+            
+            {/* Conditional filters based on mode */}
+            {searchBookingMode === 'RIDE_HAILING' && (
+              <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showAvailableNow}
+                    onChange={(e) => setShowAvailableNow(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-teal-500 focus:ring-teal-500"
+                  />
+                  <span className="text-sm text-gray-300">Available Now</span>
+                </label>
+                <span className="text-xs text-gray-500">Drivers currently accepting rides</span>
+              </div>
+            )}
+          </motion.div>
+
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Filters Sidebar */}
             <div className="lg:col-span-1">
@@ -361,6 +434,15 @@ export default function CarsPage() {
                           updatedAt: car.createdAt,
                           transmission: car.car.transmission,
                           fuelType: car.car.fuel_type,
+                          // Dual-mode availability
+                          availableForRental: car.availability?.available_for_rental ?? true,
+                          availableForRideHailing: car.availability?.available_for_ride_hailing ?? false,
+                          // Ride-hailing pricing
+                          baseFare: car.pricing.base_fare,
+                          perKmRate: car.pricing.per_km_rate,
+                          perMinuteRate: car.pricing.per_minute_rate,
+                          minimumFare: car.pricing.minimum_fare,
+                          distanceRatePerKm: car.pricing.distance_rate_per_km,
                         }} isAvailable={true} />
                       </Link>
                     </motion.div>

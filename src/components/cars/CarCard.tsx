@@ -11,11 +11,39 @@ interface CarCardProps {
       rating?: number
       totalTrips?: number
     }
+    // Dual-mode availability
+    availableForRental?: boolean
+    availableForRideHailing?: boolean
+    // Ride-hailing pricing
+    baseFare?: number
+    perKmRate?: number
+    perMinuteRate?: number
+    minimumFare?: number
+    // Distance rate for rentals
+    distanceRatePerKm?: number
   }
   isAvailable?: boolean
 }
 
 export function CarCard({ car, isAvailable = true }: CarCardProps) {
+  // Determine availability modes
+  const availableForRental = car.availableForRental ?? true
+  const availableForRideHailing = car.availableForRideHailing ?? false
+  const supportsBothModes = availableForRental && availableForRideHailing
+
+  // Get availability badge text and color
+  const getAvailabilityBadge = () => {
+    if (supportsBothModes) {
+      return { text: 'Rentals & Rides', color: 'bg-purple-500/90' }
+    } else if (availableForRideHailing) {
+      return { text: 'Rides Only', color: 'bg-teal-500/90' }
+    } else {
+      return { text: 'Rentals Only', color: 'bg-blue-500/90' }
+    }
+  }
+
+  const availabilityBadge = getAvailabilityBadge()
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -51,6 +79,11 @@ export function CarCard({ car, isAvailable = true }: CarCardProps) {
             {isAvailable ? 'Available' : 'Booked'}
           </div>
 
+          {/* Mode Availability Badge */}
+          <div className={`absolute top-10 left-3 px-2 py-0.5 rounded-full text-[10px] font-medium ${availabilityBadge.color} text-white`}>
+            {availabilityBadge.text}
+          </div>
+
           {/* Verification Badge */}
           {car.driver?.isVerified && (
             <div className="absolute top-3 right-3 bg-blue-500/90 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
@@ -61,9 +94,21 @@ export function CarCard({ car, isAvailable = true }: CarCardProps) {
             </div>
           )}
 
-          {/* Price Badge */}
-          <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm text-white px-3 py-1 rounded-lg text-sm font-semibold">
-            PKR {car.pricePerDay?.toLocaleString()}/day
+          {/* Price Badge - Show dual pricing if both modes available */}
+          <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-sm">
+            {supportsBothModes ? (
+              <div className="flex flex-col items-end">
+                <span className="font-semibold text-blue-400">PKR {car.pricePerDay?.toLocaleString()}/day</span>
+                <span className="text-xs text-teal-400">~PKR {car.perKmRate ?? car.distanceRatePerKm ?? 25}/km</span>
+              </div>
+            ) : availableForRideHailing ? (
+              <div className="flex flex-col items-end">
+                <span className="font-semibold text-teal-400">~PKR {car.perKmRate ?? 25}/km</span>
+                {car.baseFare && <span className="text-xs text-gray-400">Base: PKR {car.baseFare}</span>}
+              </div>
+            ) : (
+              <span className="font-semibold">PKR {car.pricePerDay?.toLocaleString()}/day</span>
+            )}
           </div>
 
           {/* Unavailable Overlay */}

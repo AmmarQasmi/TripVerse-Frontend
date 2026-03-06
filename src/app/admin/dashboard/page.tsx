@@ -495,8 +495,42 @@ export default function AdminDashboard() {
                        </p>
                      </div>
                    </div>
+                   
+                   {/* Revenue by Booking Type */}
+                   {stats.revenue.by_type && (
+                     <div className="mb-6">
+                       <h4 className="text-sm font-semibold text-gray-600 mb-3">Revenue by Booking Type</h4>
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 flex justify-between items-center">
+                           <div>
+                             <p className="text-sm text-blue-600 font-medium flex items-center gap-2">
+                               <span className="text-lg">📅</span> Rentals
+                             </p>
+                             <p className="text-xl font-bold text-blue-800">{formatCurrency(stats.revenue.by_type.rental.total)}</p>
+                             <p className="text-xs text-blue-500">Platform Fees: {formatCurrency(stats.revenue.by_type.rental.platform_fees)}</p>
+                           </div>
+                           <div className="text-3xl">🚗</div>
+                         </div>
+                         <div className="p-4 rounded-xl bg-teal-50 border border-teal-200 flex justify-between items-center">
+                           <div>
+                             <p className="text-sm text-teal-600 font-medium flex items-center gap-2">
+                               <span className="text-lg">🚕</span> Ride-Hailing
+                             </p>
+                             <p className="text-xl font-bold text-teal-800">{formatCurrency(stats.revenue.by_type.ride_hailing.total)}</p>
+                             <p className="text-xs text-teal-500">Platform Fees: {formatCurrency(stats.revenue.by_type.ride_hailing.platform_fees)}</p>
+                           </div>
+                           <div className="text-3xl">⚡</div>
+                         </div>
+                       </div>
+                     </div>
+                   )}
+                   
                    <SimpleChart
-                     data={[
+                     data={stats.revenue.by_type ? [
+                       { label: 'Rentals', value: stats.revenue.by_type.rental.total, color: 'rgba(59, 130, 246, 0.8)' },
+                       { label: 'Ride-Hailing', value: stats.revenue.by_type.ride_hailing.total, color: 'rgba(20, 184, 166, 0.8)' },
+                       { label: 'Commission', value: stats.revenue.commission, color: 'rgba(139, 92, 246, 0.8)' },
+                     ] : [
                        { label: 'Revenue', value: stats.revenue.total, color: 'rgba(16, 185, 129, 0.8)' },
                        { label: 'Commission', value: stats.revenue.commission, color: 'rgba(59, 130, 246, 0.8)' },
                      ]}
@@ -507,6 +541,107 @@ export default function AdminDashboard() {
                </Card>
              </div>
            </motion.div>
+           
+           {/* Booking Type Analytics */}
+           {stats.bookings.by_type && (
+             <motion.div
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ delay: 1.1 }}
+               className="mb-8"
+             >
+               <div className="rounded-2xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg">
+                 <Card className="rounded-2xl bg-white">
+                   <CardHeader>
+                     <CardTitle className="text-gray-900">
+                       <motion.span
+                         className="animated-gradient-text inline-block"
+                         initial={{ backgroundPosition: '0% 50%' }}
+                         animate={{ backgroundPosition: '100% 50%' }}
+                         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                       >
+                         Booking Type Analytics
+                       </motion.span>
+                     </CardTitle>
+                   </CardHeader>
+                   <CardContent>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       {/* Rentals Card */}
+                       <div className="p-6 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-lg">
+                         <div className="flex items-center justify-between mb-4">
+                           <div className="flex items-center gap-3">
+                             <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                               <span className="text-2xl">📅</span>
+                             </div>
+                             <div>
+                               <h4 className="font-semibold text-lg">Car Rentals</h4>
+                               <p className="text-sm text-blue-200">Multi-day bookings</p>
+                             </div>
+                           </div>
+                         </div>
+                         <div className="grid grid-cols-3 gap-4 text-center">
+                           <div>
+                             <p className="text-2xl font-bold">{stats.bookings.by_type.rental.today}</p>
+                             <p className="text-xs text-blue-200">Today</p>
+                           </div>
+                           <div>
+                             <p className="text-2xl font-bold">{stats.bookings.by_type.rental.this_month}</p>
+                             <p className="text-xs text-blue-200">This Month</p>
+                           </div>
+                           <div>
+                             <p className="text-2xl font-bold">{stats.bookings.by_type.rental.total}</p>
+                             <p className="text-xs text-blue-200">Total</p>
+                           </div>
+                         </div>
+                       </div>
+                       
+                       {/* Ride-Hailing Card */}
+                       <div className="p-6 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 text-white shadow-lg">
+                         <div className="flex items-center justify-between mb-4">
+                           <div className="flex items-center gap-3">
+                             <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                               <span className="text-2xl">🚕</span>
+                             </div>
+                             <div>
+                               <h4 className="font-semibold text-lg">Ride-Hailing</h4>
+                               <p className="text-sm text-teal-200">On-demand rides</p>
+                             </div>
+                           </div>
+                         </div>
+                         <div className="grid grid-cols-3 gap-4 text-center">
+                           <div>
+                             <p className="text-2xl font-bold">{stats.bookings.by_type.ride_hailing.today}</p>
+                             <p className="text-xs text-teal-200">Today</p>
+                           </div>
+                           <div>
+                             <p className="text-2xl font-bold">{stats.bookings.by_type.ride_hailing.this_month}</p>
+                             <p className="text-xs text-teal-200">This Month</p>
+                           </div>
+                           <div>
+                             <p className="text-2xl font-bold">{stats.bookings.by_type.ride_hailing.total}</p>
+                             <p className="text-xs text-teal-200">Total</p>
+                           </div>
+                         </div>
+                       </div>
+                     </div>
+                     
+                     {/* Comparison Chart */}
+                     <div className="mt-6">
+                       <h4 className="text-sm font-semibold text-gray-600 mb-3">Booking Distribution</h4>
+                       <SimpleChart
+                         data={[
+                           { label: 'Rentals', value: stats.bookings.by_type.rental.total, color: 'rgba(59, 130, 246, 0.8)' },
+                           { label: 'Ride-Hailing', value: stats.bookings.by_type.ride_hailing.total, color: 'rgba(20, 184, 166, 0.8)' },
+                         ]}
+                         type="bar"
+                         height={150}
+                       />
+                     </div>
+                   </CardContent>
+                 </Card>
+               </div>
+             </motion.div>
+           )}
           </motion.section>
 
          {/* Quick Actions */}

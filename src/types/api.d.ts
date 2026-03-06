@@ -166,6 +166,9 @@ export interface HotelSearchParams {
   amenities?: string[]
 }
 
+// Booking type for dual-mode car system
+export type BookingType = 'RENTAL' | 'RIDE_HAILING'
+
 // Car types
 export interface Car {
   id: string
@@ -187,6 +190,14 @@ export interface Car {
   updatedAt: string
   transmission: string
   fuelType: string
+  // Dual-mode fields
+  available_for_rental?: boolean
+  available_for_ride_hailing?: boolean
+  base_fare?: number
+  per_km_rate?: number
+  per_minute_rate?: number
+  minimum_fare?: number
+  current_mode?: 'offline' | 'rental' | 'ride_hailing'
 }
 
 // New API response types for cars
@@ -211,6 +222,16 @@ export interface CarApiResponse {
   pricing: {
     base_price_per_day: number
     distance_rate_per_km: number
+    // Ride-hailing pricing (optional)
+    base_fare?: number
+    per_km_rate?: number
+    per_minute_rate?: number
+    minimum_fare?: number
+  }
+  availability?: {
+    available_for_rental: boolean
+    available_for_ride_hailing: boolean
+    current_mode: string
   }
   images: string[]
   createdAt: string
@@ -232,14 +253,109 @@ export interface CarBooking {
   id: string
   carId: string
   userId: string
-  startDate: string
-  endDate: string
+  startDate?: string  // Optional for ride-hailing
+  endDate?: string    // Optional for ride-hailing
   totalAmount: number
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'PENDING_DRIVER_ACCEPTANCE' | 'ACCEPTED' | 'IN_PROGRESS'
   createdAt: string
   updatedAt: string
   car?: Car
   user?: User
+  // Dual-mode fields
+  booking_type?: BookingType
+  scheduled_pickup?: string
+  pickup_city_id?: number
+  dropoff_city_id?: number
+  base_fare?: number
+  surge_multiplier?: number
+  estimated_duration?: number
+}
+
+// Price calculation request (dual-mode)
+export interface PriceCalculationRequest {
+  pickup_location: string
+  dropoff_location: string
+  booking_type?: BookingType        // Optional - auto-detected if not provided
+  start_date?: string               // Required for RENTAL, optional for RIDE_HAILING
+  end_date?: string                 // Required for RENTAL, optional for RIDE_HAILING
+  scheduled_pickup?: string         // Optional for RIDE_HAILING (defaults to now)
+  estimated_distance?: number       // Optional - calculated by backend if not provided
+}
+
+// Price calculation response (dual-mode)
+export interface PriceCalculationResponse {
+  car_id: number
+  driver_id: number
+  pickup_location: string
+  dropoff_location: string
+  booking_type: BookingType
+  detected_booking_type: BookingType  // What was auto-detected
+  estimated_distance: number
+  
+  // Rental-specific fields
+  trip_duration_days?: number
+  
+  // Ride-hailing-specific fields
+  estimated_duration?: number         // In minutes
+  surge_multiplier?: number
+  scheduled_pickup?: string
+  
+  // Cities detected from geocoding
+  detected_cities: {
+    pickup_city_name: string | null
+    pickup_city_id: number | null
+    dropoff_city_name: string | null
+    dropoff_city_id: number | null
+    same_city: boolean
+  }
+  
+  // Pricing breakdown (varies by mode)
+  pricing_breakdown: {
+    // Common fields
+    total_amount: number
+    driver_earnings: number
+    platform_fee: number
+    platform_fee_percentage: number
+    
+    // Rental-specific
+    base_price?: number
+    distance_price?: number
+    
+    // Ride-hailing-specific
+    base_fare?: number
+    distance_fare?: number
+    time_fare?: number
+    surge_multiplier?: number
+    minimum_fare?: number
+  }
+}
+
+// Driver mode status
+export interface DriverModeStatus {
+  driver_id: number
+  is_verified: boolean
+  primary_mode: 'offline' | 'rental' | 'ride_hailing'
+  current_mode: 'offline' | 'rental' | 'ride_hailing'  // Current active mode
+  cars: Array<{
+    id: number
+    name: string
+    current_mode: string
+    available_for_rental: boolean
+    available_for_ride_hailing: boolean
+    is_listed: boolean
+  }>
+  pending_ride_hailing_requests: number
+  has_active_booking: boolean
+  active_booking: {
+    id: number
+    booking_type: BookingType
+    pickup_location: string
+    dropoff_location: string
+  } | null
+  can_switch_mode: boolean
+  // Active booking counts
+  active_rental_bookings: number
+  active_ride_hailing_bookings: number
 }
 
 export interface HotelBooking {
@@ -304,6 +420,7 @@ export interface CarSearchParams {
   fuel_type?: string
   min_price?: number
   max_price?: number
+  booking_type?: BookingType  // Filter by RENTAL or RIDE_HAILING
 }
 
 export interface HotelSearchParams {

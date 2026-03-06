@@ -223,6 +223,92 @@ export default function AdminReportsPage() {
                     </Card>
                   </div>
                 )}
+
+                {/* Car Booking Type Breakdown */}
+                {bookingsData.car_bookings_by_type && (
+                  <div className="rounded-2xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg">
+                    <Card className="bg-white rounded-2xl">
+                      <CardHeader>
+                        <CardTitle className="text-gray-900">
+                          <span className="flex items-center gap-2">
+                            <span>🚗</span> Car Bookings Breakdown
+                          </span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                          {/* Rentals */}
+                          <div className="p-6 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white">
+                            <div className="flex items-center gap-3 mb-4">
+                              <span className="text-2xl">📅</span>
+                              <div>
+                                <h4 className="font-semibold text-lg">Car Rentals</h4>
+                                <p className="text-sm text-blue-200">Multi-day bookings</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="text-center p-2 bg-white/10 rounded-lg">
+                                <p className="text-xl font-bold">{bookingsData.car_bookings_by_type.rental?.total || 0}</p>
+                                <p className="text-xs text-blue-200">Total</p>
+                              </div>
+                              <div className="text-center p-2 bg-white/10 rounded-lg">
+                                <p className="text-xl font-bold">{bookingsData.car_bookings_by_type.rental?.completed || 0}</p>
+                                <p className="text-xs text-blue-200">Completed</p>
+                              </div>
+                              <div className="text-center p-2 bg-white/10 rounded-lg">
+                                <p className="text-xl font-bold">{(bookingsData.car_bookings_by_type.rental?.pending || 0) + (bookingsData.car_bookings_by_type.rental?.confirmed || 0) + (bookingsData.car_bookings_by_type.rental?.in_progress || 0)}</p>
+                                <p className="text-xs text-blue-200">Active</p>
+                              </div>
+                              <div className="text-center p-2 bg-white/10 rounded-lg">
+                                <p className="text-xl font-bold">{bookingsData.car_bookings_by_type.rental?.cancelled || 0}</p>
+                                <p className="text-xs text-blue-200">Cancelled</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Ride-Hailing */}
+                          <div className="p-6 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 text-white">
+                            <div className="flex items-center gap-3 mb-4">
+                              <span className="text-2xl">🚕</span>
+                              <div>
+                                <h4 className="font-semibold text-lg">Ride-Hailing</h4>
+                                <p className="text-sm text-teal-200">On-demand rides</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="text-center p-2 bg-white/10 rounded-lg">
+                                <p className="text-xl font-bold">{bookingsData.car_bookings_by_type.ride_hailing?.total || 0}</p>
+                                <p className="text-xs text-teal-200">Total</p>
+                              </div>
+                              <div className="text-center p-2 bg-white/10 rounded-lg">
+                                <p className="text-xl font-bold">{bookingsData.car_bookings_by_type.ride_hailing?.completed || 0}</p>
+                                <p className="text-xs text-teal-200">Completed</p>
+                              </div>
+                              <div className="text-center p-2 bg-white/10 rounded-lg">
+                                <p className="text-xl font-bold">{(bookingsData.car_bookings_by_type.ride_hailing?.pending || 0) + (bookingsData.car_bookings_by_type.ride_hailing?.confirmed || 0) + (bookingsData.car_bookings_by_type.ride_hailing?.in_progress || 0)}</p>
+                                <p className="text-xs text-teal-200">Active</p>
+                              </div>
+                              <div className="text-center p-2 bg-white/10 rounded-lg">
+                                <p className="text-xl font-bold">{bookingsData.car_bookings_by_type.ride_hailing?.cancelled || 0}</p>
+                                <p className="text-xs text-teal-200">Cancelled</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Comparison Chart */}
+                        <SimpleChart
+                          type="bar"
+                          data={[
+                            { label: 'Rentals', value: bookingsData.car_bookings_by_type.rental?.total || 0, color: 'rgba(59, 130, 246, 0.8)' },
+                            { label: 'Ride-Hailing', value: bookingsData.car_bookings_by_type.ride_hailing?.total || 0, color: 'rgba(20, 184, 166, 0.8)' },
+                          ]}
+                          height={150}
+                        />
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
               </div>
             ) : null}
           </motion.div>
