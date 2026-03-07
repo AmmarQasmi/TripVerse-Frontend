@@ -1,6 +1,6 @@
 import { httpClient } from './http'
 import { API_ENDPOINTS } from './endpoints'
-import { Car, CarSearchParams, CarApiResponse } from '@/types'
+import { Car, CarSearchParams, CarApiResponse, BookingType, PriceCalculationRequest, PriceCalculationResponse, DriverModeStatus } from '@/types'
 import { DriverBooking } from '@/types/api'
 
 export const carsApi = {
@@ -81,6 +81,7 @@ export const carsApi = {
     if (params.maxPrice) searchParams.append('max_price', params.maxPrice.toString())
     if (params.min_price) searchParams.append('min_price', params.min_price.toString())
     if (params.max_price) searchParams.append('max_price', params.max_price.toString())
+    if (params.booking_type) searchParams.append('booking_type', params.booking_type)
 
     return httpClient.get<{
       data: CarApiResponse[]
@@ -93,13 +94,29 @@ export const carsApi = {
     }>(`${API_ENDPOINTS.CARS.SEARCH}?${searchParams.toString()}`)
   },
 
-  // Get unavailable dates for a car
-  getUnavailableDates: async (carId: string) => {
+  // Get unavailable dates or real-time availability for a car
+  getUnavailableDates: async (carId: string, mode?: 'rental' | 'ride_hailing') => {
+    const params = mode ? `?mode=${mode}` : ''
     return httpClient.get<{
       car_id: number
-      unavailable_dates: string[]
-      booking_ranges: Array<{ start_date: string; end_date: string; status: string }>
-    }>(`/cars/${carId}/unavailable-dates`)
+      mode: 'rental' | 'ride_hailing'
+      // Rental mode response
+      unavailable_dates?: string[]
+      booking_ranges?: Array<{ start_date: string; end_date: string; status: string }>
+      // Ride-hailing mode response
+      driver_name?: string
+      is_available?: boolean
+      current_mode?: string
+      available_for_ride_hailing?: boolean
+      has_active_ride?: boolean
+      active_ride?: {
+        id: number
+        pickup: string
+        dropoff: string
+        started_at: string
+      } | null
+      pending_requests?: number
+    }>(`/cars/${carId}/unavailable-dates${params}`)
   },
 
   // Get car details by ID
@@ -107,43 +124,52 @@ export const carsApi = {
     return httpClient.get<CarApiResponse>(API_ENDPOINTS.CARS.BY_ID(id))
   },
 
-  // Calculate price for a specific car and route
-  calculatePrice: async (carId: string, pickupLocation: string, dropoffLocation: string, startDate: string, endDate: string, estimatedDistance?: number) => {
-    const body: any = {
+  // Calculate price for a specific car and route (dual-mode support)
+  calculatePrice: async (
+    carId: string,
+    pickupLocation: string,
+    dropoffLocation: string,
+    options?: {
+      bookingType?: BookingType
+      startDate?: string
+      endDate?: string
+      scheduledPickup?: string
+      estimatedDistance?: number
+    }
+  ) => {
+    const body: PriceCalculationRequest = {
       pickup_location: pickupLocation,
       dropoff_location: dropoffLocation,
-      start_date: startDate,
-      end_date: endDate,
-    }
-    // Only include estimated_distance if provided (backend will calculate automatically if not provided)
-    if (estimatedDistance) {
-      body.estimated_distance = estimatedDistance
     }
     
-    return httpClient.post<{
-      car_id: number
-      driver_id: number
-      pickup_location: string
-      dropoff_location: string
-      estimated_distance: number
-      trip_duration_days: number
-      pricing_breakdown: {
-        base_price: number
-        distance_price: number
-        total_amount: number
-        driver_earnings: number
-        platform_fee: number
-      }
-    }>(`/cars/${carId}/calculate-price`, body)
+    if (options?.bookingType) {
+      body.booking_type = options.bookingType
+    }
+    if (options?.startDate) {
+      body.start_date = options.startDate
+    }
+    if (options?.endDate) {
+      body.end_date = options.endDate
+    }
+    if (options?.scheduledPickup) {
+      body.scheduled_pickup = options.scheduledPickup
+    }
+    if (options?.estimatedDistance) {
+      body.estimated_distance = options.estimatedDistance
+    }
+    
+    return httpClient.post<PriceCalculationResponse>(`/cars/${carId}/calculate-price`, body)
   },
 
-  // Create booking request
+  // Create booking request (dual-mode support)
   createBookingRequest: async (data: {
     car_id: number
     pickup_location: string
     dropoff_location: string
-    start_date: string
-    end_date: string
+    booking_type?: BookingType      // Optional - auto-detected if not provided
+    start_date?: string             // Required for RENTAL
+    end_date?: string               // Required for RENTAL
+    scheduled_pickup?: string       // Optional for RIDE_HAILING
     customer_notes?: string
     payment_method?: string
   }) => {
@@ -151,6 +177,7 @@ export const carsApi = {
       id: number
       status: string
       message: string
+      booking_type: BookingType
       booking_details: {
         car: {
           make: string
@@ -164,9 +191,43 @@ export const carsApi = {
           total_amount: number
           driver_earnings: number
           platform_fee: number
+          surge_multiplier?: number
         }
+        // Ride-hailing specific
+        estimated_duration?: number
+        scheduled_pickup?: string
       }
     }>('/cars/bookings/request', data)
+  },
+
+  // Switch driver mode (offline/rental/ride_hailing)
+  switchDriverMode: async (mode: 'offline' | 'rental' | 'ride_hailing') => {
+    return httpClient.post<{
+      success: boolean
+      message: string
+      mode: string
+      updated_cars: number
+    }>('/drivers/mode/switch', { mode })
+  },
+
+  // Get driver mode status
+  getDriverModeStatus: async () => {
+    return httpClient.get<DriverModeStatus>('/drivers/mode/status')
+  },
+
+  // Update car ride-hailing settings
+  updateRideHailingSettings: async (carId: string, data: {
+    base_fare?: number
+    per_km_rate?: number
+    per_minute_rate?: number
+    minimum_fare?: number
+    available_for_rental?: boolean
+    available_for_ride_hailing?: boolean
+  }) => {
+    return httpClient.patch<{
+      id: number
+      message: string
+    }>(`/cars/${carId}/ride-hailing-settings`, data)
   },
 
   // Driver responds to booking request
@@ -384,6 +445,16 @@ export const carsApi = {
         pricing: {
           base_price_per_day: number
           distance_rate_per_km: number
+          // Ride-hailing pricing (optional - new feature)
+          base_fare?: number
+          per_km_rate?: number
+          per_minute_rate?: number
+          minimum_fare?: number
+        }
+        // Availability modes (optional - new feature)
+        availability?: {
+          available_for_rental?: boolean
+          available_for_ride_hailing?: boolean
         }
         images: string[]
         is_active: boolean

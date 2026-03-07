@@ -19,11 +19,35 @@ export interface AdminDashboardStats {
     this_week: number
     this_month: number
     total: number
+    // Booking type breakdown
+    by_type?: {
+      rental: {
+        today: number
+        this_month: number
+        total: number
+      }
+      ride_hailing: {
+        today: number
+        this_month: number
+        total: number
+      }
+    }
   }
   revenue: {
     total: number
     commission: number
     currency: string
+    // Revenue breakdown by type
+    by_type?: {
+      rental: {
+        total: number
+        platform_fees: number
+      }
+      ride_hailing: {
+        total: number
+        platform_fees: number
+      }
+    }
   }
   disputes: {
     pending: number

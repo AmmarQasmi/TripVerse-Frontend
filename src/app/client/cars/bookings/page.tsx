@@ -21,6 +21,7 @@ export default function CarBookingsPage() {
   const [selectedBooking, setSelectedBooking] = useState<number | null>(null)
   const [selectedBookingData, setSelectedBookingData] = useState<any>(null)
   const [statusFilter, setStatusFilter] = useState<string>('')
+  const [bookingTypeFilter, setBookingTypeFilter] = useState<'all' | 'rental' | 'ride_hailing'>('all')
   const [expandedBooking, setExpandedBooking] = useState<number | null>(null)
   const [cancellingId, setCancellingId] = useState<number | null>(null)
   
@@ -126,6 +127,40 @@ export default function CarBookingsPage() {
   const formatDate = (date: string) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   const formatTime = (date: string) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' at ' + new Date(date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
 
+  // Format date/time based on booking type
+  const formatBookingDateTime = (booking: any) => {
+    const bookingType = booking.booking_type || 'rental'
+    const startDate = new Date(booking.start_date)
+    const endDate = new Date(booking.end_date)
+    const now = new Date()
+    
+    if (bookingType === 'ride_hailing') {
+      // For rides: "Today at 3:30 PM" or "Tomorrow at 9:00 AM"
+      const isToday = startDate.toDateString() === now.toDateString()
+      const tomorrow = new Date(now)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      const isTomorrow = startDate.toDateString() === tomorrow.toDateString()
+      
+      const timeStr = startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+      
+      if (isToday) return `Today at ${timeStr}`
+      if (isTomorrow) return `Tomorrow at ${timeStr}`
+      return `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${timeStr}`
+    } else {
+      // For rentals: "Jun 15 - Jun 18 (3 days)"
+      const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+      const startStr = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      const endStr = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      return `${startStr} - ${endStr} (${days} day${days > 1 ? 's' : ''})`
+    }
+  }
+
+  // Filter bookings by type
+  const filteredBookings = bookings?.filter((booking: any) => {
+    if (bookingTypeFilter === 'all') return true
+    return (booking.booking_type || 'rental') === bookingTypeFilter
+  }) || []
+
   // Timeline steps for a booking
   const getTimeline = (booking: any) => {
     const steps = [
@@ -159,6 +194,12 @@ export default function CarBookingsPage() {
     { key: 'CANCELLED', label: 'Cancelled' },
   ]
 
+  const bookingTypeTabs = [
+    { key: 'all' as const, label: 'All Bookings', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg> },
+    { key: 'ride_hailing' as const, label: 'Rides', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg> },
+    { key: 'rental' as const, label: 'Rentals', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
+  ]
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <div className="container mx-auto px-4 py-6 max-w-6xl">
@@ -172,6 +213,30 @@ export default function CarBookingsPage() {
           </button>
           <h1 className="text-3xl font-bold text-white">My Bookings</h1>
           <p className="text-gray-400 text-sm mt-1">Track and manage your car rental bookings</p>
+        </motion.div>
+
+        {/* Booking Type Filter */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }} className="mb-4">
+          <div className="flex gap-2">
+            {bookingTypeTabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setBookingTypeFilter(tab.key)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                  bookingTypeFilter === tab.key
+                    ? tab.key === 'ride_hailing' 
+                      ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
+                      : tab.key === 'rental'
+                        ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                        : 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white shadow-lg shadow-teal-500/20'
+                    : 'bg-gray-800/60 text-gray-400 hover:text-white hover:bg-gray-700/60 border border-white/5'
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </motion.div>
 
         {/* Status Filter Tabs */}
@@ -197,11 +262,13 @@ export default function CarBookingsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Bookings List */}
           <div className="lg:col-span-2 space-y-4">
-            {bookings && bookings.length > 0 ? (
-              bookings.map((booking: any, index: number) => {
+            {filteredBookings && filteredBookings.length > 0 ? (
+              filteredBookings.map((booking: any, index: number) => {
                 const status = getStatus(booking.status)
                 const isExpanded = expandedBooking === booking.id
                 const timeline = getTimeline(booking)
+                const bookingType = booking.booking_type || 'rental'
+                const isRideHailing = bookingType === 'ride_hailing'
 
                 return (
                   <motion.div
@@ -217,7 +284,7 @@ export default function CarBookingsPage() {
                     <div className="p-4">
                       <div className="flex items-start gap-4">
                         {/* Car Image */}
-                        <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-700 flex-shrink-0">
+                        <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-700 flex-shrink-0 relative">
                           {booking.car?.image ? (
                             <img src={booking.car.image} alt={`${booking.car.make} ${booking.car.model}`} className="w-full h-full object-cover" />
                           ) : (
@@ -227,6 +294,14 @@ export default function CarBookingsPage() {
                               </svg>
                             </div>
                           )}
+                          {/* Booking Type Badge */}
+                          <div className={`absolute top-1 left-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                            isRideHailing 
+                              ? 'bg-teal-500/90 text-white' 
+                              : 'bg-blue-500/90 text-white'
+                          }`}>
+                            {isRideHailing ? 'RIDE' : 'RENTAL'}
+                          </div>
                         </div>
 
                         {/* Info */}
@@ -283,10 +358,16 @@ export default function CarBookingsPage() {
                           <div className="flex items-center justify-between mt-3">
                             <div className="flex items-center gap-4 text-xs text-gray-400">
                               <span className="flex items-center gap-1">
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                {formatDate(booking.start_date)} - {formatDate(booking.end_date)}
+                                {isRideHailing ? (
+                                  <svg className="w-3.5 h-3.5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                )}
+                                <span className={isRideHailing ? 'text-teal-300' : ''}>{formatBookingDateTime(booking)}</span>
                               </span>
                               {booking.estimated_distance && (
                                 <span className="flex items-center gap-1">
@@ -294,6 +375,15 @@ export default function CarBookingsPage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                                   </svg>
                                   {booking.estimated_distance} km
+                                </span>
+                              )}
+                              {/* Show cities for intercity trips */}
+                              {isRideHailing && booking.is_intercity && (
+                                <span className="flex items-center gap-1 text-purple-400">
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                  </svg>
+                                  Intercity
                                 </span>
                               )}
                             </div>
@@ -402,9 +492,53 @@ export default function CarBookingsPage() {
 
                             {/* Price Breakdown */}
                             {booking.driver_earnings != null && (
-                              <div className="bg-gray-900/50 rounded-lg p-3">
-                                <h4 className="text-sm font-semibold text-white mb-2">Price Breakdown</h4>
+                              <div className={`rounded-lg p-3 ${isRideHailing ? 'bg-teal-900/20 border border-teal-500/20' : 'bg-gray-900/50'}`}>
+                                <h4 className="text-sm font-semibold text-white mb-2">
+                                  {isRideHailing ? 'Fare Breakdown' : 'Price Breakdown'}
+                                </h4>
                                 <div className="space-y-1.5 text-sm">
+                                  {/* Ride-hailing specific breakdown */}
+                                  {isRideHailing && (
+                                    <>
+                                      {booking.base_fare && (
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">Base Fare</span>
+                                          <span className="text-gray-300">PKR {booking.base_fare?.toLocaleString()}</span>
+                                        </div>
+                                      )}
+                                      {booking.distance_fare && (
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">Distance ({booking.estimated_distance} km)</span>
+                                          <span className="text-gray-300">PKR {booking.distance_fare?.toLocaleString()}</span>
+                                        </div>
+                                      )}
+                                      {booking.time_fare && (
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">Time ({booking.estimated_duration} min)</span>
+                                          <span className="text-gray-300">PKR {booking.time_fare?.toLocaleString()}</span>
+                                        </div>
+                                      )}
+                                      <hr className="border-gray-700" />
+                                    </>
+                                  )}
+                                  {/* Rental specific breakdown */}
+                                  {!isRideHailing && (
+                                    <>
+                                      {booking.base_amount && (
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">Daily Rate × Days</span>
+                                          <span className="text-gray-300">PKR {booking.base_amount?.toLocaleString()}</span>
+                                        </div>
+                                      )}
+                                      {booking.distance_amount && (
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">Distance Charge</span>
+                                          <span className="text-gray-300">PKR {booking.distance_amount?.toLocaleString()}</span>
+                                        </div>
+                                      )}
+                                      <hr className="border-gray-700" />
+                                    </>
+                                  )}
                                   <div className="flex justify-between">
                                     <span className="text-gray-400">Driver Earnings</span>
                                     <span className="text-gray-300">PKR {booking.driver_earnings?.toLocaleString()}</span>
@@ -416,7 +550,7 @@ export default function CarBookingsPage() {
                                   <hr className="border-gray-700" />
                                   <div className="flex justify-between font-semibold">
                                     <span className="text-white">Total</span>
-                                    <span className="text-teal-400">PKR {booking.total_amount?.toLocaleString()}</span>
+                                    <span className={isRideHailing ? 'text-teal-400' : 'text-blue-400'}>PKR {booking.total_amount?.toLocaleString()}</span>
                                   </div>
                                 </div>
                               </div>

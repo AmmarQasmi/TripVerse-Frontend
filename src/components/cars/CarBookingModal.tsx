@@ -2,13 +2,16 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CarApiResponse } from '@/types'
+import { CarApiResponse, BookingType, PriceCalculationResponse } from '@/types'
 import { carsApi } from '@/lib/api/cars.api'
 import { useToast } from '@/components/ui/Toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { RouteMap } from './RouteMap'
 import { BookingCalendar } from './BookingCalendar'
+
+// Booking mode selector type
+type BookingMode = 'within-city' | 'city-to-city' | 'auto'
 
 interface CarBookingModalProps {
   isOpen: boolean
@@ -26,16 +29,43 @@ interface PriceBreakdown {
   total_amount: number
   driver_earnings: number
   platform_fee: number
+  platform_fee_percentage: number
+  // Ride-hailing specific
+  base_fare?: number
+  distance_fare?: number
+  time_fare?: number
+  surge_multiplier?: number
+  minimum_fare?: number
+}
+
+interface DetectedCities {
+  pickup_city_name: string | null
+  pickup_city_id: number | null
+  dropoff_city_name: string | null
+  dropoff_city_id: number | null
+  same_city: boolean
 }
 
 export default function CarBookingModal({ isOpen, onClose, car, initialData }: CarBookingModalProps) {
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(0) // Start at step 0 (mode selection)
+  const [bookingMode, setBookingMode] = useState<BookingMode>('auto')
+  const [detectedBookingType, setDetectedBookingType] = useState<BookingType | null>(null)
+  const [finalBookingType, setFinalBookingType] = useState<BookingType | null>(null)
+  const [detectedCities, setDetectedCities] = useState<DetectedCities | null>(null)
+  const [showAutoDetectConfirm, setShowAutoDetectConfirm] = useState(false)
+  
   const [pickupLocation, setPickupLocation] = useState('')
   const [dropoffLocation, setDropoffLocation] = useState('')
   const [pickupDate, setPickupDate] = useState('')
   const [numberOfDays, setNumberOfDays] = useState(1)
   const [customerNotes, setCustomerNotes] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('cash')
+  
+  // Ride-hailing specific states
+  const [scheduledPickup, setScheduledPickup] = useState('')
+  const [isAsap, setIsAsap] = useState(true)
+  const [estimatedDuration, setEstimatedDuration] = useState(0)
+  const [surgeMultiplier, setSurgeMultiplier] = useState(1)
   
   // Autocomplete states
   const [pickupSuggestions, setPickupSuggestions] = useState<any[]>([])
@@ -85,7 +115,12 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
   // Reset on close
   useEffect(() => {
     if (!isOpen) {
-      setStep(1)
+      setStep(0)
+      setBookingMode('auto')
+      setDetectedBookingType(null)
+      setFinalBookingType(null)
+      setDetectedCities(null)
+      setShowAutoDetectConfirm(false)
       setPickupLocation('')
       setDropoffLocation('')
       setPickupDate('')
@@ -99,14 +134,19 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
       setPickupSuggestions([])
       setDropoffSuggestions([])
       setUnavailableDates([])
+      setScheduledPickup('')
+      setIsAsap(true)
+      setEstimatedDuration(0)
+      setSurgeMultiplier(1)
     }
   }, [isOpen])
 
-  // Fetch unavailable dates when modal opens
+  // Fetch unavailable dates when modal opens (only for rental mode)
   useEffect(() => {
-    if (isOpen && car?.id) {
+    // Only fetch unavailable dates for rental mode
+    if (isOpen && car?.id && (bookingMode === 'city-to-city' || bookingMode === 'auto')) {
       setIsLoadingDates(true)
-      carsApi.getUnavailableDates(car.id)
+      carsApi.getUnavailableDates(car.id, 'rental')
         .then(result => {
           setUnavailableDates(result.unavailable_dates || [])
         })
@@ -114,8 +154,11 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
           setUnavailableDates([])
         })
         .finally(() => setIsLoadingDates(false))
+    } else if (bookingMode === 'within-city') {
+      // Skip calendar for ride-hailing
+      setUnavailableDates([])
     }
-  }, [isOpen, car?.id])
+  }, [isOpen, car?.id, bookingMode])
 
   // Autocomplete handler
   const fetchSuggestions = useCallback(async (input: string, type: 'pickup' | 'dropoff') => {
@@ -156,33 +199,94 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
     return () => clearTimeout(timer)
   }, [dropoffLocation, fetchSuggestions, dropoffInputFocused])
 
+  // Validate Step 1 based on booking mode
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {}
     if (!pickupLocation.trim()) newErrors.pickup = 'Pickup location is required'
     if (!dropoffLocation.trim()) newErrors.dropoff = 'Drop-off location is required'
-    if (!pickupDate) newErrors.pickupDate = 'Pickup date is required'
-    if (numberOfDays < 1 || numberOfDays > 30) newErrors.days = 'Days must be between 1 and 30'
+    
+    // Mode-specific validation
+    if (bookingMode === 'city-to-city' || finalBookingType === 'RENTAL') {
+      // Rental requires dates
+      if (!pickupDate) newErrors.pickupDate = 'Pickup date is required'
+      if (numberOfDays < 1 || numberOfDays > 30) newErrors.days = 'Days must be between 1 and 30'
+    } else if (bookingMode === 'within-city' || finalBookingType === 'RIDE_HAILING') {
+      // Ride-hailing: if not ASAP, need scheduled time
+      if (!isAsap && !scheduledPickup) newErrors.scheduledPickup = 'Scheduled pickup time is required'
+    } else if (bookingMode === 'auto') {
+      // For auto mode, require dates (we'll determine type after calculation)
+      if (!pickupDate) newErrors.pickupDate = 'Pickup date is required'
+    }
+    
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
+  // Get booking type based on mode selection
+  const getSelectedBookingType = (): BookingType | undefined => {
+    if (bookingMode === 'within-city') return 'RIDE_HAILING'
+    if (bookingMode === 'city-to-city') return 'RENTAL'
+    return undefined // Auto-detect
+  }
+
   const handleNext = async () => {
+    // Step 0: Mode selection -> Step 1
+    if (step === 0) {
+      setStep(1)
+      return
+    }
+    
+    // Step 1: Route selection -> Calculate price and go to Step 2
     if (step === 1) {
       if (!validateStep1()) return
-      // Calculate price
+      
       setIsCalculating(true)
       try {
-        const endDate = computeEndDate(pickupDate, numberOfDays)
+        const selectedType = getSelectedBookingType()
+        const endDate = pickupDate ? computeEndDate(pickupDate, numberOfDays) : undefined
+        
         const result = await carsApi.calculatePrice(
           car.id,
           pickupLocation,
           dropoffLocation,
-          pickupDate,
-          endDate
+          {
+            bookingType: selectedType,
+            startDate: (bookingMode !== 'within-city') ? pickupDate : undefined,
+            endDate: (bookingMode !== 'within-city') ? endDate : undefined,
+            scheduledPickup: (bookingMode === 'within-city' && !isAsap) ? scheduledPickup : undefined,
+          }
         )
-        setPriceBreakdown(result.pricing_breakdown)
+        
+        // Store detected info
+        setDetectedCities(result.detected_cities)
+        setDetectedBookingType(result.detected_booking_type)
+        setFinalBookingType(result.booking_type)
         setEstimatedDistance(result.estimated_distance)
-        setTripDays(result.trip_duration_days)
+        setTripDays(result.trip_duration_days ?? numberOfDays)
+        setEstimatedDuration(result.estimated_duration ?? 0)
+        setSurgeMultiplier(result.pricing_breakdown.surge_multiplier ?? 1)
+        
+        // Build price breakdown
+        setPriceBreakdown({
+          base_price: result.pricing_breakdown.base_price ?? 0,
+          distance_price: result.pricing_breakdown.distance_price ?? 0,
+          total_amount: result.pricing_breakdown.total_amount,
+          driver_earnings: result.pricing_breakdown.driver_earnings,
+          platform_fee: result.pricing_breakdown.platform_fee,
+          platform_fee_percentage: result.pricing_breakdown.platform_fee_percentage,
+          // Ride-hailing specific
+          base_fare: result.pricing_breakdown.base_fare,
+          distance_fare: result.pricing_breakdown.distance_fare,
+          time_fare: result.pricing_breakdown.time_fare,
+          surge_multiplier: result.pricing_breakdown.surge_multiplier,
+          minimum_fare: result.pricing_breakdown.minimum_fare,
+        })
+        
+        // Check if auto-detection differs from user expectation
+        if (bookingMode === 'auto' && result.detected_booking_type !== result.booking_type) {
+          // No conflict, proceed
+        }
+        
         setStep(2)
       } catch (error: any) {
         showToast(error?.response?.data?.message || 'Failed to calculate price', 'error')
@@ -197,13 +301,16 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      const endDate = computeEndDate(pickupDate, numberOfDays)
+      const endDate = pickupDate ? computeEndDate(pickupDate, numberOfDays) : undefined
+      
       await carsApi.createBookingRequest({
         car_id: parseInt(car.id),
         pickup_location: pickupLocation,
         dropoff_location: dropoffLocation,
-        start_date: pickupDate,
-        end_date: endDate,
+        booking_type: finalBookingType || undefined,
+        start_date: finalBookingType === 'RENTAL' ? pickupDate : undefined,
+        end_date: finalBookingType === 'RENTAL' ? endDate : undefined,
+        scheduled_pickup: finalBookingType === 'RIDE_HAILING' && !isAsap ? scheduledPickup : undefined,
         customer_notes: customerNotes || undefined,
         payment_method: paymentMethod,
       })
@@ -270,7 +377,7 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
 
                 {/* Step Indicator */}
                 <div className="flex items-center gap-2 mt-4">
-                  {[1, 2, 3].map((s) => (
+                  {[0, 1, 2, 3].map((s) => (
                     <div key={s} className="flex items-center gap-2 flex-1">
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                         s < step ? 'bg-white text-[#1e3a8a]' : s === step ? 'bg-white text-[#1e3a8a] ring-2 ring-white/50 ring-offset-2 ring-offset-transparent' : 'bg-white/20 text-white/60'
@@ -279,13 +386,14 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
-                        ) : s}
+                        ) : s + 1}
                       </div>
                       {s < 3 && <div className={`flex-1 h-0.5 ${s < step ? 'bg-white' : 'bg-white/20'}`} />}
                     </div>
                   ))}
                 </div>
                 <div className="flex justify-between mt-2">
+                  <span className="text-xs text-white/70">Mode</span>
                   <span className="text-xs text-white/70">Route</span>
                   <span className="text-xs text-white/70">Review</span>
                   <span className="text-xs text-white/70">Payment</span>
@@ -295,6 +403,118 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
               {/* Body */}
               <div className="p-5">
                 <AnimatePresence mode="wait">
+                  {/* Step 0: Mode Selection */}
+                  {step === 0 && (
+                    <motion.div
+                      key="step0"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="space-y-4"
+                    >
+                      <h3 className="text-lg font-semibold text-white mb-1">What type of ride do you need?</h3>
+                      <p className="text-sm text-gray-400 mb-4">Choose your booking mode based on your travel needs</p>
+
+                      <div className="space-y-3">
+                        {/* Within City Option */}
+                        <button
+                          onClick={() => setBookingMode('within-city')}
+                          className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                            bookingMode === 'within-city'
+                              ? 'border-teal-500 bg-teal-500/10'
+                              : 'border-white/10 bg-gray-800 hover:border-white/20'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              bookingMode === 'within-city' ? 'bg-teal-500 text-white' : 'bg-gray-700 text-gray-400'
+                            }`}>
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                            </div>
+                            <div className="flex-1">
+                              <p className={`font-semibold ${bookingMode === 'within-city' ? 'text-white' : 'text-gray-300'}`}>
+                                Within City Ride
+                              </p>
+                              <p className="text-sm text-gray-400 mt-0.5">
+                                Quick rides within the same city. Get picked up now or schedule for later.
+                              </p>
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className="text-xs px-2 py-0.5 bg-teal-500/20 text-teal-400 rounded-full">Instant booking</span>
+                                <span className="text-xs px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full">Pay per km</span>
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+
+                        {/* City to City Option */}
+                        <button
+                          onClick={() => setBookingMode('city-to-city')}
+                          className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                            bookingMode === 'city-to-city'
+                              ? 'border-blue-500 bg-blue-500/10'
+                              : 'border-white/10 bg-gray-800 hover:border-white/20'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              bookingMode === 'city-to-city' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-400'
+                            }`}>
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                              </svg>
+                            </div>
+                            <div className="flex-1">
+                              <p className={`font-semibold ${bookingMode === 'city-to-city' ? 'text-white' : 'text-gray-300'}`}>
+                                City to City Rental
+                              </p>
+                              <p className="text-sm text-gray-400 mt-0.5">
+                                Long-distance travel between cities. Book for one or more days.
+                              </p>
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className="text-xs px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full">Multi-day</span>
+                                <span className="text-xs px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full">Driver approval</span>
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+
+                        {/* Auto Detect Option */}
+                        <button
+                          onClick={() => setBookingMode('auto')}
+                          className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                            bookingMode === 'auto'
+                              ? 'border-purple-500 bg-purple-500/10'
+                              : 'border-white/10 bg-gray-800 hover:border-white/20'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              bookingMode === 'auto' ? 'bg-purple-500 text-white' : 'bg-gray-700 text-gray-400'
+                            }`}>
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                              </svg>
+                            </div>
+                            <div className="flex-1">
+                              <p className={`font-semibold ${bookingMode === 'auto' ? 'text-white' : 'text-gray-300'}`}>
+                                Auto Detect
+                              </p>
+                              <p className="text-sm text-gray-400 mt-0.5">
+                                We&apos;ll automatically determine the best booking type based on your route.
+                              </p>
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className="text-xs px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full">Smart detection</span>
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
                   {/* Step 1: Route Selection */}
                   {step === 1 && (
                     <motion.div
@@ -425,60 +645,128 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                         dropoffLocation={dropoffLocation}
                       />
 
-                      {/* Date & Days Selection */}
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <label className="text-sm font-medium text-gray-300">Select Pickup Date</label>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500">Trip days:</span>
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => setNumberOfDays(Math.max(1, numberOfDays - 1))}
-                                className="w-6 h-6 bg-gray-700 border border-white/10 rounded text-white hover:bg-gray-600 flex items-center justify-center text-xs font-bold transition-colors"
-                              >
-                                -
-                              </button>
-                              <span className="w-6 text-center text-sm font-bold text-teal-400">{numberOfDays}</span>
-                              <button
-                                type="button"
-                                onClick={() => setNumberOfDays(Math.min(30, numberOfDays + 1))}
-                                className="w-6 h-6 bg-gray-700 border border-white/10 rounded text-white hover:bg-gray-600 flex items-center justify-center text-xs font-bold transition-colors"
-                              >
-                                +
-                              </button>
+                      {/* Date/Time Selection - Conditional based on mode */}
+                      {bookingMode === 'within-city' ? (
+                        /* Ride-hailing: ASAP or Scheduled */
+                        <div className="space-y-3">
+                          <label className="text-sm font-medium text-gray-300 block">When do you need the ride?</label>
+                          
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setIsAsap(true)}
+                              className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all ${
+                                isAsap 
+                                  ? 'border-teal-500 bg-teal-500/10 text-white' 
+                                  : 'border-white/10 bg-gray-800 text-gray-400 hover:border-white/20'
+                              }`}
+                            >
+                              <div className="flex items-center justify-center gap-2">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                <span className="font-medium">Now</span>
+                              </div>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setIsAsap(false)}
+                              className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all ${
+                                !isAsap 
+                                  ? 'border-blue-500 bg-blue-500/10 text-white' 
+                                  : 'border-white/10 bg-gray-800 text-gray-400 hover:border-white/20'
+                              }`}
+                            >
+                              <div className="flex items-center justify-center gap-2">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="font-medium">Schedule</span>
+                              </div>
+                            </button>
+                          </div>
+
+                          {!isAsap && (
+                            <div>
+                              <label className="text-sm text-gray-400 mb-1 block">Pickup Date & Time</label>
+                              <input
+                                type="datetime-local"
+                                value={scheduledPickup || ''}
+                                onChange={(e) => setScheduledPickup(e.target.value)}
+                                min={new Date().toISOString().slice(0, 16)}
+                                className={`w-full px-4 py-2.5 bg-gray-800 border rounded-xl text-white text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
+                                  errors.scheduledPickup ? 'border-red-500' : 'border-white/10'
+                                }`}
+                              />
+                              {errors.scheduledPickup && <p className="text-xs text-red-400 mt-1">{errors.scheduledPickup}</p>}
+                            </div>
+                          )}
+
+                          {isAsap && (
+                            <div className="bg-teal-500/10 border border-teal-500/20 rounded-lg px-3 py-2 flex items-center gap-2">
+                              <svg className="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              <span className="text-sm text-teal-300">Driver will be notified immediately after booking</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        /* Rental or Auto: Date range selection */
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <label className="text-sm font-medium text-gray-300">Select Pickup Date</label>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-500">Trip days:</span>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setNumberOfDays(Math.max(1, numberOfDays - 1))}
+                                  className="w-6 h-6 bg-gray-700 border border-white/10 rounded text-white hover:bg-gray-600 flex items-center justify-center text-xs font-bold transition-colors"
+                                >
+                                  -
+                                </button>
+                                <span className="w-6 text-center text-sm font-bold text-teal-400">{numberOfDays}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setNumberOfDays(Math.min(30, numberOfDays + 1))}
+                                  className="w-6 h-6 bg-gray-700 border border-white/10 rounded text-white hover:bg-gray-600 flex items-center justify-center text-xs font-bold transition-colors"
+                                >
+                                  +
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <BookingCalendar
-                          selectedDate={pickupDate}
-                          onDateSelect={(date) => setPickupDate(date)}
-                          unavailableDates={unavailableDates}
-                          numberOfDays={numberOfDays}
-                          isLoading={isLoadingDates}
-                          error={errors.pickupDate}
-                        />
+                          <BookingCalendar
+                            selectedDate={pickupDate}
+                            onDateSelect={(date) => setPickupDate(date)}
+                            unavailableDates={unavailableDates}
+                            numberOfDays={numberOfDays}
+                            isLoading={isLoadingDates}
+                            error={errors.pickupDate}
+                          />
 
-                        {pickupDate && (
-                          <div className="bg-teal-500/10 border border-teal-500/20 rounded-lg px-3 py-2 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <svg className="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                              <span className="text-xs text-teal-300">
-                                {new Date(pickupDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                                {numberOfDays > 1 && (
-                                  <> → {new Date(computeEndDate(pickupDate, numberOfDays)).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</>
-                                )}
+                          {pickupDate && (
+                            <div className="bg-teal-500/10 border border-teal-500/20 rounded-lg px-3 py-2 flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <svg className="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span className="text-xs text-teal-300">
+                                  {new Date(pickupDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                  {numberOfDays > 1 && (
+                                    <> → {new Date(computeEndDate(pickupDate, numberOfDays)).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</>
+                                  )}
+                                </span>
+                              </div>
+                              <span className="text-xs font-medium text-teal-400">
+                                {numberOfDays === 1 ? '1 day' : `${numberOfDays} days`}
                               </span>
                             </div>
-                            <span className="text-xs font-medium text-teal-400">
-                              {numberOfDays === 1 ? '1 day' : `${numberOfDays} days`}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* Special Instructions */}
                       <div>
@@ -506,6 +794,29 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                       <h3 className="text-lg font-semibold text-white mb-1">Review Your Trip</h3>
                       <p className="text-sm text-gray-400 mb-4">Confirm details before sending to the driver</p>
 
+                      {/* Booking Type Badge */}
+                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
+                        finalBookingType === 'RIDE_HAILING' 
+                          ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30' 
+                          : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                      }`}>
+                        {finalBookingType === 'RIDE_HAILING' ? (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            Within City Ride
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                            </svg>
+                            City to City Rental
+                          </>
+                        )}
+                      </div>
+
                       {/* Route Summary */}
                       <div className="bg-gray-800/80 rounded-xl p-4 space-y-3">
                         <div className="flex items-start gap-3">
@@ -527,61 +838,142 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                         </div>
                       </div>
 
-                      {/* Trip Info */}
+                      {/* Trip Info - Different for each booking type */}
                       <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-gray-800/60 rounded-xl p-3 text-center">
-                          <svg className="w-5 h-5 text-teal-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          <p className="text-lg font-bold text-white">{tripDays}</p>
-                          <p className="text-xs text-gray-400">Days</p>
-                        </div>
-                        <div className="bg-gray-800/60 rounded-xl p-3 text-center">
-                          <svg className="w-5 h-5 text-blue-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                          </svg>
-                          <p className="text-lg font-bold text-white">{estimatedDistance}</p>
-                          <p className="text-xs text-gray-400">km</p>
-                        </div>
-                        <div className="bg-gray-800/60 rounded-xl p-3 text-center">
-                          <svg className="w-5 h-5 text-cyan-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          <p className="text-lg font-bold text-white">{car.car.seats}</p>
-                          <p className="text-xs text-gray-400">Seats</p>
-                        </div>
+                        {finalBookingType === 'RIDE_HAILING' ? (
+                          <>
+                            <div className="bg-gray-800/60 rounded-xl p-3 text-center">
+                              <svg className="w-5 h-5 text-blue-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                              </svg>
+                              <p className="text-lg font-bold text-white">{estimatedDistance}</p>
+                              <p className="text-xs text-gray-400">km</p>
+                            </div>
+                            <div className="bg-gray-800/60 rounded-xl p-3 text-center">
+                              <svg className="w-5 h-5 text-teal-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <p className="text-lg font-bold text-white">{estimatedDuration}</p>
+                              <p className="text-xs text-gray-400">mins</p>
+                            </div>
+                            <div className="bg-gray-800/60 rounded-xl p-3 text-center">
+                              <svg className="w-5 h-5 text-cyan-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              <p className="text-lg font-bold text-white">{car.car.seats}</p>
+                              <p className="text-xs text-gray-400">Seats</p>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="bg-gray-800/60 rounded-xl p-3 text-center">
+                              <svg className="w-5 h-5 text-teal-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              <p className="text-lg font-bold text-white">{tripDays}</p>
+                              <p className="text-xs text-gray-400">Days</p>
+                            </div>
+                            <div className="bg-gray-800/60 rounded-xl p-3 text-center">
+                              <svg className="w-5 h-5 text-blue-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                              </svg>
+                              <p className="text-lg font-bold text-white">{estimatedDistance}</p>
+                              <p className="text-xs text-gray-400">km</p>
+                            </div>
+                            <div className="bg-gray-800/60 rounded-xl p-3 text-center">
+                              <svg className="w-5 h-5 text-cyan-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              <p className="text-lg font-bold text-white">{car.car.seats}</p>
+                              <p className="text-xs text-gray-400">Seats</p>
+                            </div>
+                          </>
+                        )}
                       </div>
 
-                      {/* Dates */}
-                      <div className="bg-gray-800/60 rounded-xl p-3 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs text-gray-400">Pickup Date</p>
-                          <p className="text-sm font-medium text-white">{new Date(pickupDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                      {/* Dates/Time - Different for each booking type */}
+                      {finalBookingType === 'RIDE_HAILING' ? (
+                        <div className="bg-gray-800/60 rounded-xl p-3 flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-gray-400">Pickup Time</p>
+                            <p className="text-sm font-medium text-white">
+                              {isAsap ? 'As soon as possible' : new Date(scheduledPickup || '').toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                            </p>
+                          </div>
+                          {surgeMultiplier > 1 && (
+                            <div className="bg-orange-500/20 px-3 py-1 rounded-full flex items-center gap-1">
+                              <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                              </svg>
+                              <p className="text-sm font-bold text-orange-400">{surgeMultiplier.toFixed(1)}x surge</p>
+                            </div>
+                          )}
                         </div>
-                        <div className="bg-teal-500/20 px-3 py-1 rounded-full">
-                          <p className="text-sm font-bold text-teal-400">{tripDays} day{tripDays !== 1 ? 's' : ''}</p>
+                      ) : (
+                        <div className="bg-gray-800/60 rounded-xl p-3 flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-gray-400">Pickup Date</p>
+                            <p className="text-sm font-medium text-white">{new Date(pickupDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                          </div>
+                          <div className="bg-teal-500/20 px-3 py-1 rounded-full">
+                            <p className="text-sm font-bold text-teal-400">{tripDays} day{tripDays !== 1 ? 's' : ''}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-gray-400">Until</p>
+                            <p className="text-sm font-medium text-white">{new Date(computeEndDate(pickupDate, numberOfDays)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-xs text-gray-400">Until</p>
-                          <p className="text-sm font-medium text-white">{new Date(computeEndDate(pickupDate, numberOfDays)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                        </div>
-                      </div>
+                      )}
 
-                      {/* Price Breakdown */}
+                      {/* Price Breakdown - Different for each booking type */}
                       <div className="bg-gray-800/80 rounded-xl p-4 space-y-2">
                         <h4 className="text-sm font-semibold text-white mb-2">Price Breakdown</h4>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-400">Base Price ({tripDays} days)</span>
-                          <span className="text-gray-200">PKR {priceBreakdown.base_price.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-400">Distance ({estimatedDistance} km)</span>
-                          <span className="text-gray-200">PKR {priceBreakdown.distance_price.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-400">Platform Fee (5%)</span>
-                          <span className="text-gray-200">PKR {priceBreakdown.platform_fee.toLocaleString()}</span>
-                        </div>
+                        {finalBookingType === 'RIDE_HAILING' ? (
+                          <>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-400">Base Fare</span>
+                              <span className="text-gray-200">PKR {(priceBreakdown.base_fare ?? 0).toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-400">Distance ({estimatedDistance} km)</span>
+                              <span className="text-gray-200">PKR {(priceBreakdown.distance_fare ?? 0).toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-400">Time ({estimatedDuration} mins)</span>
+                              <span className="text-gray-200">PKR {(priceBreakdown.time_fare ?? 0).toLocaleString()}</span>
+                            </div>
+                            {surgeMultiplier > 1 && (
+                              <div className="flex justify-between text-sm">
+                                <span className="text-orange-400 flex items-center gap-1">
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                  </svg>
+                                  Surge ({surgeMultiplier.toFixed(1)}x)
+                                </span>
+                                <span className="text-orange-400">Applied</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-400">Platform Fee ({priceBreakdown.platform_fee_percentage ?? 15}%)</span>
+                              <span className="text-gray-200">PKR {priceBreakdown.platform_fee.toLocaleString()}</span>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-400">Base Price ({tripDays} days)</span>
+                              <span className="text-gray-200">PKR {priceBreakdown.base_price.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-400">Distance ({estimatedDistance} km)</span>
+                              <span className="text-gray-200">PKR {priceBreakdown.distance_price.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-400">Platform Fee ({priceBreakdown.platform_fee_percentage ?? 5}%)</span>
+                              <span className="text-gray-200">PKR {priceBreakdown.platform_fee.toLocaleString()}</span>
+                            </div>
+                          </>
+                        )}
                         <hr className="border-gray-700 my-1" />
                         <div className="flex justify-between font-bold">
                           <span className="text-white">Total</span>
@@ -672,8 +1064,17 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                               <p className="text-2xl font-bold text-white">PKR {priceBreakdown.total_amount.toLocaleString()}</p>
                             </div>
                             <div className="text-right">
-                              <p className="text-xs text-gray-400">{tripDays} day{tripDays !== 1 ? 's' : ''}</p>
-                              <p className="text-xs text-gray-400">{estimatedDistance} km</p>
+                              {finalBookingType === 'RIDE_HAILING' ? (
+                                <>
+                                  <p className="text-xs text-gray-400">{estimatedDistance} km</p>
+                                  <p className="text-xs text-gray-400">~{estimatedDuration} mins</p>
+                                </>
+                              ) : (
+                                <>
+                                  <p className="text-xs text-gray-400">{tripDays} day{tripDays !== 1 ? 's' : ''}</p>
+                                  <p className="text-xs text-gray-400">{estimatedDistance} km</p>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -684,7 +1085,12 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                         <svg className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <p className="text-xs text-gray-400">Your request will be sent to the driver. They'll review and respond within 24 hours. You can chat with them once they accept.</p>
+                        <p className="text-xs text-gray-400">
+                          {finalBookingType === 'RIDE_HAILING' 
+                            ? 'Your request will be sent to the driver. Once accepted, the driver will arrive at your pickup location.'
+                            : 'Your request will be sent to the driver. They\'ll review and respond within 24 hours. You can chat with them once they accept.'
+                          }
+                        </p>
                       </div>
                     </motion.div>
                   )}
@@ -693,7 +1099,7 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
 
               {/* Footer */}
               <div className="p-5 border-t border-white/10 flex items-center justify-between">
-                {step > 1 ? (
+                {step > 0 ? (
                   <button
                     onClick={() => setStep(step - 1)}
                     className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"

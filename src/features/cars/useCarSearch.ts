@@ -13,7 +13,8 @@ export function useCarSearch(params: CarSearchParams) {
     params.transmission || 
     params.fuel_type || 
     params.min_price || 
-    params.max_price
+    params.max_price ||
+    params.booking_type
   )
   
   return useQuery({
@@ -36,7 +37,7 @@ export function useCarById(id: string) {
 export function useCarPriceCalculation(carId: string, pickupLocation: string, dropoffLocation: string, startDate: string, endDate: string, estimatedDistance?: number) {
   return useQuery({
     queryKey: ['cars', 'price', carId, pickupLocation, dropoffLocation, startDate, endDate, estimatedDistance],
-    queryFn: () => carsApi.calculatePrice(carId, pickupLocation, dropoffLocation, startDate, endDate, estimatedDistance),
+    queryFn: () => carsApi.calculatePrice(carId, pickupLocation, dropoffLocation, { startDate, endDate, estimatedDistance }),
     enabled: !!(carId && pickupLocation && dropoffLocation && startDate && endDate),
   })
 }

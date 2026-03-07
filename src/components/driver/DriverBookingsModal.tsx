@@ -6,6 +6,7 @@ import Link from 'next/link'
 interface DriverBookingItem {
   id: number
   status: string
+  booking_type?: 'rental' | 'ride_hailing'
   customer: {
     name: string
   }
@@ -17,6 +18,9 @@ interface DriverBookingItem {
   end_date: string
   driver_earnings: number
   created_at: string
+  estimated_distance?: number
+  pickup_location?: string
+  dropoff_location?: string
 }
 
 interface DriverBookingsModalProps {
@@ -96,27 +100,52 @@ export function DriverBookingsModal({ isOpen, onClose, bookings }: DriverBooking
               <div className="overflow-y-auto max-h-[calc(90vh-120px)] p-6">
                 {bookings.length > 0 ? (
                   <div className="space-y-3">
-                    {bookings.map((booking) => (
+                    {bookings.map((booking) => {
+                      const isRideHailing = booking.booking_type === 'ride_hailing'
+                      const formatRideTime = (dateStr: string) => {
+                        const date = new Date(dateStr)
+                        return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+                      }
+                      
+                      return (
                       <div
                         key={booking.id}
-                        className="p-4 border rounded-xl hover:bg-gray-50 transition-colors flex justify-between items-start"
+                        className={`p-4 border rounded-xl hover:bg-gray-50 transition-colors flex justify-between items-start ${
+                          isRideHailing ? 'border-teal-200 bg-teal-50/30' : ''
+                        }`}
                       >
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-1">
-                            <span className="text-2xl">🚗</span>
+                            <span className="text-2xl">{isRideHailing ? '🚕' : '🚗'}</span>
                             <div>
-                              <p className="font-semibold text-gray-900">
-                                {booking.car.make} {booking.car.model}
-                              </p>
+                              <div className="flex items-center gap-2">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  isRideHailing 
+                                    ? 'bg-teal-100 text-teal-800' 
+                                    : 'bg-blue-100 text-blue-800'
+                                }`}>
+                                  {isRideHailing ? 'RIDE' : 'RENTAL'}
+                                </span>
+                                <p className="font-semibold text-gray-900">
+                                  {booking.car.make} {booking.car.model}
+                                </p>
+                              </div>
                               <p className="text-sm text-gray-600">
-                                {booking.customer.name} • {formatDate(booking.start_date)} -{' '}
-                                {formatDate(booking.end_date)}
+                                {booking.customer.name} • {isRideHailing 
+                                  ? `Today ${formatRideTime(booking.start_date)}`
+                                  : `${formatDate(booking.start_date)} - ${formatDate(booking.end_date)}`
+                                }
                               </p>
+                              {isRideHailing && booking.estimated_distance && (
+                                <p className="text-xs text-teal-600 mt-0.5">
+                                  Est. {booking.estimated_distance} km
+                                </p>
+                              )}
                             </div>
                           </div>
                           <p className="text-sm text-gray-600 mt-2">
                             Your Earning:{' '}
-                            <span className="font-bold text-green-600">
+                            <span className={`font-bold ${isRideHailing ? 'text-teal-600' : 'text-green-600'}`}>
                               PKR {booking.driver_earnings.toLocaleString()}
                             </span>
                           </p>
@@ -131,7 +160,7 @@ export function DriverBookingsModal({ isOpen, onClose, bookings }: DriverBooking
                           </div>
                         </div>
                       </div>
-                    ))}
+                    )})}
                   </div>
                 ) : (
                   <div className="text-center py-12">

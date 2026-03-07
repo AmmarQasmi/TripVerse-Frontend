@@ -11,6 +11,7 @@ import { useAuth } from '@/features/auth/useAuth'
 import { carsApi } from '@/lib/api/cars.api'
 import { DoughnutChart } from '@/components/client/DoughnutChart'
 import { CarListingForm } from '@/components/driver/CarListingForm'
+import { DriverModeToggle } from '@/components/driver/DriverModeToggle'
 import { useRouter } from 'next/navigation'
 
 interface DriverCar {
@@ -26,6 +27,13 @@ interface DriverCar {
   totalBookings: number
   totalEarnings: number
   image?: string
+  // Dual-mode availability
+  availableForRental: boolean
+  availableForRideHailing: boolean
+  // Ride-hailing pricing
+  baseFare?: number
+  perKmRate?: number
+  perMinuteRate?: number
 }
 
 export default function DriverCarsPage() {
@@ -59,6 +67,13 @@ export default function DriverCarsPage() {
           totalBookings: car.booking_stats.total_bookings,
           totalEarnings: car.booking_stats.total_earnings,
           image: car.images && car.images.length > 0 ? car.images[0] : undefined,
+          // Dual-mode availability
+          availableForRental: car.availability?.available_for_rental ?? true,
+          availableForRideHailing: car.availability?.available_for_ride_hailing ?? false,
+          // Ride-hailing pricing
+          baseFare: car.pricing?.base_fare,
+          perKmRate: car.pricing?.per_km_rate,
+          perMinuteRate: car.pricing?.per_minute_rate,
         }))
         
         setCars(transformedCars)
@@ -107,9 +122,18 @@ export default function DriverCarsPage() {
         color: car.car.color,
         type: car.car.transmission === 'automatic' ? 'AUTOMATIC' : 'MANUAL',
         pricePerDay: car.pricing.base_price_per_day,
-        status: car.is_active ? 'ACTIVE' : 'INACTIVE',          isListed: car.is_listed ?? car.is_active,        totalBookings: car.booking_stats.total_bookings,
+        status: car.is_active ? 'ACTIVE' : 'INACTIVE',
+        isListed: car.is_listed ?? car.is_active,
+        totalBookings: car.booking_stats.total_bookings,
         totalEarnings: car.booking_stats.total_earnings,
         image: car.images && car.images.length > 0 ? car.images[0] : undefined,
+        // Dual-mode availability
+        availableForRental: car.availability?.available_for_rental ?? true,
+        availableForRideHailing: car.availability?.available_for_ride_hailing ?? false,
+        // Ride-hailing pricing
+        baseFare: car.pricing?.base_fare,
+        perKmRate: car.pricing?.per_km_rate,
+        perMinuteRate: car.pricing?.per_minute_rate,
       }))
       setCars(transformedCars)
     } catch (err: any) {
@@ -222,6 +246,11 @@ export default function DriverCarsPage() {
         }
       />
       <div className="container mx-auto px-4 py-8">
+        {/* Driver Mode Toggle */}
+        <div className="mb-8">
+          <DriverModeToggle />
+        </div>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           <DoughnutChart
@@ -284,21 +313,43 @@ export default function DriverCarsPage() {
                       {car.brand} {car.model}
                     </CardTitle>
                     <p className="text-sm text-gray-600">{car.year} • {car.color} • {car.type}</p>
+                    {/* Mode Availability Badges */}
+                    <div className="flex gap-2 mt-2">
+                      {car.availableForRental && (
+                        <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-medium">
+                          Rentals
+                        </span>
+                      )}
+                      {car.availableForRideHailing && (
+                        <span className="text-xs px-2 py-0.5 bg-teal-100 text-teal-700 rounded-full font-medium">
+                          Rides
+                        </span>
+                      )}
+                    </div>
                   </CardHeader>
 
                   <CardContent className="space-y-4">
-                    {/* Stats */}
+                    {/* Pricing Stats */}
                     <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="bg-gray-100 p-2 rounded-lg">
-                        <p className="text-lg font-bold">
+                      <div className="bg-blue-50 p-2 rounded-lg">
+                        <p className="text-lg font-bold text-blue-700">
                           PKR {car.pricePerDay.toLocaleString()}
                         </p>
-                        <p className="text-xs text-gray-600">Per Day</p>
+                        <p className="text-xs text-blue-600">Per Day</p>
                       </div>
-                      <div className="bg-gray-100 p-2 rounded-lg">
-                        <p className="text-lg font-bold">{car.totalBookings}</p>
-                        <p className="text-xs text-gray-600">Bookings</p>
-                      </div>
+                      {car.availableForRideHailing && car.perKmRate ? (
+                        <div className="bg-teal-50 p-2 rounded-lg">
+                          <p className="text-lg font-bold text-teal-700">
+                            PKR {car.perKmRate}
+                          </p>
+                          <p className="text-xs text-teal-600">Per KM</p>
+                        </div>
+                      ) : (
+                        <div className="bg-gray-100 p-2 rounded-lg">
+                          <p className="text-lg font-bold">{car.totalBookings}</p>
+                          <p className="text-xs text-gray-600">Bookings</p>
+                        </div>
+                      )}
                       <div className="bg-gray-100 p-2 rounded-lg">
                         <p className="text-lg font-bold">
                           {car.totalEarnings > 0 ? `${(car.totalEarnings / 1000).toFixed(0)}k` : '0'}
