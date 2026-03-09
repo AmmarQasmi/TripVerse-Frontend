@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import dynamic from 'next/dynamic'
 
 interface LeafletMapProps {
@@ -89,9 +90,9 @@ export function MapPickerModal({ isOpen, onClose, onLocationSelect }: MapPickerM
 
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-      <div className="bg-gray-900 rounded-2xl border border-gray-700 shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col">
+      <div className="bg-gray-900 rounded-2xl border border-gray-700 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700">
@@ -122,7 +123,7 @@ export function MapPickerModal({ isOpen, onClose, onLocationSelect }: MapPickerM
         </div>
 
         {/* Map */}
-        <div className="relative">
+        <div className="relative flex-1 min-h-0 overflow-hidden">
           <LeafletMap markerPos={markerPos} flyToPos={flyToPos} onMapClick={handleMapClick} />
           {!markerPos && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs sm:text-sm px-4 py-2 rounded-full pointer-events-none whitespace-nowrap z-[400]">
@@ -159,6 +160,7 @@ export function MapPickerModal({ isOpen, onClose, onLocationSelect }: MapPickerM
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
