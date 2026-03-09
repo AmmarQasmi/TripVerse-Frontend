@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useAvailableCities } from '@/features/hotels/useHotelSearch'
+import { carsApi } from '@/lib/api/cars.api'
+import { MapPickerModal } from '@/components/cars/MapPickerModal'
 
 // --- SVG Icon Components ---
 const MapPinIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
@@ -63,6 +65,15 @@ interface SearchParams {
   rooms: number
 }
 
+interface PlaceSuggestion {
+  place_id: string
+  description: string
+  structured_formatting: {
+    main_text: string
+    secondary_text: string
+  }
+}
+
 interface HotelSearchFormProps {
   onSearch: (params: SearchParams) => void
   initialParams?: SearchParams
@@ -94,12 +105,29 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
 
   const [showGuestsDropdown, setShowGuestsDropdown] = useState(false)
   const [showCityDropdown, setShowCityDropdown] = useState(false)
+  const [showMapPicker, setShowMapPicker] = useState(false)
   const [searchingText, setSearchingText] = useState('')
+  const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([])
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
   const cityInputRef = useRef<HTMLInputElement>(null)
   const cityDropdownRef = useRef<HTMLDivElement>(null)
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null)
 
   // Fetch available cities from API
   const { data: availableCities, isLoading: citiesLoading } = useAvailableCities()
+
+  const fetchSuggestions = useCallback(async (input: string) => {
+    if (input.trim().length < 2) { setSuggestions([]); return }
+    setIsLoadingSuggestions(true)
+    try {
+      const res = await carsApi.autocompleteLocation(input)
+      setSuggestions((res as any)?.suggestions || (res as any)?.data?.suggestions || [])
+    } catch {
+      setSuggestions([])
+    } finally {
+      setIsLoadingSuggestions(false)
+    }
+  }, [])
 
   // Filter cities based on search text
   const filteredCities = (availableCities || []).filter((c: any) =>
@@ -136,63 +164,85 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
     updateParam('location', cityName)
     setSearchingText(cityName)
     setShowCityDropdown(false)
+    setSuggestions([])
   }
 
   const today = new Date().toISOString().split('T')[0]
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <>
+      <MapPickerModal
+        isOpen={showMapPicker}
+        onClose={() => setShowMapPicker(false)}
+        onLocationSelect={(address) => {
+          updateParam('location', address)
+          setSearchingText(address)
+          setSuggestions([])
+        }}
+      />
+      <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Destination */}
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Where to?
+          <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center justify-between">
+            <span>Where to?</span>
+            <button
+              type="button"
+              onClick={() => setShowMapPicker(true)}
+              className="flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 border border-cyan-700/60 hover:border-cyan-500 px-2 py-0.5 rounded-lg transition-colors font-normal"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              Pick on map
+            </button>
           </label>
           <div className="relative">
             <input
               ref={cityInputRef}
               type="text"
-              placeholder={citiesLoading ? 'Loading cities...' : 'Search city or region'}
+              placeholder="Search city, region or address..."
               value={showCityDropdown ? searchingText : params.location || searchingText}
               onChange={(e) => {
-                setSearchingText(e.target.value)
-                updateParam('location', e.target.value)
+                const val = e.target.value
+                setSearchingText(val)
+                updateParam('location', val)
                 setShowCityDropdown(true)
+                if (debounceTimer.current) clearTimeout(debounceTimer.current)
+                debounceTimer.current = setTimeout(() => fetchSuggestions(val), 300)
               }}
               onFocus={() => {
                 setSearchingText(params.location || '')
                 setShowCityDropdown(true)
               }}
-              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:border-[#38bdf8] focus:ring-2 focus:ring-[#38bdf8]/20 focus:outline-none transition-all duration-75"
+              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:border-[#38bdf8] focus:ring-2 focus:ring-[#38bdf8]/20 focus:outline-none transition-all duration-75 pr-10"
+              autoComplete="off"
             />
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <MapPinIcon className="w-5 h-5" />
+              {isLoadingSuggestions
+                ? <svg className="animate-spin h-4 w-4 text-cyan-400" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                : <MapPinIcon className="w-5 h-5" />
+              }
             </div>
           </div>
 
-          {/* City Dropdown */}
+          {/* Combined Dropdown */}
           {showCityDropdown && (
             <div
               ref={cityDropdownRef}
-              className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-600/50 rounded-xl shadow-2xl z-20 max-h-64 overflow-y-auto"
+              className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-600/50 rounded-xl shadow-2xl z-20 max-h-72 overflow-y-auto"
             >
-              {citiesLoading ? (
-                <div className="px-4 py-3 text-gray-400 text-sm">Loading cities...</div>
-              ) : filteredCities.length === 0 ? (
-                <div className="px-4 py-3 text-gray-400 text-sm">
-                  No cities found {searchingText ? `for "${searchingText}"` : ''}
-                </div>
-              ) : (
+              {/* DB city quick picks */}
+              {filteredCities.length > 0 && (
                 <>
+                  <div className="px-4 pt-2.5 pb-1 text-xs text-gray-500 font-semibold uppercase tracking-wide">
+                    Hotels on TripVerse
+                  </div>
                   {searchingText && (
                     <button
                       type="button"
-                      onClick={() => {
-                        updateParam('location', '')
-                        setSearchingText('')
-                        setShowCityDropdown(false)
-                      }}
-                      className="w-full px-4 py-2 text-left text-cyan-400 hover:bg-gray-700/50 text-sm border-b border-gray-700"
+                      onClick={() => { updateParam('location', ''); setSearchingText(''); setShowCityDropdown(false) }}
+                      className="w-full px-4 py-2 text-left text-cyan-400 hover:bg-gray-700/50 text-sm border-b border-gray-700/50"
                     >
                       <span className="inline-flex items-center gap-1"><GlobeIcon /> Show All Hotels</span>
                     </button>
@@ -204,14 +254,70 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
                       onClick={() => selectCity(city.city)}
                       className="w-full px-4 py-3 text-left hover:bg-gray-700/50 transition-colors flex items-center justify-between"
                     >
-                      <div>
+                      <div className="flex items-center gap-2">
+                        <MapPinIcon className="w-4 h-4 text-cyan-500/70 shrink-0" />
                         <span className="text-white font-medium">{city.city}</span>
-                        <span className="text-gray-400 text-sm ml-2">({city.region})</span>
+                        <span className="text-gray-400 text-sm">({city.region})</span>
                       </div>
-                      <span className="text-cyan-400 text-sm">{city.hotel_count} hotel{city.hotel_count !== 1 ? 's' : ''}</span>
+                      <span className="text-cyan-400 text-sm shrink-0">{city.hotel_count} hotel{city.hotel_count !== 1 ? 's' : ''}</span>
                     </button>
                   ))}
                 </>
+              )}
+
+              {/* Google Places suggestions */}
+              {suggestions.length > 0 && (
+                <>
+                  <div className={`px-4 pt-2.5 pb-1 text-xs text-gray-500 font-semibold uppercase tracking-wide ${filteredCities.length > 0 ? 'border-t border-gray-700/50' : ''}`}>
+                    Suggestions
+                  </div>
+                  {suggestions.slice(0, 5).map((s) => (
+                    <button
+                      key={s.place_id}
+                      type="button"
+                      onClick={() => selectCity(s.structured_formatting.main_text)}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-700/50 transition-colors flex items-start gap-3 border-b border-gray-700/30 last:border-b-0"
+                    >
+                      <svg className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <div className="min-w-0">
+                        <p className="text-white text-sm font-medium truncate">{s.structured_formatting.main_text}</p>
+                        <p className="text-gray-400 text-xs truncate">{s.structured_formatting.secondary_text}</p>
+                      </div>
+                    </button>
+                  ))}
+                </>
+              )}
+
+              {/* No DB cities + show external fallback */}
+              {filteredCities.length === 0 && suggestions.length === 0 && searchingText && (
+                <div>
+                  {citiesLoading ? (
+                    <div className="px-4 py-3 text-gray-400 text-sm">Loading...</div>
+                  ) : (
+                    <>
+                      <div className="px-4 py-3 text-gray-400 text-sm border-b border-gray-700/50">
+                        No TripVerse hotels found {`in "${searchingText}"`}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => selectCity(searchingText)}
+                        className="w-full px-4 py-3 text-left hover:bg-gray-700/50 transition-colors flex items-center gap-2"
+                      >
+                        <GlobeIcon className="w-4 h-4 text-cyan-400 shrink-0" />
+                        <span className="text-white">Search in <span className="text-cyan-400 font-medium">&ldquo;{searchingText}&rdquo;</span></span>
+                        <span className="ml-auto text-gray-500 text-xs">External hotels</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Empty state when form first focused */}
+              {filteredCities.length === 0 && suggestions.length === 0 && !searchingText && !citiesLoading && (
+                <div className="px-4 py-3 text-gray-400 text-sm">Type a city or region to search</div>
               )}
             </div>
           )}
@@ -345,5 +451,6 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
         </motion.button>
       </div>
     </form>
+    </>
   )
 }

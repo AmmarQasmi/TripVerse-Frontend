@@ -12,6 +12,7 @@ import { PopularDestinationsCarousel } from '@/components/hotels/PopularDestinat
 import { HotelLocationFilters } from '@/components/hotels/HotelLocationFilters'
 import { useHotelSearch } from '@/features/hotels/useHotelSearch'
 import { useAuth } from '@/features/auth/useAuth'
+import { ExternalHotelsSection } from '@/components/hotels/ExternalHotelsSection'
 import { Hotel } from '@/types'
 import { BookingResponse } from '@/lib/api/bookings.api'
 
@@ -180,6 +181,7 @@ export default function HotelsPage() {
   })
   const [showAllHotels, setShowAllHotels] = useState(false)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [internalPage, setInternalPage] = useState(1)
   const [locationFilter, setLocationFilter] = useState<{ city?: string; region?: string }>({})
   
   const { data: hotels, isLoading } = useHotelSearch({
@@ -211,6 +213,18 @@ export default function HotelsPage() {
       images,
     }
   })
+
+  const HOTELS_PER_PAGE = 6
+  const internalTotalPages = Math.ceil(displayedHotelsWithImages.length / HOTELS_PER_PAGE)
+  const paginatedInternalHotels = displayedHotelsWithImages.slice(
+    (internalPage - 1) * HOTELS_PER_PAGE,
+    internalPage * HOTELS_PER_PAGE
+  )
+
+  // Reset to page 1 when the search context changes
+  useEffect(() => {
+    setInternalPage(1)
+  }, [searchParams.location, showAllHotels])
 
   // Mark initial load as complete after auth check
   useEffect(() => {
@@ -294,7 +308,7 @@ export default function HotelsPage() {
         {/* Scroll Indicator removed per design request */}
       </section>
 
-      {/* Popular Destinations */}
+      {/* Where We Operate */}
       <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -303,9 +317,12 @@ export default function HotelsPage() {
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl font-bold text-white text-center mb-12">
-              Popular destinations
+            <h2 className="text-3xl font-bold text-white text-center mb-2">
+              Book hotels in these cities
             </h2>
+            <p className="text-gray-400 text-center text-sm mb-12">
+              Cities where TripVerse has verified hotel listings
+            </p>
             <PopularDestinationsCarousel
                 onCitySelect={(city) => {
                   setSearchParams((prev) => ({ ...prev, location: city }))
@@ -535,7 +552,7 @@ export default function HotelsPage() {
                 </div>
           ) : displayedHotels && displayedHotels.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {displayedHotelsWithImages.map((hotel: any, index: number) => (
+              {paginatedInternalHotels.map((hotel: any, index: number) => (
                     <motion.div
                       key={hotel.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -591,8 +608,46 @@ export default function HotelsPage() {
                   </div>
                 </div>
               )}
+              {!isLoading && displayedHotels && displayedHotels.length > 0 && internalTotalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                  <button
+                    onClick={() => setInternalPage(p => Math.max(1, p - 1))}
+                    disabled={internalPage === 1}
+                    className="px-3 py-2 rounded-xl text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all border border-gray-700/50"
+                  >
+                    ← Prev
+                  </button>
+                  {Array.from({ length: internalTotalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setInternalPage(page)}
+                      className={`w-9 h-9 rounded-xl text-sm font-semibold transition-all border ${
+                        page === internalPage
+                          ? 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white border-cyan-600/50'
+                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white border-gray-700/50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setInternalPage(p => Math.min(internalTotalPages, p + 1))}
+                    disabled={internalPage === internalTotalPages}
+                    className="px-3 py-2 rounded-xl text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all border border-gray-700/50"
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* External Hotels Section */}
+      <section className="py-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          <ExternalHotelsSection city={searchParams.location} />
         </div>
       </section>
 

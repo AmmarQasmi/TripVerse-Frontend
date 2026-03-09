@@ -68,6 +68,8 @@ export const API_ENDPOINTS = {
     MANAGER_HOTELS: '/hotels/manager/hotels',
     UPDATE_AVAILABILITY: (id: string) => `/hotels/${id}/availability`,
     GET_AVAILABILITY: (id: string) => `/hotels/${id}/availability`,
+    EXTERNAL_SEARCH: '/hotels/external',
+    EXTERNAL_DETAILS: (placeId: string) => `/hotels/external/details/${encodeURIComponent(placeId)}`,
   },
 
   // Car endpoints

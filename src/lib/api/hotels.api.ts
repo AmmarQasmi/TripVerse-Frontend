@@ -306,4 +306,41 @@ export const hotelsApi = {
       message: string
     }>(API_ENDPOINTS.HOTELS.ROOM_TYPE(hotelId, roomTypeId))
   },
+
+  // External hotels via Google Places API
+  searchExternal: async (city: string) => {
+    const response = await httpClient.get<{
+      success: boolean
+      data: ExternalHotel[]
+      total: number
+    }>(`${API_ENDPOINTS.HOTELS.EXTERNAL_SEARCH}?city=${encodeURIComponent(city)}`)
+    return response
+  },
+
+  getExternalDetails: async (placeId: string) => {
+    const response = await httpClient.get<{
+      success: boolean
+      data: ExternalHotelDetails
+    }>(API_ENDPOINTS.HOTELS.EXTERNAL_DETAILS(placeId))
+    return response
+  },
+}
+
+export interface ExternalHotel {
+  place_id: string
+  name: string
+  rating: number | null
+  total_ratings: number
+  address: string
+  price_level: number | null
+  business_status: string
+  photos: string[]
+  maps_url: string
+}
+
+export interface ExternalHotelDetails extends ExternalHotel {
+  phone: string | null
+  website: string | null
+  redirect_url: string
+  opening_hours: string[] | null
 }
