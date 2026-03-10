@@ -176,6 +176,7 @@ export const hotelsApi = {
       id: number
       name: string
       message: string
+      roomTypes: Array<{ id: number; name: string }>
     }>(API_ENDPOINTS.HOTELS.CREATE, hotel)
   },
 
@@ -200,6 +201,22 @@ export const hotelsApi = {
         public_id: string
       }>
     }>(API_ENDPOINTS.HOTELS.UPLOAD_IMAGES(hotelId), formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+  },
+
+  uploadRoomImages: async (hotelId: string, roomId: string, files: File[]) => {
+    const formData = new FormData()
+    files.forEach((file) => {
+      formData.append('images', file)
+    })
+
+    return httpClient.post<{
+      message: string
+      images: string[]
+    }>(API_ENDPOINTS.HOTELS.UPLOAD_ROOM_IMAGES(hotelId, roomId), formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

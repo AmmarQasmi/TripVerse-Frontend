@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ImageUploader } from '@/components/hotels/ImageUploader'
-import { RoomTypeForm } from '@/components/hotels/RoomTypeForm'
+import { RoomTypeForm, type RoomTypeFormRef } from '@/components/hotels/RoomTypeForm'
 import { useAuth } from '@/features/auth/useAuth'
 import { hotelsApi } from '@/lib/api/hotels.api'
 import { cityApi } from '@/lib/api/auth.api'
@@ -39,6 +39,7 @@ interface RoomTypeData {
   total_rooms: number
   amenities?: string[]
   images?: string[]
+  imageFiles?: File[]
 }
 
 export default function CreateHotelPage() {
@@ -62,6 +63,7 @@ export default function CreateHotelPage() {
 
   const [showRoomTypeForm, setShowRoomTypeForm] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const roomTypeFormRef = useRef<RoomTypeFormRef>(null)
 
   useEffect(() => {
     const fetchCities = async () => {
@@ -114,16 +116,20 @@ export default function CreateHotelPage() {
     setIsSubmitting(true)
 
     try {
-      // First upload images if any
-      let imageUrls: string[] = []
-      if (formData.images.length > 0) {
-        // For now, we'll create the hotel first, then upload images
-        // The backend accepts image URLs in the create request
-        // In a real implementation, you might want to upload to a temporary storage first
-        // For now, we'll create without images and let the manager add them later
+      // Auto-confirm any in-progress room type form
+      let allRoomTypes = [...formData.roomTypes]
+      if (showRoomTypeForm && roomTypeFormRef.current) {
+        const pendingRoom = roomTypeFormRef.current.tryGetData()
+        if (pendingRoom === null) {
+          // Room type form has validation errors — user must fix or cancel it
+          setIsSubmitting(false)
+          return
+        }
+        allRoomTypes = [...allRoomTypes, pendingRoom]
+        setShowRoomTypeForm(false)
       }
 
-      // Prepare hotel data
+      // Prepare hotel data (room type imageFiles are File objects, strip them from the payload)
       const hotelData: any = {
         name: formData.name,
         description: formData.description || undefined,
@@ -131,19 +137,39 @@ export default function CreateHotelPage() {
         city_id: parseInt(formData.city_id),
         star_rating: formData.star_rating,
         amenities: formData.amenities.length > 0 ? formData.amenities : undefined,
-        images: imageUrls,
-        roomTypes: formData.roomTypes.length > 0 ? formData.roomTypes : undefined,
+        images: [],
+        roomTypes: allRoomTypes.length > 0
+          ? allRoomTypes.map(({ imageFiles: _files, ...rest }) => rest)
+          : undefined,
       }
 
       const response = await hotelsApi.create(hotelData)
 
-      // If images were selected, upload them after hotel creation
+      // Upload hotel images if any were selected
       if (formData.images.length > 0) {
         try {
           await hotelsApi.uploadImages(String(response.id), formData.images)
         } catch (imgErr) {
-          console.error('Error uploading images:', imgErr)
-          // Continue anyway - hotel is created, images can be added later
+          console.error('Error uploading hotel images:', imgErr)
+        }
+      }
+
+      // Upload room type images using the room type IDs returned from creation
+      if (response.roomTypes?.length > 0) {
+        for (let i = 0; i < allRoomTypes.length; i++) {
+          const roomTypeData = allRoomTypes[i]
+          const createdRoomType = response.roomTypes[i]
+          if (roomTypeData.imageFiles && roomTypeData.imageFiles.length > 0 && createdRoomType) {
+            try {
+              await hotelsApi.uploadRoomImages(
+                String(response.id),
+                String(createdRoomType.id),
+                roomTypeData.imageFiles,
+              )
+            } catch (imgErr) {
+              console.error(`Error uploading images for room type ${createdRoomType.name}:`, imgErr)
+            }
+          }
         }
       }
 
@@ -166,7 +192,7 @@ export default function CreateHotelPage() {
     }))
   }
 
-  const addRoomType = (roomType: RoomTypeData) => {
+  const addRoomType = (roomType: RoomTypeData & { imageFiles?: File[] }) => {
     setFormData(prev => ({
       ...prev,
       roomTypes: [...prev.roomTypes, roomType],
@@ -295,10 +321,10 @@ export default function CreateHotelPage() {
               </CardContent>
             </Card>
 
-            {/* Images */}
+            {/* Hotel Images */}
             <Card>
               <CardHeader>
-                <CardTitle>Images</CardTitle>
+                <CardTitle>Hotel Images</CardTitle>
               </CardHeader>
               <CardContent>
                 <ImageUploader
@@ -306,7 +332,7 @@ export default function CreateHotelPage() {
                   maxImages={10}
                 />
                 <p className="text-sm text-gray-600 mt-2">
-                  You can upload images now or add them later after creating the hotel.
+                  These images represent your hotel (lobby, exterior, common areas). You can upload them now or after creating the hotel.
                 </p>
               </CardContent>
             </Card>
@@ -329,8 +355,10 @@ export default function CreateHotelPage() {
                 {showRoomTypeForm && (
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <RoomTypeForm
+                      ref={roomTypeFormRef}
                       onSubmit={addRoomType}
                       onCancel={() => setShowRoomTypeForm(false)}
+                      submitLabel="Confirm Room"
                     />
                   </div>
                 )}

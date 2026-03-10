@@ -113,13 +113,13 @@ export default function AdminHotelManagerReviewPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-500/20 text-green-400 border border-green-500/30'
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
       case 'rejected':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-500/20 text-red-400 border border-red-500/30'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
     }
   }
 
@@ -421,13 +421,13 @@ export default function AdminHotelManagerReviewPage() {
               <div className="space-y-4">
                 {!manager.is_verified && (
                   <div>
+                    <p className="text-sm font-medium text-gray-300 mb-1">Rejection Reason (if rejecting)</p>
                     <Input
-                      label="Rejection Reason (if rejecting)"
                       type="text"
                       placeholder="Enter reason for rejection..."
                       value={rejectionReason}
                       onChange={(e) => setRejectionReason(e.target.value)}
-                      className="mb-4"
+                      className="mb-4 bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400"
                     />
                   </div>
                 )}

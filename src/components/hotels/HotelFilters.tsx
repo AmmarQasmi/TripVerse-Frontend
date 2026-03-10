@@ -83,7 +83,7 @@ export function HotelFilters({ filters, onFiltersChange }: HotelFiltersProps) {
 
   const clearAllFilters = () => {
     onFiltersChange({
-      priceRange: [5000, 25000],
+      priceRange: [0, 25000],
       starRating: [],
       amenities: [],
       propertyType: []
@@ -93,7 +93,7 @@ export function HotelFilters({ filters, onFiltersChange }: HotelFiltersProps) {
   const hasActiveFilters = filters.starRating.length > 0 || 
                           filters.amenities.length > 0 || 
                           filters.propertyType.length > 0 ||
-                          filters.priceRange[0] > 5000 || 
+                          filters.priceRange[0] > 0 || 
                           filters.priceRange[1] < 50000
 
   return (
@@ -149,7 +149,7 @@ export function HotelFilters({ filters, onFiltersChange }: HotelFiltersProps) {
                   {/* Min thumb */}
                   <input
                     type="range"
-                    min="5000"
+                    min="0"
                     max="50000"
                     value={filters.priceRange[0]}
                     onChange={(e) => updatePriceRange(0, parseInt(e.target.value))}
@@ -163,7 +163,7 @@ export function HotelFilters({ filters, onFiltersChange }: HotelFiltersProps) {
                   {/* Max thumb */}
                   <input
                     type="range"
-                    min="5000"
+                    min="0"
                     max="50000"
                     value={filters.priceRange[1]}
                     onChange={(e) => updatePriceRange(1, parseInt(e.target.value))}
@@ -176,7 +176,7 @@ export function HotelFilters({ filters, onFiltersChange }: HotelFiltersProps) {
                 </div>
                 
                 <div className="flex justify-between text-xs text-gray-400">
-                  <span>PKR 5,000</span>
+                  <span>PKR 0</span>
                   <span>PKR 50,000</span>
                 </div>
               </div>
