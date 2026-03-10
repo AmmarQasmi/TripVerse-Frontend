@@ -37,7 +37,7 @@ export default function HotelSubmissionPage() {
 
         if (optimizedImages.length > 0) {
           setHotelImages(optimizedImages.map((img: any) => ({ id: img.id, url: img.original })))
-        } else if (hotelData.images?.length > 0) {
+        } else if (hotelData.images && hotelData.images.length > 0) {
           setHotelImages(hotelData.images.map((url: string, i: number) => ({ id: i, url })))
         }
 
