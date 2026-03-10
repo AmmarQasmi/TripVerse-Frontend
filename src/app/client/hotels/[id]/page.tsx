@@ -34,6 +34,7 @@ export default function HotelDetailPage() {
   const [showBookingModal, setShowBookingModal] = useState(false)
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [successBooking, setSuccessBooking] = useState<BookingResponse | null>(null)
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null)
 
   // Fetch real review data for count display
   const { data: reviewsData } = useHotelReviews(hotelId, 1, 1)
@@ -119,6 +120,11 @@ export default function HotelDetailPage() {
       </div>
     )
   }
+
+  const minRoomPrice = (() => {
+    const prices = (hotel.roomTypes || []).map((r: any) => r.pricePerNight).filter((p: number) => p > 0)
+    return prices.length > 0 ? Math.min(...prices) : (hotel.pricePerNight || 0)
+  })()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
@@ -247,6 +253,19 @@ export default function HotelDetailPage() {
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                     >
                       <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 transition-all duration-200 hover:border-cyan-500/50 p-5">
+                        {room.images && room.images.length > 0 && (
+                          <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
+                            {room.images.map((img: string, idx: number) => (
+                              <button
+                                key={idx}
+                                className="flex-shrink-0 w-36 h-24 rounded-lg overflow-hidden bg-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                                onClick={() => setLightbox({ images: room.images, index: idx })}
+                              >
+                                <img src={img} alt={`${room.name} ${idx + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-200" />
+                              </button>
+                            ))}
+                          </div>
+                        )}
                         <div className="flex justify-between items-start mb-3">
                           <div className="flex-1">
                             <h4 className="text-base font-semibold text-white">{room.name}</h4>
@@ -338,7 +357,7 @@ export default function HotelDetailPage() {
                 <div className="flex items-baseline justify-between mb-4">
                   <div>
                     <span className="text-2xl font-bold text-white">
-                      PKR {(hotel.pricePerNight || 0).toLocaleString()}
+                      {(hotel.roomTypes?.length || 0) > 1 ? 'From ' : ''}PKR {minRoomPrice.toLocaleString()}
                     </span>
                     <span className="text-gray-400 text-sm ml-1.5">/ night</span>
                   </div>
@@ -396,6 +415,54 @@ export default function HotelDetailPage() {
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
       />
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white/70 hover:text-white p-2"
+            onClick={() => setLightbox(null)}
+          >
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+          {lightbox.images.length > 1 && (
+            <button
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-2"
+              onClick={(e) => { e.stopPropagation(); setLightbox(lb => lb ? { ...lb, index: (lb.index - 1 + lb.images.length) % lb.images.length } : null) }}
+            >
+              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+            </button>
+          )}
+          <img
+            src={lightbox.images[lightbox.index]}
+            alt=""
+            className="max-h-[85vh] max-w-[90vw] rounded-xl object-contain shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+          {lightbox.images.length > 1 && (
+            <button
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-2"
+              onClick={(e) => { e.stopPropagation(); setLightbox(lb => lb ? { ...lb, index: (lb.index + 1) % lb.images.length } : null) }}
+            >
+              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+            </button>
+          )}
+          {lightbox.images.length > 1 && (
+            <div className="absolute bottom-5 flex gap-1.5">
+              {lightbox.images.map((_: string, i: number) => (
+                <button
+                  key={i}
+                  className={`w-2 h-2 rounded-full transition-colors ${i === lightbox.index ? 'bg-white' : 'bg-white/40'}`}
+                  onClick={(e) => { e.stopPropagation(); setLightbox(lb => lb ? { ...lb, index: i } : null) }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

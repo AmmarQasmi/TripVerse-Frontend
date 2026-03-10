@@ -10,6 +10,7 @@ import { PageLoader } from '@/components/shared/PageLoader'
 import { useAuth } from '@/features/auth/useAuth'
 import { hotelsApi } from '@/lib/api/hotels.api'
 import { DoughnutChart } from '@/components/client/DoughnutChart'
+import { ManageHotelModal } from '@/components/hotels/ManageHotelModal'
 
 interface ManagerHotel {
   id: string
@@ -34,6 +35,7 @@ export default function HotelManagerHotelsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [managingHotelId, setManagingHotelId] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchHotels = async () => {
@@ -123,6 +125,12 @@ export default function HotelManagerHotelsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {managingHotelId && (
+        <ManageHotelModal
+          hotelId={managingHotelId}
+          onClose={() => setManagingHotelId(null)}
+        />
+      )}
       <PageHeader 
         title="My Hotels"
         subtitle="Manage your properties and track performance"
@@ -224,11 +232,13 @@ export default function HotelManagerHotelsPage() {
 
                     {/* Actions */}
                     <div className="flex space-x-2">
-                      <Link href={`/hotel-manager/hotels/${hotel.id}`} className="flex-1">
-                        <Button variant="outline" className="w-full">
-                          Manage
-                        </Button>
-                      </Link>
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => setManagingHotelId(hotel.id)}
+                      >
+                        Manage
+                      </Button>
                       <Button
                         variant="outline"
                         className={`px-3 ${

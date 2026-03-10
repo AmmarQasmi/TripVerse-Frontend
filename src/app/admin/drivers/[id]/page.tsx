@@ -72,13 +72,13 @@ export default function AdminDriverReviewPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-500/20 text-green-400 border border-green-500/30'
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
       case 'rejected':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-500/20 text-red-400 border border-red-500/30'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
     }
   }
 
@@ -277,9 +277,9 @@ export default function AdminDriverReviewPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Document List */}
             <div>
-              <Card className="shadow-lg">
+              <Card className="bg-white/10 backdrop-blur-md border-white/20">
                 <CardHeader>
-                  <CardTitle>Documents ({driver.documents.length}/4)</CardTitle>
+                  <CardTitle className="text-white">Documents ({driver.documents.length}/4)</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -289,30 +289,30 @@ export default function AdminDriverReviewPage() {
                         onClick={() => setSelectedDocument(doc)}
                         className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
                           selectedDocument?.id === doc.id
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                            ? 'border-cyan-500 bg-cyan-500/10'
+                            : 'border-white/20 hover:border-white/40 bg-white/5'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-gray-900 text-sm">
+                          <h4 className="font-semibold text-white text-sm">
                             {getDocumentName(doc.document_type)}
                           </h4>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(doc.status)}`}>
                             {getStatusIcon(doc.status)} {doc.status.toUpperCase()}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-gray-400">
                           Uploaded {new Date(doc.uploaded_at).toLocaleDateString()}
                         </p>
                         {doc.reviewed_at && (
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-400 mt-1">
                             Reviewed {new Date(doc.reviewed_at).toLocaleDateString()}
                           </p>
                         )}
                       </button>
                     ))}
                     {driver.documents.length === 0 && (
-                      <p className="text-center text-gray-500 py-4">No documents submitted</p>
+                      <p className="text-center text-gray-400 py-4">No documents submitted</p>
                     )}
                   </div>
                 </CardContent>
@@ -322,10 +322,10 @@ export default function AdminDriverReviewPage() {
             {/* Document Viewer */}
             <div className="lg:col-span-2">
               {selectedDocument ? (
-                <Card className="shadow-lg">
+                <Card className="bg-white/10 backdrop-blur-md border-white/20">
                   <CardHeader>
                     <div className="flex justify-between items-center">
-                      <CardTitle>{getDocumentName(selectedDocument.document_type)}</CardTitle>
+                      <CardTitle className="text-white">{getDocumentName(selectedDocument.document_type)}</CardTitle>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedDocument.status)}`}>
                         {getStatusIcon(selectedDocument.status)} {selectedDocument.status.toUpperCase()}
                       </span>
@@ -333,18 +333,18 @@ export default function AdminDriverReviewPage() {
                   </CardHeader>
                   <CardContent className="space-y-6">
                     {/* Document Image/PDF */}
-                    <div className="relative h-96 bg-gray-100 rounded-lg overflow-hidden">
+                    <div className="relative h-96 bg-gray-800/50 rounded-lg overflow-hidden">
                       <button
                         onClick={() => setViewingDocument({
                           url: selectedDocument.document_url,
                           name: getDocumentName(selectedDocument.document_type)
                         })}
-                        className="w-full h-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+                        className="w-full h-full flex items-center justify-center hover:bg-white/10 transition-colors"
                       >
                         {selectedDocument.document_url.endsWith('.pdf') ? (
                           <div className="text-center">
                             <div className="text-6xl mb-2">📄</div>
-                            <p className="text-gray-600">Click to view PDF</p>
+                            <p className="text-gray-400">Click to view PDF</p>
                           </div>
                         ) : (
                           <img
@@ -357,42 +357,42 @@ export default function AdminDriverReviewPage() {
                     </div>
 
                     {/* Document Info */}
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="font-semibold text-gray-900 mb-2">Document Information</h4>
+                    <div className="bg-white/5 border border-white/10 p-4 rounded-lg">
+                      <h4 className="font-semibold text-white mb-2">Document Information</h4>
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <p className="text-gray-600">Type:</p>
-                          <p className="font-medium">{getDocumentName(selectedDocument.document_type)}</p>
+                          <p className="text-gray-400">Type:</p>
+                          <p className="font-medium text-gray-200">{getDocumentName(selectedDocument.document_type)}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Uploaded:</p>
-                          <p className="font-medium">{new Date(selectedDocument.uploaded_at).toLocaleString()}</p>
+                          <p className="text-gray-400">Uploaded:</p>
+                          <p className="font-medium text-gray-200">{new Date(selectedDocument.uploaded_at).toLocaleString()}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Status:</p>
-                          <p className="font-medium">{selectedDocument.status.toUpperCase()}</p>
+                          <p className="text-gray-400">Status:</p>
+                          <p className="font-medium text-gray-200">{selectedDocument.status.toUpperCase()}</p>
                         </div>
                         {selectedDocument.reviewed_at && (
                           <div>
-                            <p className="text-gray-600">Reviewed:</p>
-                            <p className="font-medium">{new Date(selectedDocument.reviewed_at).toLocaleString()}</p>
+                            <p className="text-gray-400">Reviewed:</p>
+                            <p className="font-medium text-gray-200">{new Date(selectedDocument.reviewed_at).toLocaleString()}</p>
                           </div>
                         )}
                       </div>
                       {selectedDocument.rejection_reason && (
-                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded">
-                          <p className="text-sm font-medium text-red-800">Rejection Reason:</p>
-                          <p className="text-sm text-red-600 mt-1">{selectedDocument.rejection_reason}</p>
+                        <div className="mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded">
+                          <p className="text-sm font-medium text-red-300">Rejection Reason:</p>
+                          <p className="text-sm text-red-200 mt-1">{selectedDocument.rejection_reason}</p>
                         </div>
                       )}
                     </div>
                   </CardContent>
                 </Card>
               ) : (
-                <Card className="shadow-lg">
+                <Card className="bg-white/10 backdrop-blur-md border-white/20">
                   <CardContent className="p-12 text-center">
                     <div className="text-6xl mb-4">📄</div>
-                    <p className="text-gray-600">Select a document to review</p>
+                    <p className="text-gray-400">Select a document to review</p>
                   </CardContent>
                 </Card>
               )}
@@ -401,18 +401,18 @@ export default function AdminDriverReviewPage() {
 
           {/* Platform Ratings Section */}
           {driver.ratings.length > 0 && (
-            <Card className="shadow-lg mt-8">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 mt-8">
               <CardHeader>
-                <CardTitle>Platform Ratings ({driver.ratings.length})</CardTitle>
+                <CardTitle className="text-white">Platform Ratings ({driver.ratings.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {driver.ratings.map((rating) => (
-                    <div key={rating.id} className="p-4 border rounded-lg">
+                    <div key={rating.id} className="p-4 border border-white/20 rounded-lg bg-white/5">
                       <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-semibold text-gray-900 capitalize">{rating.platform}</h4>
+                        <h4 className="font-semibold text-white capitalize">{rating.platform}</h4>
                         <div className="flex items-center space-x-2">
-                          <span className="text-lg font-bold text-gray-900">⭐ {Number(rating.rating).toFixed(1)}</span>
+                          <span className="text-lg font-bold text-white">⭐ {Number(rating.rating).toFixed(1)}</span>
                           {rating.verified_at && (
                             <span className="text-xs text-green-600">✅ Verified</span>
                           )}
@@ -429,13 +429,13 @@ export default function AdminDriverReviewPage() {
                               name: `${rating.platform} Rating Screenshot`
                             })}
                           />
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-400">
                             Created: {new Date(rating.created_at).toLocaleDateString()}
                           </p>
                         </div>
                       ) : (
-                        <div className="text-center py-4 bg-yellow-50 rounded">
-                          <p className="text-sm text-yellow-800">No screenshot uploaded</p>
+                        <div className="text-center py-4 bg-yellow-500/10 border border-yellow-500/30 rounded">
+                          <p className="text-sm text-yellow-300">No screenshot uploaded</p>
                         </div>
                       )}
                     </div>
@@ -447,16 +447,16 @@ export default function AdminDriverReviewPage() {
 
           {/* Disciplinary History */}
           {driver.is_verified && (
-            <Card className="shadow-lg mt-8">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 mt-8">
               <CardHeader>
-                <CardTitle className="flex items-center">
+                <CardTitle className="text-white flex items-center">
                   <span className="text-2xl mr-2">📋</span>
                   Disciplinary History
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {disciplinaryHistory.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-gray-400">
                     <p>No disciplinary actions recorded.</p>
                   </div>
                 ) : (
@@ -464,12 +464,12 @@ export default function AdminDriverReviewPage() {
                     {disciplinaryHistory.map((action, index) => (
                       <div
                         key={index}
-                        className={`p-4 rounded-lg border-2 ${
+                        className={`p-4 rounded-lg border ${
                           action.action_type === 'ban'
-                            ? 'bg-red-50 border-red-200'
+                            ? 'bg-red-500/10 border-red-500/40'
                             : action.action_type === 'suspension'
-                            ? 'bg-orange-50 border-orange-200'
-                            : 'bg-yellow-50 border-yellow-200'
+                            ? 'bg-orange-500/10 border-orange-500/40'
+                            : 'bg-yellow-500/10 border-yellow-500/40'
                         }`}
                       >
                         <div className="flex items-start justify-between mb-2">
@@ -477,49 +477,49 @@ export default function AdminDriverReviewPage() {
                             <span className="text-xl">
                               {action.action_type === 'ban' ? '🚫' : action.action_type === 'suspension' ? '⏸️' : '⚠️'}
                             </span>
-                            <span className="font-semibold text-gray-900 capitalize">
+                            <span className="font-semibold text-white capitalize">
                               {action.action_type}
                             </span>
                             {action.is_paused && (
-                              <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                              <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
                                 PAUSED
                               </span>
                             )}
                           </div>
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm text-gray-400">
                             {new Date(action.created_at).toLocaleDateString()}
                           </span>
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                           <div>
-                            <p className="text-gray-600">Disputes</p>
-                            <p className="font-semibold text-gray-900">{action.dispute_count}</p>
+                            <p className="text-gray-400">Disputes</p>
+                            <p className="font-semibold text-white">{action.dispute_count}</p>
                           </div>
                           {action.suspension_days && (
                             <div>
-                              <p className="text-gray-600">Duration</p>
-                              <p className="font-semibold text-gray-900">{action.suspension_days} days</p>
+                              <p className="text-gray-400">Duration</p>
+                              <p className="font-semibold text-white">{action.suspension_days} days</p>
                             </div>
                           )}
                           {action.scheduled_start && (
                             <div>
-                              <p className="text-gray-600">Scheduled Start</p>
-                              <p className="font-semibold text-gray-900">
+                              <p className="text-gray-400">Scheduled Start</p>
+                              <p className="font-semibold text-white">
                                 {new Date(action.scheduled_start).toLocaleDateString()}
                               </p>
                             </div>
                           )}
                           {action.actual_start && (
                             <div>
-                              <p className="text-gray-600">Actual Start</p>
-                              <p className="font-semibold text-gray-900">
+                              <p className="text-gray-400">Actual Start</p>
+                              <p className="font-semibold text-white">
                                 {new Date(action.actual_start).toLocaleDateString()}
                               </p>
                             </div>
                           )}
                         </div>
                         {action.pause_reason && (
-                          <div className="mt-2 text-sm text-gray-600">
+                          <div className="mt-2 text-sm text-gray-400">
                             <strong>Pause Reason:</strong> {action.pause_reason}
                           </div>
                         )}
@@ -538,43 +538,43 @@ export default function AdminDriverReviewPage() {
 
           {/* Dispute Count & Suspension Status */}
           {driver.is_verified && (
-            <Card className="shadow-lg mt-8">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 mt-8">
               <CardHeader>
-                <CardTitle className="flex items-center">
+                <CardTitle className="text-white flex items-center">
                   <span className="text-2xl mr-2">📊</span>
                   Current Status
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-1">Dispute Count</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                  <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
+                    <p className="text-sm text-gray-400 mb-1">Dispute Count</p>
+                    <p className="text-2xl font-bold text-white">
                       {(driver as any).dispute_count || 0}
                     </p>
                   </div>
-                  <div className={`p-4 rounded-lg ${
-                    (driver as any).is_banned ? 'bg-red-50' : 
-                    (driver as any).is_suspended ? 'bg-orange-50' : 
-                    'bg-green-50'
+                  <div className={`p-4 border rounded-lg ${
+                    (driver as any).is_banned ? 'bg-red-500/10 border-red-500/40' : 
+                    (driver as any).is_suspended ? 'bg-orange-500/10 border-orange-500/40' : 
+                    'bg-green-500/10 border-green-500/40'
                   }`}>
-                    <p className="text-sm text-gray-600 mb-1">Account Status</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-sm text-gray-400 mb-1">Account Status</p>
+                    <p className="text-2xl font-bold text-white">
                       {(driver as any).is_banned ? '🚫 Banned' : 
                        (driver as any).is_suspended ? '⏸️ Suspended' : 
                        '✅ Active'}
                     </p>
                   </div>
                   {(driver as any).suspension_paused && (
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                      <p className="text-sm text-gray-600 mb-1">Suspension Status</p>
-                      <p className="text-2xl font-bold text-gray-900">⏸️ Paused</p>
+                    <div className="p-4 bg-blue-500/10 border border-blue-500/40 rounded-lg">
+                      <p className="text-sm text-gray-400 mb-1">Suspension Status</p>
+                      <p className="text-2xl font-bold text-white">⏸️ Paused</p>
                     </div>
                   )}
                   {(driver as any).has_active_ride && (
-                    <div className="p-4 bg-yellow-50 rounded-lg">
-                      <p className="text-sm text-gray-600 mb-1">Active Ride</p>
-                      <p className="text-2xl font-bold text-gray-900">🚗 Yes</p>
+                    <div className="p-4 bg-yellow-500/10 border border-yellow-500/40 rounded-lg">
+                      <p className="text-sm text-gray-400 mb-1">Active Ride</p>
+                      <p className="text-2xl font-bold text-white">🚗 Yes</p>
                     </div>
                   )}
                 </div>
@@ -585,13 +585,13 @@ export default function AdminDriverReviewPage() {
           {/* Final Actions */}
           {!driver.is_verified && (
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="shadow-lg bg-green-50 border-2 border-green-200">
+              <Card className="bg-white/10 backdrop-blur-md border-green-500/40">
                 <CardContent className="p-6">
-                  <h3 className="font-semibold text-green-900 mb-4 flex items-center">
+                  <h3 className="font-semibold text-green-400 mb-4 flex items-center">
                     <span className="text-2xl mr-2">✅</span>
                     Approve Driver
                   </h3>
-                  <p className="text-sm text-green-800 mb-4">
+                  <p className="text-sm text-green-300 mb-4">
                     Approve all documents and verify this driver. They will be able to list cars and accept bookings.
                   </p>
                   <Button
@@ -609,17 +609,17 @@ export default function AdminDriverReviewPage() {
                 </CardContent>
               </Card>
 
-              <Card className="shadow-lg bg-red-50 border-2 border-red-200">
+              <Card className="bg-white/10 backdrop-blur-md border-red-500/40">
                 <CardContent className="p-6">
-                  <h3 className="font-semibold text-red-900 mb-4 flex items-center">
+                  <h3 className="font-semibold text-red-400 mb-4 flex items-center">
                     <span className="text-2xl mr-2">❌</span>
                     Reject Application
                   </h3>
-                  <p className="text-sm text-red-800 mb-4">
+                  <p className="text-sm text-red-300 mb-4">
                     Reject this driver's application. They will be notified with the reason.
                   </p>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
                       Rejection Reason (Required)
                     </label>
                     <textarea
@@ -627,7 +627,7 @@ export default function AdminDriverReviewPage() {
                       onChange={(e) => setRejectionReason(e.target.value)}
                       placeholder="Provide a clear reason for rejection..."
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                      className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 text-white placeholder:text-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                     />
                   </div>
                   <Button
@@ -644,17 +644,17 @@ export default function AdminDriverReviewPage() {
           )}
 
           {driver.is_verified && (
-            <Card className="shadow-lg mt-8 bg-green-50 border-2 border-green-200">
+            <Card className="bg-white/10 backdrop-blur-md border-green-500/40 mt-8">
               <CardContent className="p-6">
                 <div className="flex items-center space-x-3">
                   <span className="text-4xl">✅</span>
                   <div>
-                    <h3 className="font-semibold text-green-900 text-lg">Driver Verified</h3>
-                    <p className="text-sm text-green-800">
+                    <h3 className="font-semibold text-green-400 text-lg">Driver Verified</h3>
+                    <p className="text-sm text-green-300">
                       This driver has been verified on {driver.verified_at ? new Date(driver.verified_at).toLocaleDateString() : 'N/A'}
                     </p>
                     {driver.verification_notes && (
-                      <p className="text-sm text-gray-700 mt-2">
+                      <p className="text-sm text-gray-300 mt-2">
                         <strong>Notes:</strong> {driver.verification_notes}
                       </p>
                     )}

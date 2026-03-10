@@ -174,7 +174,7 @@ export default function HotelsPage() {
     }
   }, [user, authLoading, router, hasCheckedAuth])
   const [filters, setFilters] = useState({
-    priceRange: [5000, 25000] as [number, number],
+    priceRange: [0, 25000] as [number, number],
     starRating: [] as number[],
     amenities: [] as string[],
     propertyType: [] as string[],
@@ -244,7 +244,7 @@ export default function HotelsPage() {
 
   const handleClearFilters = () => {
     setFilters({
-      priceRange: [5000, 25000] as [number, number],
+      priceRange: [0, 25000] as [number, number],
       starRating: [],
       amenities: [],
       propertyType: [],
@@ -461,7 +461,7 @@ export default function HotelsPage() {
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-white font-semibold text-xl">Filters</h3>
                   <button
-                    onClick={() => setFilters({ priceRange: [5000,25000] as [number,number], starRating: [], amenities: [], propertyType: [] })}
+                    onClick={() => setFilters({ priceRange: [0,25000] as [number,number], starRating: [], amenities: [], propertyType: [] })}
                     className="text-cyan-300 text-sm hover:text-cyan-200"
                   >
                     Clear All
@@ -489,7 +489,7 @@ export default function HotelsPage() {
                     <div className="absolute inset-0 flex items-center gap-4">
                       <input
                         type="range"
-                        min={5000}
+                        min={0}
                         max={50000}
                         step={500}
                         value={filters.priceRange[0]}
@@ -498,7 +498,7 @@ export default function HotelsPage() {
                       />
                       <input
                         type="range"
-                        min={5000}
+                        min={0}
                         max={50000}
                         step={500}
                         value={filters.priceRange[1]}
@@ -508,7 +508,7 @@ export default function HotelsPage() {
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-gray-400 text-sm mt-2">
-                    <span>PKR 5,000</span>
+                    <span>PKR 0</span>
                     <span>PKR 50,000</span>
                   </div>
                 </div>

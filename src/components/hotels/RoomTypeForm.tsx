@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
@@ -26,9 +26,24 @@ interface RoomTypeFormProps {
     total_rooms: number
     amenities?: string[]
     images?: string[]
+    imageFiles?: File[]
   }) => void | Promise<void>
   onCancel?: () => void
   isLoading?: boolean
+  submitLabel?: string
+}
+
+export interface RoomTypeFormRef {
+  tryGetData: () => {
+    name: string
+    description?: string
+    max_occupancy: number
+    base_price: number
+    total_rooms: number
+    amenities?: string[]
+    images?: string[]
+    imageFiles?: File[]
+  } | null
 }
 
 const ROOM_TYPE_OPTIONS = [
@@ -51,7 +66,8 @@ const AMENITY_OPTIONS = [
   'room_service',
 ]
 
-export function RoomTypeForm({ initialData, onSubmit, onCancel, isLoading = false }: RoomTypeFormProps) {
+export const RoomTypeForm = forwardRef<RoomTypeFormRef, RoomTypeFormProps>(
+  function RoomTypeForm({ initialData, onSubmit, onCancel, isLoading = false, submitLabel }, ref) {
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
     description: initialData?.description || '',
@@ -61,6 +77,9 @@ export function RoomTypeForm({ initialData, onSubmit, onCancel, isLoading = fals
     amenities: initialData?.amenities || [] as string[],
     images: initialData?.images || [] as string[],
   })
+  const [imageFiles, setImageFiles] = useState<File[]>([])
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>(initialData?.images || [])
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -75,6 +94,8 @@ export function RoomTypeForm({ initialData, onSubmit, onCancel, isLoading = fals
         amenities: initialData.amenities || [],
         images: initialData.images || [],
       })
+      setImagePreviewUrls(initialData.images || [])
+      setImageFiles([])
     }
   }, [initialData])
 
@@ -116,6 +137,7 @@ export function RoomTypeForm({ initialData, onSubmit, onCancel, isLoading = fals
       total_rooms: formData.total_rooms,
       amenities: formData.amenities.length > 0 ? formData.amenities : undefined,
       images: formData.images.length > 0 ? formData.images : undefined,
+      imageFiles: imageFiles.length > 0 ? imageFiles : undefined,
     })
     
     // Reset form after successful submission if no initialData (for new room types)
@@ -129,8 +151,39 @@ export function RoomTypeForm({ initialData, onSubmit, onCancel, isLoading = fals
         amenities: [],
         images: [],
       })
+      setImageFiles([])
+      setImagePreviewUrls([])
       setErrors({})
     }
+  }
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+    const maxImages = 8
+    const remaining = maxImages - imagePreviewUrls.length
+    const toAdd = files.slice(0, remaining)
+    setImageFiles(prev => [...prev, ...toAdd])
+    const newPreviews = toAdd.map(f => URL.createObjectURL(f))
+    setImagePreviewUrls(prev => [...prev, ...newPreviews])
+    // Reset file input so same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const removeImagePreview = (index: number) => {
+    const existingCount = formData.images.length
+    if (index < existingCount) {
+      // Remove existing URL
+      setFormData(prev => ({
+        ...prev,
+        images: prev.images.filter((_, i) => i !== index),
+      }))
+    } else {
+      // Remove newly added file
+      const fileIndex = index - existingCount
+      setImageFiles(prev => prev.filter((_, i) => i !== fileIndex))
+    }
+    setImagePreviewUrls(prev => prev.filter((_, i) => i !== index))
   }
 
   const toggleAmenity = (amenity: string) => {
@@ -141,6 +194,22 @@ export function RoomTypeForm({ initialData, onSubmit, onCancel, isLoading = fals
         : [...prev.amenities, amenity],
     }))
   }
+
+  useImperativeHandle(ref, () => ({
+    tryGetData: () => {
+      if (!validate()) return null
+      return {
+        name: formData.name,
+        description: formData.description || undefined,
+        max_occupancy: formData.max_occupancy,
+        base_price: formData.base_price,
+        total_rooms: formData.total_rooms,
+        amenities: formData.amenities.length > 0 ? formData.amenities : undefined,
+        images: formData.images.length > 0 ? formData.images : undefined,
+        imageFiles: imageFiles.length > 0 ? imageFiles : undefined,
+      }
+    },
+  }))
 
   return (
     <div className="space-y-6" onSubmit={handleSubmit}>
@@ -230,6 +299,66 @@ export function RoomTypeForm({ initialData, onSubmit, onCancel, isLoading = fals
         </div>
       </div>
 
+      {/* Room Images */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium text-gray-700">
+            Room Images ({imagePreviewUrls.length} / 8)
+          </label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={imagePreviewUrls.length >= 8}
+          >
+            Add Images
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleImageSelect}
+            className="hidden"
+          />
+        </div>
+
+        {imagePreviewUrls.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {imagePreviewUrls.map((url, index) => (
+              <div key={index} className="relative group aspect-video rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+                <img
+                  src={url}
+                  alt={`Room image ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeImagePreview(index)}
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                  aria-label="Remove image"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div
+            className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-cyan-400 transition-colors"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <svg className="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <p className="text-sm text-gray-500">Click to add room images</p>
+          </div>
+        )}
+      </div>
+
       <div className="flex justify-end space-x-3 pt-4 border-t">
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
@@ -241,10 +370,11 @@ export function RoomTypeForm({ initialData, onSubmit, onCancel, isLoading = fals
           disabled={isLoading}
           onClick={() => handleSubmit()}
         >
-          {isLoading ? 'Saving...' : initialData?.id ? 'Update Room Type' : 'Add Room Type'}
+          {isLoading ? 'Saving...' : submitLabel ?? (initialData?.id ? 'Update Room Type' : 'Add Room Type')}
         </Button>
       </div>
     </div>
   )
-}
+  }
+)
 
