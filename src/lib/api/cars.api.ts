@@ -486,6 +486,14 @@ export const carsApi = {
     color?: string
     license_plate?: string
     images?: string[]
+    // Dual-mode availability
+    available_for_rental?: boolean
+    available_for_ride_hailing?: boolean
+    // Ride-hailing pricing
+    base_fare?: number
+    per_km_rate?: number
+    per_minute_rate?: number
+    minimum_fare?: number
   }) => {
     return httpClient.post<{
       id: string

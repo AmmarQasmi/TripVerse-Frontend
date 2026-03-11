@@ -75,6 +75,9 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
   const [pickupInputFocused, setPickupInputFocused] = useState(false)
   const [dropoffInputFocused, setDropoffInputFocused] = useState(false)
   
+  // City restriction for ride-hailing
+  const [pickupCity, setPickupCity] = useState<string | null>(null)
+  
   // Price calculation
   const [priceBreakdown, setPriceBreakdown] = useState<PriceBreakdown | null>(null)
   const [estimatedDistance, setEstimatedDistance] = useState(0)
@@ -92,6 +95,14 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
   const router = useRouter()
   
   const today = new Date().toISOString().split('T')[0]
+  const supportsRental = car?.availability?.available_for_rental ?? true
+  const supportsRideHailing = car?.availability?.available_for_ride_hailing ?? false
+  const isSingleModeCar = supportsRental !== supportsRideHailing
+  const fixedBookingModeLabel = supportsRideHailing && !supportsRental
+    ? 'Within City Ride'
+    : supportsRental && !supportsRideHailing
+      ? 'City to City Rental'
+      : null
 
   // Compute end date from pickup date + number of days
   const computeEndDate = (startDate: string, days: number): string => {
@@ -138,8 +149,34 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
       setIsAsap(true)
       setEstimatedDuration(0)
       setSurgeMultiplier(1)
+      setPickupCity(null)
     }
   }, [isOpen])
+
+  // Auto-select booking mode for single-mode cars.
+  // Only hybrid cars should see the mode selection question.
+  useEffect(() => {
+    if (!isOpen) return
+
+    if (supportsRideHailing && !supportsRental) {
+      setBookingMode('within-city')
+      setFinalBookingType('RIDE_HAILING')
+      setStep(1)
+      return
+    }
+
+    if (supportsRental && !supportsRideHailing) {
+      setBookingMode('city-to-city')
+      setFinalBookingType('RENTAL')
+      setStep(1)
+      return
+    }
+
+    // Hybrid (or unknown) cars: show mode selection as usual.
+    setBookingMode('auto')
+    setFinalBookingType(null)
+    setStep(0)
+  }, [isOpen, supportsRental, supportsRideHailing])
 
   // Fetch unavailable dates when modal opens (only for rental mode)
   useEffect(() => {
@@ -160,6 +197,25 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
     }
   }, [isOpen, car?.id, bookingMode])
 
+  // Extract city name from a Google Places description
+  // e.g. "Clifton, Khayaban-e-Iqbal Rd, Karachi, Pakistan" → "Karachi"
+  const extractCity = (description: string): string | null => {
+    const parts = description.split(',').map(p => p.trim())
+    // City is typically second-to-last (last is "Pakistan")
+    if (parts.length >= 2) {
+      const candidate = parts[parts.length - 2]
+      // Avoid returning province/country names as city
+      const provinceNames = ['Pakistan', 'Sindh', 'Punjab', 'Balochistan', 'KPK', 'Khyber Pakhtunkhwa', 'Islamabad Capital Territory']
+      if (!provinceNames.includes(candidate)) return candidate
+      // If second-to-last is a province, try third-to-last
+      if (parts.length >= 3) return parts[parts.length - 3]
+    }
+    return null
+  }
+
+  // Check if ride-hailing mode is active
+  const isRideHailingMode = bookingMode === 'within-city' || finalBookingType === 'RIDE_HAILING'
+
   // Autocomplete handler
   const fetchSuggestions = useCallback(async (input: string, type: 'pickup' | 'dropoff') => {
     if (input.length < 2) {
@@ -168,7 +224,16 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
     }
     try {
       const result = await carsApi.autocompleteLocation(input, 'pk')
-      const suggestions = result.suggestions || []
+      let suggestions = result.suggestions || []
+      
+      // For ride-hailing drop-off, filter to same city as pickup
+      if (type === 'dropoff' && isRideHailingMode && pickupCity) {
+        suggestions = suggestions.filter(s => {
+          const desc = s.description || ''
+          return desc.toLowerCase().includes(pickupCity.toLowerCase())
+        })
+      }
+      
       if (type === 'pickup') {
         setPickupSuggestions(suggestions)
         setShowPickupSuggestions(true)
@@ -179,7 +244,7 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
     } catch {
       // silently fail
     }
-  }, [])
+  }, [isRideHailingMode, pickupCity])
 
   // Debounced autocomplete for pickup
   useEffect(() => {
@@ -243,6 +308,7 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
       setIsCalculating(true)
       try {
         const selectedType = getSelectedBookingType()
+        const isRideFlow = selectedType === 'RIDE_HAILING' || bookingMode === 'within-city'
         const endDate = pickupDate ? computeEndDate(pickupDate, numberOfDays) : undefined
         
         const result = await carsApi.calculatePrice(
@@ -258,6 +324,15 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
         )
         
         // Store detected info
+        if (isRideFlow && result.detected_cities && !result.detected_cities.same_city) {
+          setErrors(prev => ({
+            ...prev,
+            dropoff: 'Within City Ride requires pickup and drop-off in the same city. Choose locations inside one city.',
+          }))
+          showToast('Ride-hailing is only available within the same city. Please choose a drop-off in the same city.', 'error')
+          return
+        }
+
         setDetectedCities(result.detected_cities)
         setDetectedBookingType(result.detected_booking_type)
         setFinalBookingType(result.booking_type)
@@ -368,11 +443,20 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                       {car.car.year} &bull; {car.car.seats} seats &bull; {car.car.transmission}
                     </p>
                   </div>
-                  <button onClick={onClose} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {step > 0 && (
+                      <button onClick={() => setStep(step - 1)} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+                    )}
+                    <button onClick={onClose} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Step Indicator */}
@@ -524,6 +608,24 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                       exit={{ opacity: 0, x: -20 }}
                       className="space-y-4"
                     >
+                      {isSingleModeCar && fixedBookingModeLabel && (
+                        <div className="bg-teal-500/10 border border-teal-500/30 rounded-xl p-3 flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-teal-300">Booking mode for this car</p>
+                            <p className="text-sm font-semibold text-white">{fixedBookingModeLabel}</p>
+                          </div>
+                          <span className="text-xs px-2 py-0.5 bg-teal-500/20 text-teal-300 rounded-full">Auto-selected</span>
+                        </div>
+                      )}
+
+                      {(bookingMode === 'within-city' || finalBookingType === 'RIDE_HAILING') && (
+                        <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3">
+                          <p className="text-xs text-blue-200">
+                            Within City Ride rule: pickup and drop-off must be in the same city.
+                          </p>
+                        </div>
+                      )}
+
                       <h3 className="text-lg font-semibold text-white mb-1">Where are you going?</h3>
                       <p className="text-sm text-gray-400 mb-4">Set your pickup and drop-off locations</p>
 
@@ -564,6 +666,14 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                                   setPickupLocation(s.description)
                                   setShowPickupSuggestions(false)
                                   setPickupSuggestions([])
+                                  // Extract city for ride-hailing restriction
+                                  const city = extractCity(s.description)
+                                  setPickupCity(city)
+                                  // Clear drop-off when pickup city changes in ride-hailing mode
+                                  if (isRideHailingMode && city) {
+                                    setDropoffLocation('')
+                                    setDropoffSuggestions([])
+                                  }
                                 }}
                                 className="w-full text-left px-4 py-2.5 hover:bg-gray-700 text-sm text-gray-300 border-b border-white/5 last:border-0 flex items-start gap-2"
                               >
@@ -603,7 +713,7 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                               if (dropoffLocation.length >= 2) setShowDropoffSuggestions(true)
                             }}
                             onBlur={() => setTimeout(() => { setDropoffInputFocused(false); setShowDropoffSuggestions(false) }, 200)}
-                            placeholder="Enter drop-off location"
+                            placeholder={isRideHailingMode && pickupCity ? `Search within ${pickupCity}` : 'Enter drop-off location'}
                             className={`w-full pl-9 pr-4 py-2.5 bg-gray-800 border rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm ${
                               errors.dropoff ? 'border-red-500' : 'border-white/10'
                             }`}
@@ -637,13 +747,13 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                             ))}
                           </div>
                         )}
+                        {/* Show message when ride-hailing drop-off has no same-city results */}
+                        {showDropoffSuggestions && dropoffSuggestions.length === 0 && dropoffLocation.length >= 2 && isRideHailingMode && pickupCity && (
+                          <div className="absolute z-20 w-full mt-1 bg-gray-800 border border-white/10 rounded-xl shadow-xl p-3">
+                            <p className="text-xs text-amber-400">No locations found in {pickupCity}. Within City Rides must stay in the same city.</p>
+                          </div>
+                        )}
                       </div>
-
-                      {/* Route Map Preview */}
-                      <RouteMap
-                        pickupLocation={pickupLocation}
-                        dropoffLocation={dropoffLocation}
-                      />
 
                       {/* Date/Time Selection - Conditional based on mode */}
                       {bookingMode === 'within-city' ? (
@@ -687,18 +797,32 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                           </div>
 
                           {!isAsap && (
-                            <div>
-                              <label className="text-sm text-gray-400 mb-1 block">Pickup Date & Time</label>
-                              <input
-                                type="datetime-local"
-                                value={scheduledPickup || ''}
-                                onChange={(e) => setScheduledPickup(e.target.value)}
-                                min={new Date().toISOString().slice(0, 16)}
-                                className={`w-full px-4 py-2.5 bg-gray-800 border rounded-xl text-white text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
-                                  errors.scheduledPickup ? 'border-red-500' : 'border-white/10'
-                                }`}
+                            <div className="space-y-3">
+                              <BookingCalendar
+                                selectedDate={scheduledPickup ? scheduledPickup.slice(0, 10) : ''}
+                                onDateSelect={(date) => {
+                                  const time = scheduledPickup ? scheduledPickup.slice(11, 16) : '09:00'
+                                  setScheduledPickup(`${date}T${time}`)
+                                }}
+                                unavailableDates={unavailableDates}
+                                numberOfDays={1}
+                                isLoading={isLoadingDates}
+                                error={errors.scheduledPickup}
                               />
-                              {errors.scheduledPickup && <p className="text-xs text-red-400 mt-1">{errors.scheduledPickup}</p>}
+                              <div>
+                                <label className="text-sm text-gray-400 mb-1 block">Pickup Time</label>
+                                <input
+                                  type="time"
+                                  value={scheduledPickup ? scheduledPickup.slice(11, 16) : ''}
+                                  onChange={(e) => {
+                                    const date = scheduledPickup ? scheduledPickup.slice(0, 10) : new Date().toISOString().slice(0, 10)
+                                    setScheduledPickup(`${date}T${e.target.value}`)
+                                  }}
+                                  className={`w-full px-4 py-2.5 bg-gray-800 border rounded-xl text-white text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
+                                    errors.scheduledPickup ? 'border-red-500' : 'border-white/10'
+                                  }`}
+                                />
+                              </div>
                             </div>
                           )}
 
@@ -1099,7 +1223,7 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
 
               {/* Footer */}
               <div className="p-5 border-t border-white/10 flex items-center justify-between">
-                {step > 0 ? (
+                {step > 0 && !(step === 1 && isSingleModeCar) ? (
                   <button
                     onClick={() => setStep(step - 1)}
                     className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"

@@ -148,7 +148,15 @@ export function DriverModeToggle({ onModeChange }: DriverModeToggleProps) {
   const currentConfig = getModeConfig(currentMode)
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+    <div 
+      className="bg-white rounded-2xl shadow-lg p-6"
+      style={{
+        border: '4px solid transparent',
+        backgroundImage: 'linear-gradient(white, white), linear-gradient(to right, #0d9488, #1e3a8a)',
+        backgroundOrigin: 'border-box',
+        backgroundClip: 'padding-box, border-box',
+      }}
+    >
       {/* Current Status */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -181,9 +189,17 @@ export function DriverModeToggle({ onModeChange }: DriverModeToggleProps) {
               whileTap={{ scale: 0.98 }}
               className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all relative ${
                 isActive
-                  ? `${config.color} text-white shadow-lg`
+                  ? 'text-white shadow-lg'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               } ${isSwitching ? 'opacity-50 cursor-not-allowed' : ''}`}
+              style={{
+                border: '3px solid transparent',
+                backgroundImage: isActive 
+                  ? 'linear-gradient(to right, #1e3a8a, #0d9488)' 
+                  : 'linear-gradient(white, white), linear-gradient(to right, #1e3a8a, #0d9488)',
+                backgroundOrigin: 'border-box',
+                backgroundClip: isActive ? undefined : 'padding-box, border-box',
+              }}
             >
               <div className="flex flex-col items-center gap-1">
                 {config.icon}
