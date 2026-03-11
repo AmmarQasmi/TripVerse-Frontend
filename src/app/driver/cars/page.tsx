@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -12,7 +11,7 @@ import { carsApi } from '@/lib/api/cars.api'
 import { DoughnutChart } from '@/components/client/DoughnutChart'
 import { CarListingForm } from '@/components/driver/CarListingForm'
 import { DriverModeToggle } from '@/components/driver/DriverModeToggle'
-import { useRouter } from 'next/navigation'
+import { ManageCarModal } from '@/components/driver/ManageCarModal'
 
 interface DriverCar {
   id: string
@@ -38,14 +37,53 @@ interface DriverCar {
 
 export default function DriverCarsPage() {
   const { user } = useAuth()
-  const router = useRouter()
   const [cars, setCars] = useState<DriverCar[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [managingCarId, setManagingCarId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [driverMode, setDriverMode] = useState<'OFFLINE' | 'RIDE_HAILING' | 'RENTAL'>('OFFLINE')
+
+  const loadCars = async (showLoader = true) => {
+    try {
+      if (showLoader) {
+        setIsLoading(true)
+      }
+      setError(null)
+      const response = await carsApi.getDriverCars()
+
+      const transformedCars: DriverCar[] = response.data.map((car) => ({
+        id: car.id,
+        brand: car.car.make,
+        model: car.car.model,
+        year: car.car.year,
+        color: car.car.color,
+        type: car.car.transmission === 'automatic' ? 'AUTOMATIC' : 'MANUAL',
+        pricePerDay: car.pricing.base_price_per_day,
+        status: car.is_active ? 'ACTIVE' : 'INACTIVE',
+        isListed: car.is_listed ?? car.is_active,
+        totalBookings: car.booking_stats.total_bookings,
+        totalEarnings: car.booking_stats.total_earnings,
+        image: car.images && car.images.length > 0 ? car.images[0] : undefined,
+        availableForRental: car.availability?.available_for_rental ?? true,
+        availableForRideHailing: car.availability?.available_for_ride_hailing ?? false,
+        baseFare: car.pricing?.base_fare,
+        perKmRate: car.pricing?.per_km_rate,
+        perMinuteRate: car.pricing?.per_minute_rate,
+      }))
+
+      setCars(transformedCars)
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load cars')
+      console.error('Error fetching driver cars:', err)
+    } finally {
+      if (showLoader) {
+        setIsLoading(false)
+      }
+    }
+  }
 
   // Filter cars based on current driver mode
   const filteredCars = cars.filter(car => {
@@ -56,46 +94,8 @@ export default function DriverCarsPage() {
   })
 
   useEffect(() => {
-    const fetchCars = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        const response = await carsApi.getDriverCars()
-        
-        // Transform API response to match component interface
-        const transformedCars: DriverCar[] = response.data.map((car) => ({
-          id: car.id,
-          brand: car.car.make,
-          model: car.car.model,
-          year: car.car.year,
-          color: car.car.color,
-          type: car.car.transmission === 'automatic' ? 'AUTOMATIC' : 'MANUAL',
-          pricePerDay: car.pricing.base_price_per_day,
-          status: car.is_active ? 'ACTIVE' : 'INACTIVE',
-          isListed: car.is_listed ?? car.is_active,
-          totalBookings: car.booking_stats.total_bookings,
-          totalEarnings: car.booking_stats.total_earnings,
-          image: car.images && car.images.length > 0 ? car.images[0] : undefined,
-          // Dual-mode availability
-          availableForRental: car.availability?.available_for_rental ?? true,
-          availableForRideHailing: car.availability?.available_for_ride_hailing ?? false,
-          // Ride-hailing pricing
-          baseFare: car.pricing?.base_fare,
-          perKmRate: car.pricing?.per_km_rate,
-          perMinuteRate: car.pricing?.per_minute_rate,
-        }))
-        
-        setCars(transformedCars)
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to load cars')
-        console.error('Error fetching driver cars:', err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
     if (user?.role === 'driver') {
-      fetchCars()
+      loadCars(true)
     }
   }, [user])
 
@@ -129,30 +129,7 @@ export default function DriverCarsPage() {
       }
 
       setShowAddModal(false)
-      // Refresh the cars list
-      const updatedCars = await carsApi.getDriverCars()
-      const transformedCars: DriverCar[] = updatedCars.data.map((car) => ({
-        id: car.id,
-        brand: car.car.make,
-        model: car.car.model,
-        year: car.car.year,
-        color: car.car.color,
-        type: car.car.transmission === 'automatic' ? 'AUTOMATIC' : 'MANUAL',
-        pricePerDay: car.pricing.base_price_per_day,
-        status: car.is_active ? 'ACTIVE' : 'INACTIVE',
-        isListed: car.is_listed ?? car.is_active,
-        totalBookings: car.booking_stats.total_bookings,
-        totalEarnings: car.booking_stats.total_earnings,
-        image: car.images && car.images.length > 0 ? car.images[0] : undefined,
-        // Dual-mode availability
-        availableForRental: car.availability?.available_for_rental ?? true,
-        availableForRideHailing: car.availability?.available_for_ride_hailing ?? false,
-        // Ride-hailing pricing
-        baseFare: car.pricing?.base_fare,
-        perKmRate: car.pricing?.per_km_rate,
-        perMinuteRate: car.pricing?.per_minute_rate,
-      }))
-      setCars(transformedCars)
+      await loadCars(false)
     } catch (err: any) {
       console.error('Error adding car:', err)
     } finally {
@@ -249,6 +226,13 @@ export default function DriverCarsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {managingCarId && (
+        <ManageCarModal
+          carId={managingCarId}
+          onClose={() => setManagingCarId(null)}
+          onUpdated={() => loadCars(false)}
+        />
+      )}
       <PageHeader 
         title="Car Management"
         subtitle="Manage your fleet and track performance"
@@ -380,11 +364,13 @@ export default function DriverCarsPage() {
 
                     {/* Actions */}
                     <div className="flex space-x-2">
-                      <Link href={`/driver/cars/${car.id}`} className="flex-1">
-                        <Button variant="outline" className="w-full border-blue-400 text-blue-600 hover:bg-blue-50 hover:border-blue-500">
-                          ✏️ Manage
-                        </Button>
-                      </Link>
+                      <Button
+                        variant="outline"
+                        className="w-full flex-1 border-blue-400 text-blue-600 hover:bg-blue-50 hover:border-blue-500"
+                        onClick={() => setManagingCarId(car.id)}
+                      >
+                        ✏️ Manage
+                      </Button>
                       <Button
                         variant="outline"
                         onClick={() => handleToggleListing(car.id, car.isListed)}

@@ -135,6 +135,13 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
     }
   }
 
+  const handleRemoveImage = (indexToRemove: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: (prev.images || []).filter((_, index) => index !== indexToRemove),
+    }))
+  }
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
@@ -585,8 +592,33 @@ export function CarListingForm({ car, onSubmit, isLoading = false, onCancel }: C
               <p className="text-sm text-red-400">{errors.images}</p>
             )}
             {formData.images && formData.images.length > 0 && (
-              <div className="text-sm text-gray-600">
-                {formData.images.length} image{formData.images.length !== 1 ? 's' : ''} selected
+              <div className="space-y-3">
+                <div className="text-sm text-gray-600">
+                  {formData.images.length} image{formData.images.length !== 1 ? 's' : ''} selected
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {formData.images.map((image, index) => {
+                    const previewUrl = URL.createObjectURL(image)
+                    return (
+                      <div key={`${image.name}-${index}`} className="relative rounded-lg overflow-hidden border border-gray-200 bg-white">
+                        <img
+                          src={previewUrl}
+                          alt={`Car preview ${index + 1}`}
+                          className="w-full h-24 object-cover"
+                          onLoad={() => URL.revokeObjectURL(previewUrl)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-0.5 rounded hover:bg-black"
+                          aria-label={`Remove image ${index + 1}`}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             )}
           </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -10,6 +10,8 @@ import { carsApi } from '@/lib/api/cars.api'
 import { useToast } from '@/components/ui/Toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { ChatInterface } from '@/components/cars/ChatInterface'
+import { getSocket } from '@/lib/socket'
+import type { Socket } from 'socket.io-client'
 
 // Countdown timer hook for ride-hailing requests
 function useCountdown(targetDate: Date | null, onExpire?: () => void) {
@@ -59,6 +61,12 @@ export default function DriverBookingsPage() {
   const [cashConfirmed, setCashConfirmed] = useState(false)
   const [isCashSubmitting, setIsCashSubmitting] = useState(false)
   const [acceptingId, setAcceptingId] = useState<number | null>(null)
+  const [highlightBookingId, setHighlightBookingId] = useState<number | null>(null)
+  const [sharingLocationBookingId, setSharingLocationBookingId] = useState<number | null>(null)
+  const [latestSharedCoords, setLatestSharedCoords] = useState<{ latitude: number; longitude: number } | null>(null)
+  const [sharingError, setSharingError] = useState<string | null>(null)
+  const socketRef = useRef<Socket | null>(null)
+  const geolocationWatchRef = useRef<number | null>(null)
   
   const { bookings, isLoading } = useDriverCarBookings()
 
@@ -76,11 +84,146 @@ export default function DriverBookingsPage() {
     }
   }, [searchParams, bookings, router])
 
+  // Support deep links from dashboard cards/modals.
+  useEffect(() => {
+    const status = searchParams.get('status')
+    const bookingType = searchParams.get('type')
+    const bookingId = searchParams.get('bookingId')
+
+    const allowedStatuses = new Set([
+      'PENDING_DRIVER_ACCEPTANCE',
+      'ACCEPTED',
+      'CONFIRMED',
+      'IN_PROGRESS',
+      'COMPLETED',
+      'CANCELLED',
+      'REJECTED',
+      'all',
+    ])
+
+    if (status && allowedStatuses.has(status)) {
+      setStatusFilter(status as any)
+    }
+
+    if (bookingType === 'rental' || bookingType === 'ride_hailing' || bookingType === 'all') {
+      setBookingTypeFilter(bookingType)
+    }
+
+    if (bookingId) {
+      const parsedId = Number(bookingId)
+      if (!Number.isNaN(parsedId)) {
+        setHighlightBookingId(parsedId)
+      }
+    } else {
+      setHighlightBookingId(null)
+    }
+  }, [searchParams])
+
+  // When a specific booking is requested, auto-adjust filters to ensure it is visible.
+  useEffect(() => {
+    const allBookings = Array.isArray(bookings) ? bookings : []
+    if (!highlightBookingId || allBookings.length === 0) return
+    const focusedBooking = allBookings.find((booking: any) => booking.id === highlightBookingId)
+    if (!focusedBooking) return
+
+    const normalizedStatus = String(focusedBooking.status ?? '').toUpperCase()
+    const mappedStatus: 'all' | 'PENDING_DRIVER_ACCEPTANCE' | 'ACCEPTED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'REJECTED' =
+      normalizedStatus === 'PENDING'
+        ? 'PENDING_DRIVER_ACCEPTANCE'
+        : normalizedStatus === 'PENDING_DRIVER_ACCEPTANCE' ||
+            normalizedStatus === 'ACCEPTED' ||
+            normalizedStatus === 'CONFIRMED' ||
+            normalizedStatus === 'IN_PROGRESS' ||
+            normalizedStatus === 'COMPLETED' ||
+            normalizedStatus === 'CANCELLED' ||
+            normalizedStatus === 'REJECTED'
+          ? normalizedStatus
+          : 'all'
+
+    setStatusFilter(mappedStatus)
+    setBookingTypeFilter((focusedBooking.booking_type || 'rental') as any)
+  }, [highlightBookingId, bookings])
+
   const canChat = (status: string) => {
     return ['ACCEPTED', 'CONFIRMED', 'IN_PROGRESS'].includes(status)
   }
 
+  const canShareLiveLocation = (booking: any) => {
+    const isRideHailing = booking.booking_type === 'ride_hailing'
+    const isWithinCity = !booking.is_intercity
+    const isTrackable = ['ACCEPTED', 'CONFIRMED', 'IN_PROGRESS'].includes(booking.status)
+    return isRideHailing && isWithinCity && isTrackable
+  }
+
+  useEffect(() => {
+    if (!sharingLocationBookingId) {
+      return
+    }
+
+    if (!navigator.geolocation) {
+      setSharingError('Geolocation is not supported in this browser.')
+      return
+    }
+
+    const socket = getSocket(undefined, 'chat')
+    socketRef.current = socket
+    setSharingError(null)
+
+    if (!socket.connected) {
+      socket.connect()
+    }
+
+    const joinRoom = () => {
+      socket.emit('join_booking', sharingLocationBookingId)
+    }
+
+    socket.on('connect', joinRoom)
+    if (socket.connected) {
+      joinRoom()
+    }
+
+    geolocationWatchRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const payload = {
+          bookingId: sharingLocationBookingId,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          heading: position.coords.heading ?? undefined,
+          speed: position.coords.speed ?? undefined,
+          accuracy: position.coords.accuracy ?? undefined,
+          timestamp: Date.now(),
+        }
+
+        setLatestSharedCoords({
+          latitude: payload.latitude,
+          longitude: payload.longitude,
+        })
+
+        socket.emit('driver_location_update', payload)
+      },
+      (error) => {
+        setSharingError(error.message || 'Unable to access your location.')
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 5000,
+        timeout: 15000,
+      },
+    )
+
+    return () => {
+      socket.emit('leave_booking', sharingLocationBookingId)
+      socket.off('connect', joinRoom)
+
+      if (geolocationWatchRef.current !== null) {
+        navigator.geolocation.clearWatch(geolocationWatchRef.current)
+        geolocationWatchRef.current = null
+      }
+    }
+  }, [sharingLocationBookingId])
+
   const bookingsArray: any[] = Array.isArray(bookings) ? bookings : []
+  const autoTrackedBooking = bookingsArray.find((booking: any) => canShareLiveLocation(booking)) || null
   const filteredBookings: any[] = bookingsArray.filter((booking: any) => {
     const matchesStatus = statusFilter === 'all' || booking.status === statusFilter
     const bookingType = booking.booking_type || 'rental'
@@ -94,12 +237,41 @@ export default function DriverBookingsPage() {
     (booking.booking_type === 'ride_hailing')
   )
 
+  useEffect(() => {
+    const nextBookingId = autoTrackedBooking?.id ?? null
+    if (nextBookingId !== sharingLocationBookingId) {
+      setSharingLocationBookingId(nextBookingId)
+      if (!nextBookingId) {
+        setLatestSharedCoords(null)
+        setSharingError(null)
+      }
+    }
+  }, [autoTrackedBooking?.id, sharingLocationBookingId])
+
+  useEffect(() => {
+    if (!sharingLocationBookingId) return
+
+    const activeBooking = bookingsArray.find((booking: any) => booking.id === sharingLocationBookingId)
+    if (!activeBooking || !canShareLiveLocation(activeBooking)) {
+      setSharingLocationBookingId(null)
+      setLatestSharedCoords(null)
+      setSharingError(null)
+    }
+  }, [sharingLocationBookingId, bookingsArray])
+
   const handleAcceptBooking = async (bookingId: number) => {
     setAcceptingId(bookingId)
     try {
       await carsApi.respondToBooking(bookingId, 'accept')
       queryClient.invalidateQueries({ queryKey: ['cars', 'bookings', 'driver'] })
       queryClient.invalidateQueries({ queryKey: ['driver-car-bookings'] })
+      
+      // Auto-start live tracking for ride-hailing bookings
+      const booking = bookings?.find((b: any) => b.id === bookingId)
+      if (String(booking?.booking_type ?? '').toLowerCase() === 'ride_hailing' && !(booking as any)?.is_intercity) {
+        setSharingLocationBookingId(bookingId)
+      }
+      
       showToast('Booking accepted! Customer has been notified.', 'success')
     } catch (error: any) {
       console.error('Failed to accept booking:', error)
@@ -251,9 +423,19 @@ export default function DriverBookingsPage() {
   const getStatusActions = (booking: any) => {
     const isRideHailing = booking.booking_type === 'ride_hailing'
     const isAccepting = acceptingId === booking.id
+    const isExpired = booking.expires_at ? new Date(booking.expires_at) < new Date() : false
     
     switch (booking.status) {
       case 'PENDING_DRIVER_ACCEPTANCE':
+        if (isExpired) {
+          return (
+            <div className="flex flex-col space-y-2">
+              <div className="px-3 py-2 bg-red-50 border border-red-200 rounded text-sm text-red-700 font-medium text-center">
+                ⏰ Request Expired
+              </div>
+            </div>
+          )
+        }
         return (
           <div className="flex flex-col space-y-2">
             <div className="flex space-x-2">
@@ -327,15 +509,17 @@ export default function DriverBookingsPage() {
         )
       case 'ACCEPTED':
         return (
-          canChat(booking.status) && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setSelectedBooking(booking.id)}
-            >
-              💬 Chat
-            </Button>
-          )
+          <div className="flex flex-col space-y-2">
+            {canChat(booking.status) && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setSelectedBooking(booking.id)}
+              >
+                💬 Chat
+              </Button>
+            )}
+          </div>
         )
       default:
         return null
@@ -352,6 +536,18 @@ export default function DriverBookingsPage() {
         backLabel="Back to Dashboard"
       />
       <div className="container mx-auto px-4 py-8">
+
+      {sharingLocationBookingId && (
+        <div className="mb-4 rounded-lg border border-teal-200 bg-teal-50 p-3 text-sm text-teal-900">
+          <p className="font-semibold">Live location sharing is active automatically for booking #{sharingLocationBookingId}.</p>
+          {latestSharedCoords && (
+            <p className="text-xs mt-1">
+              Last sent: {latestSharedCoords.latitude.toFixed(5)}, {latestSharedCoords.longitude.toFixed(5)}
+            </p>
+          )}
+          {sharingError && <p className="text-xs mt-1 text-red-700">{sharingError}</p>}
+        </div>
+      )}
 
       {/* Status Filter */}
       <div className="mb-6 space-y-4">
@@ -429,6 +625,8 @@ export default function DriverBookingsPage() {
               key={booking.id} 
               className={`hover:shadow-md transition-shadow ${
                 isRideHailing && isPending ? 'border-2 border-teal-400 ring-1 ring-teal-400/20' : ''
+              } ${
+                highlightBookingId === booking.id ? 'ring-2 ring-cyan-500 border-cyan-400' : ''
               }`}
             >
               <CardContent className="p-6">

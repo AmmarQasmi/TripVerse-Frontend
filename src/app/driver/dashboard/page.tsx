@@ -29,6 +29,8 @@ export default function DriverDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showBookingsModal, setShowBookingsModal] = useState(false)
+  const [bookingsModalTitle, setBookingsModalTitle] = useState('My Car Bookings')
+  const [bookingsModalData, setBookingsModalData] = useState<any[]>([])
   const [modalType, setModalType] = useState<string | null>(null)
   const [modalData, setModalData] = useState<any[]>([])
   const [showAddCarModal, setShowAddCarModal] = useState(false)
@@ -184,6 +186,56 @@ export default function DriverDashboard() {
 
   const { verification_status, stats, recent_bookings } = dashboard
 
+  // Timer component for countdown display
+  const TimerBadge = ({ expiresAt }: { expiresAt: string }) => {
+    const [timeLeft, setTimeLeft] = useState<string>('...')
+
+    useEffect(() => {
+      const updateTimer = () => {
+        const expiresDate = new Date(expiresAt).getTime()
+        const now = new Date().getTime()
+        const difference = expiresDate - now
+
+        if (difference <= 0) {
+          setTimeLeft('EXPIRED')
+        } else {
+          const minutes = Math.floor(difference / 60000)
+          const seconds = Math.floor((difference % 60000) / 1000)
+          setTimeLeft(`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`)
+        }
+      }
+
+      updateTimer()
+      const interval = setInterval(updateTimer, 1000)
+      return () => clearInterval(interval)
+    }, [expiresAt])
+
+    const isExpired = timeLeft === 'EXPIRED'
+    const isLowTime = !isExpired && parseInt(timeLeft.split(':')[0]) === 0
+
+    if (isExpired) {
+      return (
+        <span className="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700">
+          EXPIRED
+        </span>
+      )
+    }
+
+    return (
+      <motion.span
+        animate={isLowTime ? { scale: [1, 1.05, 1] } : {}}
+        transition={isLowTime ? { repeat: Infinity, duration: 1 } : {}}
+        className={`px-2 py-1 rounded text-xs font-bold ${
+          isLowTime
+            ? 'bg-red-100 text-red-700'
+            : 'bg-orange-100 text-orange-700'
+        }`}
+      >
+        ⏱️ {timeLeft}
+      </motion.span>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
@@ -236,9 +288,9 @@ export default function DriverDashboard() {
                 subtitle="All time"
                 onClick={() => {
                   if (!dashboard) return
-                  // Prepare earnings data from recent bookings
+                  // Earnings should only include completed bookings.
                   const earningsData = (dashboard.recent_bookings || [])
-                    .filter((b: any) => b.driver_earnings > 0)
+                    .filter((b: any) => b.status === 'COMPLETED' && b.driver_earnings > 0)
                     .map((b: any) => ({
                       id: b.id,
                       type: 'car' as const,
@@ -273,6 +325,9 @@ export default function DriverDashboard() {
                       amount: b.total_amount || 0,
                       startDate: b.start_date,
                       endDate: b.end_date,
+                      booking_type: b.booking_type,
+                      is_intercity: b.is_intercity,
+                      expires_at: b.expires_at,
                     }))
                   setModalData(pendingData)
                   setModalType('Incoming Requests')
@@ -284,7 +339,15 @@ export default function DriverDashboard() {
                 gradient="bg-gradient-to-br from-purple-500 to-pink-500"
                 delay={0.3}
                 subtitle="Active bookings"
-                onClick={() => setShowBookingsModal(true)}
+                onClick={() => {
+                  if (!dashboard) return
+                  const confirmedData = (dashboard.recent_bookings || []).filter((b: any) =>
+                    ['ACCEPTED', 'CONFIRMED', 'IN_PROGRESS'].includes(b.status),
+                  )
+                  setBookingsModalTitle('Confirmed Bookings')
+                  setBookingsModalData(confirmedData)
+                  setShowBookingsModal(true)
+                }}
               />
               <DoughnutChart
                 label="Car Listings"
@@ -731,7 +794,10 @@ export default function DriverDashboard() {
                 <CardContent>
                     <div className="space-y-3">
                 {recent_bookings.length > 0 ? (
-                  recent_bookings.map((booking) => (
+                  recent_bookings.map((booking) => {
+                    const isRideHailing = booking.booking_type === 'ride_hailing'
+                    const isPending = booking.status === 'PENDING_DRIVER_ACCEPTANCE'
+                    return (
                           <div key={booking.id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                             <div className="flex justify-between items-start mb-2">
                               <div>
@@ -742,9 +808,14 @@ export default function DriverDashboard() {
                                   {booking.customer.name} • {formatDate(booking.start_date)} - {formatDate(booking.end_date)}
                                 </div>
                               </div>
-                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
-                                {booking.status.replace(/_/g, ' ')}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
+                                  {booking.status.replace(/_/g, ' ')}
+                                </span>
+                                {isRideHailing && isPending && booking.expires_at && (
+                                  <TimerBadge expiresAt={booking.expires_at} />
+                                )}
+                              </div>
                             </div>
                             <div className="flex items-center justify-between mt-3">
                               <div>
@@ -784,7 +855,8 @@ export default function DriverDashboard() {
                               )}
                             </div>
                           </div>
-                        ))
+                        )
+                    })
                       ) : (
                         <div className="p-8 text-center text-gray-500">
                     <p>{verification_status.is_verified ? 'No bookings yet. Start by adding a car!' : 'No bookings available. Complete verification to start receiving bookings.'}</p>
@@ -800,7 +872,8 @@ export default function DriverDashboard() {
       <DriverBookingsModal
         isOpen={showBookingsModal}
         onClose={() => setShowBookingsModal(false)}
-        bookings={dashboard.recent_bookings}
+        bookings={bookingsModalData}
+        title={bookingsModalTitle}
       />
 
       {/* Stats Modal for other charts */}
@@ -813,6 +886,7 @@ export default function DriverDashboard() {
         title={modalType || ''}
         data={modalData}
         totalAmount={modalType === 'Total Earnings' ? stats.total_earnings : undefined}
+        getItemHref={(item) => `/driver/bookings?bookingId=${item.id}`}
       />
 
       {/* Add Car Modal */}

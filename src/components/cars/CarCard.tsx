@@ -6,7 +6,10 @@ import { motion } from 'framer-motion'
 
 interface CarCardProps {
   car: Car & {
-    driver?: User & {
+    driver?: {
+      id: number
+      full_name: string
+      city?: User['city'] | string
       isVerified?: boolean
       rating?: number
       totalTrips?: number
@@ -43,6 +46,36 @@ export function CarCard({ car, isAvailable = true }: CarCardProps) {
   }
 
   const availabilityBadge = getAvailabilityBadge()
+  const driverName = car.driver?.full_name || 'Driver'
+  const driverInitial = driverName.charAt(0).toUpperCase()
+  const driverRating = car.driver?.rating ?? car.rating
+  const totalTrips = car.driver?.totalTrips
+  const numericDayRate = Number(car.pricePerDay ?? 0)
+  const numericBaseFare = Number(car.baseFare ?? 0)
+  const numericPerKmRate = Number(car.perKmRate ?? 0)
+  const hasValidDayRate = Number.isFinite(numericDayRate) && numericDayRate >= 1
+
+  const priceBadge = (() => {
+    if (availableForRideHailing && (!availableForRental || !hasValidDayRate)) {
+      if (numericBaseFare > 0) {
+        return `PKR ${numericBaseFare.toLocaleString()} base fare`
+      }
+      if (numericPerKmRate > 0) {
+        return `PKR ${numericPerKmRate.toLocaleString()}/km`
+      }
+      return 'Price on request'
+    }
+
+    if (hasValidDayRate) {
+      return `PKR ${numericDayRate.toLocaleString()}/day`
+    }
+
+    if (numericBaseFare > 0) {
+      return `PKR ${numericBaseFare.toLocaleString()} base fare`
+    }
+
+    return 'Price on request'
+  })()
 
   return (
     <motion.div
@@ -94,21 +127,25 @@ export function CarCard({ car, isAvailable = true }: CarCardProps) {
             </div>
           )}
 
-          {/* Price Badge - Show dual pricing if both modes available */}
-          <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-sm">
-            {supportsBothModes ? (
-              <div className="flex flex-col items-end">
-                <span className="font-semibold text-blue-400">PKR {car.pricePerDay?.toLocaleString()}/day</span>
-                <span className="text-xs text-teal-400">~PKR {car.perKmRate ?? car.distanceRatePerKm ?? 25}/km</span>
+          {/* Driver Meta */}
+          <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-xs max-w-[75%]">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] flex items-center justify-center text-[10px] font-bold">
+                {driverInitial}
               </div>
-            ) : availableForRideHailing ? (
-              <div className="flex flex-col items-end">
-                <span className="font-semibold text-teal-400">~PKR {car.perKmRate ?? 25}/km</span>
-                {car.baseFare && <span className="text-xs text-gray-400">Base: PKR {car.baseFare}</span>}
+              <div className="min-w-0">
+                <p className="font-semibold truncate">{driverName}</p>
+                <div className="flex items-center gap-2 text-[10px] text-gray-300">
+                  <span className="flex items-center gap-1">
+                    <svg className="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    {driverRating && driverRating > 0 ? Number(driverRating).toFixed(1) : 'New'}
+                  </span>
+                  <span>{totalTrips && totalTrips > 0 ? `${totalTrips} trips` : 'Verified profile'}</span>
+                </div>
               </div>
-            ) : (
-              <span className="font-semibold">PKR {car.pricePerDay?.toLocaleString()}/day</span>
-            )}
+            </div>
           </div>
 
           {/* Unavailable Overlay */}
@@ -124,6 +161,7 @@ export function CarCard({ car, isAvailable = true }: CarCardProps) {
             {car.brand} {car.model}
           </CardTitle>
           <p className="text-sm text-gray-400">{car.year} {car.color ? `• ${car.color}` : ''}</p>
+          <p className="text-sm text-teal-300 font-semibold">{priceBadge}</p>
         </CardHeader>
         
         <CardContent className="py-2 flex-1">

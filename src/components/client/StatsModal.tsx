@@ -1,8 +1,8 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
 
@@ -17,6 +17,8 @@ interface BookingItem {
   checkOutDate?: string
   startDate?: string
   endDate?: string
+  expires_at?: string | null
+  booking_type?: string
 }
 
 interface StatsModalProps {
@@ -25,9 +27,123 @@ interface StatsModalProps {
   title: string
   data: BookingItem[]
   totalAmount?: number
+  getItemHref?: (item: BookingItem) => string
 }
 
-export function StatsModal({ isOpen, onClose, title, data, totalAmount }: StatsModalProps) {
+// Countdown hook
+function useCountdown(targetDate: Date | null) {
+  const [timeLeft, setTimeLeft] = useState<number>(0)
+
+  useEffect(() => {
+    if (!targetDate) {
+      setTimeLeft(0)
+      return
+    }
+
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime()
+      const target = targetDate.getTime()
+      const diff = Math.max(0, target - now)
+      return Math.floor(diff / 1000)
+    }
+
+    setTimeLeft(calculateTimeLeft())
+
+    const interval = setInterval(() => {
+      const remaining = calculateTimeLeft()
+      setTimeLeft(remaining)
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [targetDate])
+
+  const minutes = Math.floor(timeLeft / 60)
+  const seconds = timeLeft % 60
+
+  return { timeLeft, minutes, seconds, isExpired: timeLeft <= 0 }
+}
+
+// Countdown timer component
+function RideItemWithCountdown({ item, expiresAt, getDefaultItemHref, getItemHref, onClose, getStatusColor, getTypeIcon, formatDate }: {
+  item: BookingItem
+  expiresAt: Date | null
+  getDefaultItemHref: (item: BookingItem) => string
+  getItemHref?: (item: BookingItem) => string
+  onClose: () => void
+  getStatusColor: (status: string) => string
+  getTypeIcon: (type: string) => string
+  formatDate: (dateString: string | undefined) => string
+}) {
+  const { minutes, seconds, isExpired } = useCountdown(expiresAt)
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.1 }}
+      className="group"
+    >
+      <Link href={(getItemHref ? getItemHref(item) : getDefaultItemHref(item))} onClick={onClose}>
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-50 via-cyan-50 to-teal-50 border-2 border-transparent hover:border-blue-300 transition-all duration-75 p-5">
+          {/* Hover gradient effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-cyan-500/0 to-teal-500/0 group-hover:from-blue-500/5 group-hover:via-cyan-500/5 group-hover:to-teal-500/5 transition-all duration-75" />
+
+          <div className="relative z-10 flex items-center justify-between">
+            {/* Left: Icon + Info */}
+            <div className="flex items-center space-x-4 flex-1">
+              <div className="text-4xl">{getTypeIcon(item.type)}</div>
+              
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  {item.name}
+                </h3>
+                <div className="flex items-center space-x-4 text-sm text-gray-600 flex-wrap">
+                  <span className="flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    {item.checkInDate || item.startDate
+                      ? `${formatDate(item.checkInDate || item.startDate)} - ${formatDate(item.checkOutDate || item.endDate || '')}`
+                      : formatDate(item.date)}
+                  </span>
+                  <span className="font-semibold text-gray-900">
+                    PKR {item.amount?.toLocaleString() || '0'}
+                  </span>
+                  {/* Show countdown for pending ride-hailing */}
+                  {expiresAt && (
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${
+                      isExpired
+                        ? 'bg-red-100 text-red-700 animate-pulse'
+                        : minutes < 1
+                        ? 'bg-red-100 text-red-700 animate-pulse'
+                        : 'bg-orange-100 text-orange-700'
+                    }`}>
+                      ⏱️ {isExpired ? 'EXPIRED' : `${minutes}:${seconds.toString().padStart(2, '0')}`}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Status Badge */}
+            <div className={`px-4 py-2 rounded-full text-xs font-semibold border ${getStatusColor(item.status)} whitespace-nowrap ml-4`}>
+              {item.status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            </div>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  )
+}
+
+export function StatsModal({ isOpen, onClose, title, data, totalAmount, getItemHref }: StatsModalProps) {
+  const getDefaultItemHref = (item: BookingItem) => {
+    if (item.type === 'hotel') {
+      return `/client/bookings/hotel/${item.id}`
+    }
+    return '/client/cars/bookings'
+  }
+
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'N/A'
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -115,53 +231,14 @@ export function StatsModal({ isOpen, onClose, title, data, totalAmount }: StatsM
               <div className="overflow-y-auto max-h-[calc(90vh-120px)] p-6">
                 {data.length > 0 ? (
                   <div className="space-y-4">
-                    {data.map((item) => (
-                      <motion.div
-                        key={item.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="group"
-                      >
-                        <Link href={item.type === 'hotel' ? `/client/bookings/hotel/${item.id}` : `/client/cars/bookings`}>
-                          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-50 via-cyan-50 to-teal-50 border-2 border-transparent hover:border-blue-300 transition-all duration-75 p-5">
-                            {/* Hover gradient effect */}
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-cyan-500/0 to-teal-500/0 group-hover:from-blue-500/5 group-hover:via-cyan-500/5 group-hover:to-teal-500/5 transition-all duration-75" />
-
-                            <div className="relative z-10 flex items-center justify-between">
-                              {/* Left: Icon + Info */}
-                              <div className="flex items-center space-x-4 flex-1">
-                                <div className="text-4xl">{getTypeIcon(item.type)}</div>
-                                
-                                <div className="flex-1 min-w-0">
-                                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                                    {item.name}
-                                  </h3>
-                                  <div className="flex items-center space-x-4 text-sm text-gray-600">
-                                    <span className="flex items-center">
-                                      <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                      </svg>
-                                      {item.checkInDate || item.startDate
-                                        ? `${formatDate(item.checkInDate || item.startDate)} - ${formatDate(item.checkOutDate || item.endDate || '')}`
-                                        : formatDate(item.date)}
-                                    </span>
-                                    <span className="font-semibold text-gray-900">
-                                      PKR {item.amount?.toLocaleString() || '0'}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Right: Status Badge */}
-                              <div className={`px-4 py-2 rounded-full text-xs font-semibold border ${getStatusColor(item.status)} whitespace-nowrap ml-4`}>
-                                {item.status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                              </div>
-                            </div>
-                          </div>
-                        </Link>
-                      </motion.div>
-                    ))}
+                    {data.map((item) => {
+                      const isRideHailing = item.booking_type === 'ride_hailing'
+                      const isPending = item.status === 'PENDING_DRIVER_ACCEPTANCE'
+                      const expiresAt = isRideHailing && isPending && item.expires_at ? new Date(item.expires_at) : null
+                      return (
+                        <RideItemWithCountdown key={item.id} item={item} expiresAt={expiresAt} getDefaultItemHref={getDefaultItemHref} getItemHref={getItemHref} onClose={onClose} getStatusColor={getStatusColor} getTypeIcon={getTypeIcon} formatDate={formatDate} />
+                      )
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-12">
@@ -206,7 +283,7 @@ export function StatsModal({ isOpen, onClose, title, data, totalAmount }: StatsM
                 )}
 
                 {/* Total Amount Summary (for Total Spent) */}
-                {title === 'Total Spent' && data.length > 0 && totalAmount !== undefined && (
+                {(title === 'Total Spent' || title === 'Total Earnings') && data.length > 0 && totalAmount !== undefined && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -214,7 +291,9 @@ export function StatsModal({ isOpen, onClose, title, data, totalAmount }: StatsM
                     className="mt-6 pt-6 border-t-2 border-gray-200"
                   >
                     <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200">
-                      <span className="text-lg font-semibold text-gray-900">Total Amount Spent:</span>
+                      <span className="text-lg font-semibold text-gray-900">
+                        {title === 'Total Earnings' ? 'Total Earnings:' : 'Total Amount Spent:'}
+                      </span>
                       <span className="text-2xl font-bold text-green-700">PKR {totalAmount.toLocaleString()}</span>
                     </div>
                   </motion.div>

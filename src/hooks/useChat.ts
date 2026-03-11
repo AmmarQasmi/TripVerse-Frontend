@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { chatApi, CreateSessionPayload, SendMessagePayload } from '@/lib/api/chat.api'
 import { itinerariesApi } from '@/lib/api/itineraries.api'
+import { useAuth } from '@/features/auth/useAuth'
 import {
   AiChatSession,
   ChatResponse,
@@ -22,6 +23,7 @@ export interface LocalMessage {
 }
 
 export function useChat() {
+  const { user } = useAuth()
   const queryClient = useQueryClient()
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null)
   const [messages, setMessages] = useState<LocalMessage[]>([])
@@ -36,7 +38,9 @@ export function useChat() {
   } = useQuery({
     queryKey: ['chat-sessions'],
     queryFn: () => chatApi.getSessions(),
+    enabled: user?.role === 'client',
     staleTime: 30_000,
+    retry: false,
   })
 
   // Fetch a specific session with its messages
@@ -46,8 +50,9 @@ export function useChat() {
   } = useQuery({
     queryKey: ['chat-session', activeSessionId],
     queryFn: () => chatApi.getSession(activeSessionId!),
-    enabled: !!activeSessionId,
+    enabled: !!activeSessionId && user?.role === 'client',
     staleTime: 10_000,
+    retry: false,
   })
 
   // Sync server messages into local state when session loads
