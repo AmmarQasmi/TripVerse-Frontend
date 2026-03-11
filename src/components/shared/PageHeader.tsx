@@ -11,6 +11,7 @@ interface PageHeaderProps {
   backLabel?: string
   showBack?: boolean
   action?: React.ReactNode
+  centered?: boolean
 }
 
 export function PageHeader({ 
@@ -19,7 +20,8 @@ export function PageHeader({
   backUrl, 
   backLabel = 'Back',
   showBack = true,
-  action 
+  action,
+  centered = false
 }: PageHeaderProps) {
   const router = useRouter()
 
@@ -47,7 +49,7 @@ export function PageHeader({
         {action && <div>{action}</div>}
       </div>
       {title && (
-        <div>
+        <div className={centered ? 'text-center' : ''}>
           <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
           {subtitle && <p className="text-sm text-gray-600 mt-1">{subtitle}</p>}
         </div>

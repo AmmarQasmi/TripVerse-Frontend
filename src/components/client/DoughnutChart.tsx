@@ -147,7 +147,22 @@ export function DoughnutChart({
               <stop offset="50%" stopColor="#0d9488" stopOpacity="0.9" />
               <stop offset="100%" stopColor="#059669" stopOpacity="0.9" />
             </linearGradient>
+            <linearGradient id={`outline-gradient-${label.replace(/\s+/g, '-')}`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#1d4ed8" stopOpacity="0.55" />
+              <stop offset="50%" stopColor="#0d9488" stopOpacity="0.55" />
+              <stop offset="100%" stopColor="#059669" stopOpacity="0.55" />
+            </linearGradient>
           </defs>
+
+          {/* Outer circle outline */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius + strokeWidth / 2 - 1}
+            fill="none"
+            stroke={`url(#outline-gradient-${label.replace(/\s+/g, '-')})`}
+            strokeWidth={2}
+          />
           
           {/* Background circle */}
           <circle
@@ -165,6 +180,16 @@ export function DoughnutChart({
             cy={size / 2}
             r={radius - strokeWidth / 2}
             fill="white"
+          />
+
+          {/* Inner circle outline */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius - strokeWidth / 2}
+            fill="none"
+            stroke={`url(#outline-gradient-${label.replace(/\s+/g, '-')})`}
+            strokeWidth={2}
           />
           
            {/* Progress circle - Homepage card gradient colors */}

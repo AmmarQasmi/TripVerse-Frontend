@@ -109,6 +109,14 @@ export default function DriverDashboard() {
         base_price_per_day: formData.base_price_per_day,
         distance_rate_per_km: formData.distance_rate_per_km,
         license_plate: formData.license_plate,
+        // Dual-mode availability
+        available_for_rental: formData.available_for_rental,
+        available_for_ride_hailing: formData.available_for_ride_hailing,
+        // Ride-hailing pricing
+        base_fare: formData.base_fare,
+        per_km_rate: formData.per_km_rate,
+        per_minute_rate: formData.per_minute_rate,
+        minimum_fare: formData.minimum_fare,
       })
 
       if (formData.images && formData.images.length > 0) {

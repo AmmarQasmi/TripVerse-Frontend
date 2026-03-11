@@ -45,6 +45,15 @@ export default function DriverCarsPage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [driverMode, setDriverMode] = useState<'OFFLINE' | 'RIDE_HAILING' | 'RENTAL'>('OFFLINE')
+
+  // Filter cars based on current driver mode
+  const filteredCars = cars.filter(car => {
+    if (driverMode === 'OFFLINE') return true // Show all cars when offline
+    if (driverMode === 'RENTAL') return car.availableForRental
+    if (driverMode === 'RIDE_HAILING') return car.availableForRideHailing
+    return true
+  })
 
   useEffect(() => {
     const fetchCars = async () => {
@@ -104,6 +113,14 @@ export default function DriverCarsPage() {
         base_price_per_day: formData.base_price_per_day,
         distance_rate_per_km: formData.distance_rate_per_km,
         license_plate: formData.license_plate,
+        // Dual-mode availability
+        available_for_rental: formData.available_for_rental,
+        available_for_ride_hailing: formData.available_for_ride_hailing,
+        // Ride-hailing pricing
+        base_fare: formData.base_fare,
+        per_km_rate: formData.per_km_rate,
+        per_minute_rate: formData.per_minute_rate,
+        minimum_fare: formData.minimum_fare,
       })
 
       // Upload images if provided
@@ -195,10 +212,11 @@ export default function DriverCarsPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <PageHeader 
-          title="My Cars"
+          title="Car Management"
           subtitle="Manage your car listings"
           backUrl="/driver/dashboard"
           backLabel="Back to Dashboard"
+          centered
         />
         <PageLoader variant="skeleton" />
       </div>
@@ -209,10 +227,11 @@ export default function DriverCarsPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <PageHeader 
-          title="My Cars"
+          title="Car Management"
           subtitle="Manage your car listings"
           backUrl="/driver/dashboard"
           backLabel="Back to Dashboard"
+          centered
         />
         <div className="container mx-auto px-4 py-8">
           <Card className="bg-red-50 border-red-200">
@@ -231,10 +250,11 @@ export default function DriverCarsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <PageHeader 
-        title="My Cars"
+        title="Car Management"
         subtitle="Manage your fleet and track performance"
         backUrl="/driver/dashboard"
         backLabel="Back to Dashboard"
+        centered
         action={
           <Button 
             onClick={() => setShowAddModal(true)}
@@ -248,7 +268,7 @@ export default function DriverCarsPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Driver Mode Toggle */}
         <div className="mb-8">
-          <DriverModeToggle />
+          <DriverModeToggle onModeChange={setDriverMode} />
         </div>
 
         {/* Stats Cards */}
@@ -284,9 +304,9 @@ export default function DriverCarsPage() {
         </div>
 
         {/* Cars List */}
-        {cars.length > 0 ? (
+        {filteredCars.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {cars.map((car, index) => (
+            {filteredCars.map((car, index) => (
               <motion.div
                 key={car.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -331,37 +351,37 @@ export default function DriverCarsPage() {
                   <CardContent className="space-y-4">
                     {/* Pricing Stats */}
                     <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="bg-blue-50 p-2 rounded-lg">
+                      <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
                         <p className="text-lg font-bold text-blue-700">
                           PKR {car.pricePerDay.toLocaleString()}
                         </p>
                         <p className="text-xs text-blue-600">Per Day</p>
                       </div>
                       {car.availableForRideHailing && car.perKmRate ? (
-                        <div className="bg-teal-50 p-2 rounded-lg">
+                        <div className="bg-teal-50 p-2 rounded-lg border border-teal-200">
                           <p className="text-lg font-bold text-teal-700">
                             PKR {car.perKmRate}
                           </p>
                           <p className="text-xs text-teal-600">Per KM</p>
                         </div>
                       ) : (
-                        <div className="bg-gray-100 p-2 rounded-lg">
-                          <p className="text-lg font-bold">{car.totalBookings}</p>
-                          <p className="text-xs text-gray-600">Bookings</p>
+                        <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
+                          <p className="text-lg font-bold text-blue-700">{car.totalBookings}</p>
+                          <p className="text-xs text-blue-600">Bookings</p>
                         </div>
                       )}
-                      <div className="bg-gray-100 p-2 rounded-lg">
-                        <p className="text-lg font-bold">
+                      <div className="bg-emerald-50 p-2 rounded-lg border border-emerald-200">
+                        <p className="text-lg font-bold text-emerald-700">
                           {car.totalEarnings > 0 ? `${(car.totalEarnings / 1000).toFixed(0)}k` : '0'}
                         </p>
-                        <p className="text-xs text-gray-600">Earned</p>
+                        <p className="text-xs text-emerald-600">Earned</p>
                       </div>
                     </div>
 
                     {/* Actions */}
                     <div className="flex space-x-2">
                       <Link href={`/driver/cars/${car.id}`} className="flex-1">
-                        <Button variant="outline" className="w-full">
+                        <Button variant="outline" className="w-full border-blue-400 text-blue-600 hover:bg-blue-50 hover:border-blue-500">
                           ✏️ Manage
                         </Button>
                       </Link>
@@ -369,7 +389,7 @@ export default function DriverCarsPage() {
                         variant="outline"
                         onClick={() => handleToggleListing(car.id, car.isListed)}
                         disabled={togglingId === car.id}
-                        className={`px-3 ${car.isListed ? 'border-red-500/50 text-red-400 hover:bg-red-500/20' : 'border-green-500/50 text-green-400 hover:bg-green-500/20'}`}
+                        className={`px-3 ${car.isListed ? 'border-teal-400 text-teal-600 hover:bg-teal-50 hover:border-teal-500' : 'border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-600'}`}
                       >
                         {togglingId === car.id ? '...' : car.isListed ? '🔒 Unlist' : '📋 List'}
                       </Button>
@@ -385,20 +405,40 @@ export default function DriverCarsPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center py-16"
           >
-            <div className="text-6xl mb-4">🚗</div>
-            <h3 className="text-2xl font-semibold mb-2">
-              No cars listed yet
-            </h3>
-            <p className="text-gray-500 mb-8">
-              Start earning by listing your first car
-            </p>
-            <Button 
-              onClick={() => setShowAddModal(true)}
-              className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold px-8 py-3 rounded-xl"
-            >
-              <span className="mr-2">➕</span>
-              Add Your First Car
-            </Button>
+            {cars.length > 0 ? (
+              // Cars exist but none match the current mode filter
+              <>
+                <div className="text-6xl mb-4">🔍</div>
+                <h3 className="text-2xl font-semibold mb-2">
+                  No cars for this mode
+                </h3>
+                <p className="text-gray-500 mb-8">
+                  {driverMode === 'RENTAL' 
+                    ? 'None of your cars are enabled for rentals. Enable rental mode in car settings.'
+                    : driverMode === 'RIDE_HAILING'
+                    ? 'None of your cars are enabled for ride-hailing. Enable ride-hailing mode in car settings.'
+                    : 'No cars match the current filter.'}
+                </p>
+              </>
+            ) : (
+              // No cars at all
+              <>
+                <div className="text-6xl mb-4">🚗</div>
+                <h3 className="text-2xl font-semibold mb-2">
+                  No cars listed yet
+                </h3>
+                <p className="text-gray-500 mb-8">
+                  Start earning by listing your first car
+                </p>
+                <Button 
+                  onClick={() => setShowAddModal(true)}
+                  className="bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold px-8 py-3 rounded-xl"
+                >
+                  <span className="mr-2">➕</span>
+                  Add Your First Car
+                </Button>
+              </>
+            )}
           </motion.div>
         )}
       </div>
