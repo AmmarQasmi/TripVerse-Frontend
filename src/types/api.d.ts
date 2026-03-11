@@ -97,6 +97,10 @@ export type AdminDriver = Driver
 export interface DriverBooking {
   id: number
   status: string
+  booking_type?: string
+  is_intercity?: boolean
+  expires_at?: string | null
+  estimated_distance?: number | null
   customer: {
     name: string
   }

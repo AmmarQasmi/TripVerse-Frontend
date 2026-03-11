@@ -31,6 +31,9 @@ export interface DriverDashboard {
   recent_bookings: Array<{
     id: number
     status: string
+    booking_type?: string
+    is_intercity?: boolean
+    expires_at?: string | null
     customer: {
       name: string
     }

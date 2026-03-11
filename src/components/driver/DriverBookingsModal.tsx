@@ -27,9 +27,10 @@ interface DriverBookingsModalProps {
   isOpen: boolean
   onClose: () => void
   bookings: DriverBookingItem[]
+  title?: string
 }
 
-export function DriverBookingsModal({ isOpen, onClose, bookings }: DriverBookingsModalProps) {
+export function DriverBookingsModal({ isOpen, onClose, bookings, title = 'My Car Bookings' }: DriverBookingsModalProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -84,7 +85,7 @@ export function DriverBookingsModal({ isOpen, onClose, bookings }: DriverBooking
               {/* Header */}
               <div className="relative px-6 py-4 bg-gradient-to-r from-sky-700 via-cyan-700 to-emerald-700">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-white">My Car Bookings</h2>
+                  <h2 className="text-2xl font-bold text-white">{title}</h2>
                   <button
                     onClick={onClose}
                     className="p-2 rounded-full hover:bg-white/20 transition-colors text-white"
@@ -108,13 +109,13 @@ export function DriverBookingsModal({ isOpen, onClose, bookings }: DriverBooking
                       }
                       
                       return (
-                      <div
-                        key={booking.id}
-                        className={`p-4 border rounded-xl hover:bg-gray-50 transition-colors flex justify-between items-start ${
-                          isRideHailing ? 'border-teal-200 bg-teal-50/30' : ''
-                        }`}
-                      >
-                        <div className="flex-1">
+                      <Link key={booking.id} href={`/driver/bookings?bookingId=${booking.id}`} onClick={onClose}>
+                        <div
+                          className={`p-4 border rounded-xl hover:bg-gray-50 transition-colors flex justify-between items-start cursor-pointer ${
+                            isRideHailing ? 'border-teal-200 bg-teal-50/30' : ''
+                          }`}
+                        >
+                          <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-1">
                             <span className="text-2xl">{isRideHailing ? '🚕' : '🚗'}</span>
                             <div>
@@ -149,17 +150,18 @@ export function DriverBookingsModal({ isOpen, onClose, bookings }: DriverBooking
                               PKR {booking.driver_earnings.toLocaleString()}
                             </span>
                           </p>
-                        </div>
-                        <div className="text-right ml-4">
-                          <div
-                            className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(
-                              booking.status,
-                            )}`}
-                          >
-                            {booking.status.replace(/_/g, ' ')}
+                          </div>
+                          <div className="text-right ml-4">
+                            <div
+                              className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(
+                                booking.status,
+                              )}`}
+                            >
+                              {booking.status.replace(/_/g, ' ')}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      </Link>
                     )})}
                   </div>
                 ) : (

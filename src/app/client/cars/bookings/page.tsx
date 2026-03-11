@@ -1,16 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useUserBookings } from '@/features/cars/useCarSearch'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { ChatInterface } from '@/components/cars/ChatInterface'
+import { ComplaintModal } from '@/components/client/ComplaintModal'
 import { useToast } from '@/components/ui/Toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { PageLoader } from '@/components/shared/PageLoader'
 import { carsApi } from '@/lib/api/cars.api'
+import { getSocket } from '@/lib/socket'
+import type { Socket } from 'socket.io-client'
 
 export default function CarBookingsPage() {
   const { user, requireAuth, isAuthenticated } = useRequireAuth()
@@ -24,11 +27,35 @@ export default function CarBookingsPage() {
   const [bookingTypeFilter, setBookingTypeFilter] = useState<'all' | 'rental' | 'ride_hailing'>('all')
   const [expandedBooking, setExpandedBooking] = useState<number | null>(null)
   const [cancellingId, setCancellingId] = useState<number | null>(null)
+  const [trackingBookingId, setTrackingBookingId] = useState<number | null>(null)
+  const [complaintModalOpen, setComplaintModalOpen] = useState(false)
+  const [complaintBookingId, setComplaintBookingId] = useState<number | null>(null)
+  const [driverLocation, setDriverLocation] = useState<{
+    latitude: number
+    longitude: number
+    heading?: number
+    speed?: number
+    accuracy?: number
+    timestamp: number
+  } | null>(null)
+  const [isTrackingConnected, setIsTrackingConnected] = useState(false)
+  const [dismissedTrackingBookingIds, setDismissedTrackingBookingIds] = useState<number[]>([])
+  const socketRef = useRef<Socket | null>(null)
   
   const { data: bookings, isLoading, error } = useUserBookings(statusFilter)
 
   const canChat = (status: string) => ['ACCEPTED', 'CONFIRMED', 'IN_PROGRESS'].includes(status)
   const canCancel = (status: string) => ['PENDING_DRIVER_ACCEPTANCE', 'ACCEPTED'].includes(status)
+  const normalizeStatus = (status: string) => String(status || '').trim().toUpperCase()
+  const canTrackDriver = (booking: any) => {
+    const isRideHailing = (booking.booking_type || 'rental') === 'ride_hailing'
+    const isWithinCity = !booking.is_intercity
+    const normalizedStatus = normalizeStatus(booking.status)
+    const isTrackableStage = ['ACCEPTED', 'CONFIRMED', 'IN_PROGRESS'].includes(normalizedStatus)
+    // Pending requests should never be trackable; require a response/progress timestamp.
+    const hasTrackingStartSignal = Boolean(booking.accepted_at || booking.confirmed_at || booking.started_at)
+    return isRideHailing && isWithinCity && isTrackableStage && hasTrackingStartSignal
+  }
 
   // Auto-open chat from notification
   useEffect(() => {
@@ -43,6 +70,123 @@ export default function CarBookingsPage() {
       }
     }
   }, [searchParams, bookings, router])
+
+  useEffect(() => {
+    if (!user?.id || !trackingBookingId) {
+      setIsTrackingConnected(false)
+      return
+    }
+
+    const trackingBooking = bookings?.find((booking: any) => booking.id === trackingBookingId)
+    if (!trackingBooking || !canTrackDriver(trackingBooking)) {
+      setIsTrackingConnected(false)
+      return
+    }
+
+    const socket = getSocket(undefined, 'chat')
+    socketRef.current = socket
+
+    if (!socket.connected) {
+      socket.connect()
+    }
+
+    const handleConnect = () => {
+      setIsTrackingConnected(true)
+      socket.emit('join_booking', trackingBookingId)
+      socket.emit('request_driver_location', trackingBookingId)
+    }
+
+    const handleDisconnect = () => {
+      setIsTrackingConnected(false)
+    }
+
+    const handleLocationUpdate = (payload: any) => {
+      if (Number(payload?.bookingId) !== trackingBookingId) return
+      const latitude = Number(payload?.latitude)
+      const longitude = Number(payload?.longitude)
+      if (Number.isNaN(latitude) || Number.isNaN(longitude)) return
+
+      setDriverLocation({
+        latitude,
+        longitude,
+        heading: payload?.heading,
+        speed: payload?.speed,
+        accuracy: payload?.accuracy,
+        timestamp: Number(payload?.timestamp) || Date.now(),
+      })
+    }
+
+    socket.on('connect', handleConnect)
+    socket.on('disconnect', handleDisconnect)
+    socket.on('driver_location_updated', handleLocationUpdate)
+
+    if (socket.connected) {
+      handleConnect()
+    }
+
+    return () => {
+      socket.emit('leave_booking', trackingBookingId)
+      socket.off('connect', handleConnect)
+      socket.off('disconnect', handleDisconnect)
+      socket.off('driver_location_updated', handleLocationUpdate)
+      setIsTrackingConnected(false)
+    }
+  }, [trackingBookingId, user?.id, bookings])
+
+  useEffect(() => {
+    if (!trackingBookingId || !bookings) return
+
+    const trackedBooking = bookings.find((booking: any) => booking.id === trackingBookingId)
+    if (!trackedBooking || !canTrackDriver(trackedBooking)) {
+      setTrackingBookingId(null)
+      setDriverLocation(null)
+      setIsTrackingConnected(false)
+      setDismissedTrackingBookingIds((prev) => (prev.includes(trackingBookingId) ? prev : [...prev, trackingBookingId]))
+    }
+  }, [trackingBookingId, bookings])
+
+  useEffect(() => {
+    if (!bookings || !trackingBookingId) return
+
+    const trackableIds = bookings
+      .filter((booking: any) => canTrackDriver(booking))
+      .map((booking: any) => booking.id)
+
+    if (!trackableIds.includes(trackingBookingId)) {
+      setTrackingBookingId(null)
+      setDriverLocation(null)
+      setIsTrackingConnected(false)
+    }
+  }, [bookings, trackingBookingId])
+
+  useEffect(() => {
+    if (!bookings || trackingBookingId) return
+
+    // Auto-track only the newest booking to avoid showing tracking from older rides
+    // when the latest ride is still pending driver acceptance.
+    const newestBooking = bookings[0]
+    if (
+      newestBooking &&
+      canTrackDriver(newestBooking) &&
+      !dismissedTrackingBookingIds.includes(newestBooking.id)
+    ) {
+      setTrackingBookingId(newestBooking.id)
+    }
+  }, [bookings, trackingBookingId, dismissedTrackingBookingIds])
+
+  useEffect(() => {
+    if (!bookings || dismissedTrackingBookingIds.length === 0) return
+
+    // Allow auto-open again for dismissed bookings once they are no longer trackable (trip completed/cancelled/etc.).
+    const dismissedStillTrackable = dismissedTrackingBookingIds.filter((bookingId) => {
+      const booking = bookings.find((b: any) => b.id === bookingId)
+      return booking ? canTrackDriver(booking) : false
+    })
+
+    if (dismissedStillTrackable.length !== dismissedTrackingBookingIds.length) {
+      setDismissedTrackingBookingIds(dismissedStillTrackable)
+    }
+  }, [bookings, dismissedTrackingBookingIds])
 
   if (!isAuthenticated()) {
     return (
@@ -200,6 +344,11 @@ export default function CarBookingsPage() {
     { key: 'rental' as const, label: 'Rentals', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
   ]
 
+  const activeTrackingBooking = trackingBookingId
+    ? bookings?.find((booking: any) => booking.id === trackingBookingId)
+    : null
+  const shouldShowTrackingPanel = !!activeTrackingBooking && canTrackDriver(activeTrackingBooking)
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <div className="container mx-auto px-4 py-6 max-w-6xl">
@@ -269,6 +418,7 @@ export default function CarBookingsPage() {
                 const timeline = getTimeline(booking)
                 const bookingType = booking.booking_type || 'rental'
                 const isRideHailing = bookingType === 'ride_hailing'
+                const showTrackDriver = canTrackDriver(booking)
 
                 return (
                   <motion.div
@@ -396,7 +546,7 @@ export default function CarBookingsPage() {
 
                       {/* Action Buttons */}
                       <div className="flex items-center gap-2 mt-4 pt-3 border-t border-white/5">
-        {booking.status === 'ACCEPTED' && (
+                        {booking.status === 'ACCEPTED' && !showTrackDriver && (
                           <Link href={`/client/cars/booking/confirm?bookingId=${booking.id}`} className="flex items-center gap-1.5 px-3.5 py-1.5 bg-green-500/15 hover:bg-green-500/25 text-green-400 rounded-lg text-sm font-medium transition-colors border border-green-500/20">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -404,16 +554,31 @@ export default function CarBookingsPage() {
                             Confirm & Pay
                           </Link>
                         )}
+                        {showTrackDriver && (
+                          <button
+                            onClick={() => {
+                              setTrackingBookingId(booking.id)
+                              setSelectedBooking(booking.id)
+                              setSelectedBookingData(booking)
+                            }}
+                            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-teal-500/15 hover:bg-teal-500/25 text-teal-300 rounded-lg text-sm font-medium transition-colors border border-teal-500/20"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                            </svg>
+                            Track Driver
+                          </button>
+                        )}
                         {booking.status === 'COMPLETED' && (
-                          <Link
-                            href={`/client/disputes/new?type=car&bookingId=${booking.id}`}
+                          <button
+                            onClick={() => { setComplaintBookingId(booking.id); setComplaintModalOpen(true) }}
                             className="flex items-center gap-1.5 px-3.5 py-1.5 bg-orange-500/15 hover:bg-orange-500/25 text-orange-400 rounded-lg text-sm font-medium transition-colors border border-orange-500/20"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             File Complaint
-                          </Link>
+                          </button>
                         )}
                         {canChat(booking.status) && (
                           <button
@@ -490,112 +655,43 @@ export default function CarBookingsPage() {
                               </div>
                             </div>
 
-                            {/* Price Breakdown */}
-                            {booking.driver_earnings != null && (
-                              <div className={`rounded-lg p-3 ${isRideHailing ? 'bg-teal-900/20 border border-teal-500/20' : 'bg-gray-900/50'}`}>
-                                <h4 className="text-sm font-semibold text-white mb-2">
-                                  {isRideHailing ? 'Fare Breakdown' : 'Price Breakdown'}
-                                </h4>
-                                <div className="space-y-1.5 text-sm">
-                                  {/* Ride-hailing specific breakdown */}
-                                  {isRideHailing && (
-                                    <>
-                                      {booking.base_fare && (
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-400">Base Fare</span>
-                                          <span className="text-gray-300">PKR {booking.base_fare?.toLocaleString()}</span>
-                                        </div>
-                                      )}
-                                      {booking.distance_fare && (
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-400">Distance ({booking.estimated_distance} km)</span>
-                                          <span className="text-gray-300">PKR {booking.distance_fare?.toLocaleString()}</span>
-                                        </div>
-                                      )}
-                                      {booking.time_fare && (
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-400">Time ({booking.estimated_duration} min)</span>
-                                          <span className="text-gray-300">PKR {booking.time_fare?.toLocaleString()}</span>
-                                        </div>
-                                      )}
-                                      <hr className="border-gray-700" />
-                                    </>
-                                  )}
-                                  {/* Rental specific breakdown */}
-                                  {!isRideHailing && (
-                                    <>
-                                      {booking.base_amount && (
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-400">Daily Rate × Days</span>
-                                          <span className="text-gray-300">PKR {booking.base_amount?.toLocaleString()}</span>
-                                        </div>
-                                      )}
-                                      {booking.distance_amount && (
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-400">Distance Charge</span>
-                                          <span className="text-gray-300">PKR {booking.distance_amount?.toLocaleString()}</span>
-                                        </div>
-                                      )}
-                                      <hr className="border-gray-700" />
-                                    </>
-                                  )}
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400">Driver Earnings</span>
-                                    <span className="text-gray-300">PKR {booking.driver_earnings?.toLocaleString()}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400">Platform Fee</span>
-                                    <span className="text-gray-300">PKR {booking.platform_fee?.toLocaleString()}</span>
-                                  </div>
-                                  <hr className="border-gray-700" />
-                                  <div className="flex justify-between font-semibold">
-                                    <span className="text-white">Total</span>
-                                    <span className={isRideHailing ? 'text-teal-400' : 'text-blue-400'}>PKR {booking.total_amount?.toLocaleString()}</span>
-                                  </div>
+                            <div className="rounded-lg p-3 bg-gray-900/50 border border-white/5">
+                              <h4 className="text-sm font-semibold text-white mb-3">Booking Summary</h4>
+                              <div className="space-y-2 text-sm">
+                                <div className="flex justify-between gap-4">
+                                  <span className="text-gray-400">Car</span>
+                                  <span className="text-gray-200 text-right">{booking.car?.make} {booking.car?.model} ({booking.car?.year})</span>
                                 </div>
+                                <div className="flex justify-between gap-4">
+                                  <span className="text-gray-400">Driver</span>
+                                  <span className="text-gray-200 text-right">{booking.driver?.name || 'Driver'}</span>
+                                </div>
+                                <div className="flex justify-between gap-4">
+                                  <span className="text-gray-400">Pickup</span>
+                                  <span className="text-gray-200 text-right break-words">{booking.pickup_location}</span>
+                                </div>
+                                <div className="flex justify-between gap-4">
+                                  <span className="text-gray-400">Drop-off</span>
+                                  <span className="text-gray-200 text-right break-words">{booking.dropoff_location}</span>
+                                </div>
+                                {booking.estimated_distance && (
+                                  <div className="flex justify-between gap-4">
+                                    <span className="text-gray-400">Distance</span>
+                                    <span className="text-gray-200 text-right">{booking.estimated_distance} km</span>
+                                  </div>
+                                )}
+                                <div className="flex justify-between gap-4">
+                                  <span className="text-gray-400">Total Price</span>
+                                  <span className="text-teal-300 text-right font-semibold">PKR {booking.total_amount?.toLocaleString()}</span>
+                                </div>
+                                {booking.confirmed_at && (
+                                  <div className="flex justify-between gap-4">
+                                    <span className="text-gray-400">Confirmed On</span>
+                                    <span className="text-gray-200 text-right">{formatTime(booking.confirmed_at)}</span>
+                                  </div>
+                                )}
                               </div>
-                            )}
-
-                            {/* Car Specs */}
-                            {booking.car?.seats && (
-                              <div className="flex flex-wrap gap-2">
-                                {[
-                                  booking.car.seats && `${booking.car.seats} seats`,
-                                  booking.car.transmission,
-                                  booking.car.fuel_type,
-                                  booking.car.color,
-                                  booking.car.license_plate,
-                                ].filter(Boolean).map((spec: string) => (
-                                  <span key={spec} className="px-2 py-1 bg-gray-900/50 text-gray-400 text-xs rounded-lg border border-white/5">{spec}</span>
-                                ))}
-                              </div>
-                            )}
-
-                            {/* Notes */}
-                            {booking.customer_notes && (
-                              <div className="bg-gray-900/50 rounded-lg p-3">
-                                <p className="text-xs text-gray-500 mb-1">Your Notes</p>
-                                <p className="text-sm text-gray-300">{booking.customer_notes}</p>
-                              </div>
-                            )}
-                            {booking.driver_notes && (
-                              <div className="bg-gray-900/50 rounded-lg p-3">
-                                <p className="text-xs text-gray-500 mb-1">Driver's Notes</p>
-                                <p className="text-sm text-gray-300">{booking.driver_notes}</p>
-                              </div>
-                            )}
-
-                            {/* Payment Status */}
-                            {booking.payment && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <span className="text-gray-400">Payment:</span>
-                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                  booking.payment.status === 'completed' ? 'bg-green-500/15 text-green-400' : 'bg-yellow-500/15 text-yellow-400'
-                                }`}>
-                                  {booking.payment.status === 'completed' ? 'Paid' : 'Pending'}
-                                </span>
-                              </div>
-                            )}
+                            </div>
                           </div>
                         </motion.div>
                       )}
@@ -624,10 +720,62 @@ export default function CarBookingsPage() {
             )}
           </div>
 
-          {/* Right Column: Chat */}
+          {/* Right Column: Tracking + Chat */}
           <div className="lg:col-span-1">
+            {shouldShowTrackingPanel ? (
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="bg-gray-800/40 border border-white/5 rounded-xl p-4 mb-4 sticky top-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-white font-semibold">Track Driver</h3>
+                  <button
+                    onClick={() => {
+                      if (trackingBookingId) {
+                        setDismissedTrackingBookingIds((prev) =>
+                          prev.includes(trackingBookingId) ? prev : [...prev, trackingBookingId],
+                        )
+                      }
+                      setTrackingBookingId(null)
+                      setDriverLocation(null)
+                      setIsTrackingConnected(false)
+                    }}
+                    className="text-gray-400 hover:text-white text-xs"
+                  >
+                    Close
+                  </button>
+                </div>
+
+                <div className="text-xs text-gray-400 mb-3">
+                  {isTrackingConnected ? 'Live tracking connected' : 'Connecting to live tracking...'}
+                </div>
+
+                {driverLocation ? (
+                  <>
+                    <div className="rounded-lg overflow-hidden border border-white/10 h-56 bg-gray-900">
+                      <iframe
+                        title="Driver live location"
+                        className="w-full h-full"
+                        loading="lazy"
+                        src={`https://www.openstreetmap.org/export/embed.html?bbox=${driverLocation.longitude - 0.01}%2C${driverLocation.latitude - 0.01}%2C${driverLocation.longitude + 0.01}%2C${driverLocation.latitude + 0.01}&layer=mapnik&marker=${driverLocation.latitude}%2C${driverLocation.longitude}`}
+                      />
+                    </div>
+                    <div className="mt-3 text-xs text-gray-300 space-y-1">
+                      <div>
+                        Driver coordinates: {driverLocation.latitude.toFixed(5)}, {driverLocation.longitude.toFixed(5)}
+                      </div>
+                      <div>
+                        Last update: {new Date(driverLocation.timestamp).toLocaleTimeString()}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-lg border border-dashed border-white/10 p-4 text-xs text-gray-500">
+                    Waiting for live driver location to appear.
+                  </div>
+                )}
+              </motion.div>
+            ) : null}
+
             {selectedBooking && selectedBookingData ? (
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="sticky top-6">
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className={trackingBookingId ? '' : 'sticky top-6'}>
                 <ChatInterface
                   bookingId={selectedBooking}
                   driverName={selectedBookingData.driver?.name || 'Driver'}
@@ -649,6 +797,17 @@ export default function CarBookingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Complaint Modal */}
+      <ComplaintModal
+        isOpen={complaintModalOpen}
+        onClose={() => {
+          setComplaintModalOpen(false)
+          setComplaintBookingId(null)
+        }}
+        bookingType="car"
+        bookingId={complaintBookingId}
+      />
     </div>
   )
 }

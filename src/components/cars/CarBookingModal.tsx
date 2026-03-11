@@ -26,6 +26,7 @@ interface CarBookingModalProps {
 interface PriceBreakdown {
   base_price: number
   distance_price: number
+  time_price?: number
   total_amount: number
   driver_earnings: number
   platform_fee: number
@@ -116,6 +117,7 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
     if (isOpen && initialData) {
       if (initialData.pickupLocation) {
         setPickupLocation(initialData.pickupLocation)
+        setPickupCity(extractCity(initialData.pickupLocation))
       }
       if (initialData.pickupDate) {
         setPickupDate(initialData.pickupDate)
@@ -210,8 +212,24 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
       // If second-to-last is a province, try third-to-last
       if (parts.length >= 3) return parts[parts.length - 3]
     }
+    // Fallback for simple values like "Karachi"
+    if (parts.length === 1 && parts[0]) {
+      return parts[0]
+    }
     return null
   }
+
+  // Keep pickup city in sync for prefilled/manual values (important for within-city mode).
+  useEffect(() => {
+    if (!pickupLocation) {
+      setPickupCity(null)
+      return
+    }
+    const city = extractCity(pickupLocation)
+    if (city) {
+      setPickupCity(city)
+    }
+  }, [pickupLocation])
 
   // Check if ride-hailing mode is active
   const isRideHailingMode = bookingMode === 'within-city' || finalBookingType === 'RIDE_HAILING'
@@ -224,15 +242,7 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
     }
     try {
       const result = await carsApi.autocompleteLocation(input, 'pk')
-      let suggestions = result.suggestions || []
-      
-      // For ride-hailing drop-off, filter to same city as pickup
-      if (type === 'dropoff' && isRideHailingMode && pickupCity) {
-        suggestions = suggestions.filter(s => {
-          const desc = s.description || ''
-          return desc.toLowerCase().includes(pickupCity.toLowerCase())
-        })
-      }
+      const suggestions = result.suggestions || []
       
       if (type === 'pickup') {
         setPickupSuggestions(suggestions)
@@ -244,7 +254,7 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
     } catch {
       // silently fail
     }
-  }, [isRideHailingMode, pickupCity])
+  }, [])
 
   // Debounced autocomplete for pickup
   useEffect(() => {
@@ -294,6 +304,25 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
     return undefined // Auto-detect
   }
 
+  const normalizeLocationText = useCallback(async (input: string, preferredCity?: string) => {
+    const trimmed = input.trim()
+    if (!trimmed) return trimmed
+
+    const result = await carsApi.autocompleteLocation(trimmed, 'pk').catch(() => ({ suggestions: [] as any[] }))
+    const suggestions = result.suggestions || []
+    if (suggestions.length === 0) return trimmed
+
+    if (preferredCity) {
+      const preferred = suggestions.find((s: any) => {
+        const desc = (s.description || '').toLowerCase()
+        return desc.includes(preferredCity.toLowerCase())
+      })
+      if (preferred?.description) return preferred.description
+    }
+
+    return suggestions[0].description || trimmed
+  }, [])
+
   const handleNext = async () => {
     // Step 0: Mode selection -> Step 1
     if (step === 0) {
@@ -310,11 +339,25 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
         const selectedType = getSelectedBookingType()
         const isRideFlow = selectedType === 'RIDE_HAILING' || bookingMode === 'within-city'
         const endDate = pickupDate ? computeEndDate(pickupDate, numberOfDays) : undefined
+        let effectivePickupLocation = pickupLocation
+        let effectiveDropoffLocation = dropoffLocation
+
+        if (isRideFlow) {
+          effectivePickupLocation = await normalizeLocationText(pickupLocation)
+          const normalizedCity = extractCity(effectivePickupLocation) || pickupCity || undefined
+          effectiveDropoffLocation = await normalizeLocationText(dropoffLocation, normalizedCity)
+
+          setPickupLocation(effectivePickupLocation)
+          setDropoffLocation(effectiveDropoffLocation)
+          if (normalizedCity) {
+            setPickupCity(normalizedCity)
+          }
+        }
         
         const result = await carsApi.calculatePrice(
           car.id,
-          pickupLocation,
-          dropoffLocation,
+          effectivePickupLocation,
+          effectiveDropoffLocation,
           {
             bookingType: selectedType,
             startDate: (bookingMode !== 'within-city') ? pickupDate : undefined,
@@ -345,14 +388,15 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
         setPriceBreakdown({
           base_price: result.pricing_breakdown.base_price ?? 0,
           distance_price: result.pricing_breakdown.distance_price ?? 0,
+          time_price: (result.pricing_breakdown as any).time_price,
           total_amount: result.pricing_breakdown.total_amount,
           driver_earnings: result.pricing_breakdown.driver_earnings,
           platform_fee: result.pricing_breakdown.platform_fee,
           platform_fee_percentage: result.pricing_breakdown.platform_fee_percentage,
           // Ride-hailing specific
-          base_fare: result.pricing_breakdown.base_fare,
-          distance_fare: result.pricing_breakdown.distance_fare,
-          time_fare: result.pricing_breakdown.time_fare,
+          base_fare: result.pricing_breakdown.base_fare ?? result.pricing_breakdown.base_price,
+          distance_fare: result.pricing_breakdown.distance_fare ?? result.pricing_breakdown.distance_price,
+          time_fare: result.pricing_breakdown.time_fare ?? (result.pricing_breakdown as any).time_price,
           surge_multiplier: result.pricing_breakdown.surge_multiplier,
           minimum_fare: result.pricing_breakdown.minimum_fare,
         })
@@ -747,10 +791,10 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                             ))}
                           </div>
                         )}
-                        {/* Show message when ride-hailing drop-off has no same-city results */}
-                        {showDropoffSuggestions && dropoffSuggestions.length === 0 && dropoffLocation.length >= 2 && isRideHailingMode && pickupCity && (
+                        {/* Show message when no drop-off results */}
+                        {showDropoffSuggestions && dropoffSuggestions.length === 0 && dropoffLocation.length >= 2 && (
                           <div className="absolute z-20 w-full mt-1 bg-gray-800 border border-white/10 rounded-xl shadow-xl p-3">
-                            <p className="text-xs text-amber-400">No locations found in {pickupCity}. Within City Rides must stay in the same city.</p>
+                            <p className="text-xs text-amber-400">No locations found. Try a nearby landmark or a more specific address.</p>
                           </div>
                         )}
                       </div>
@@ -952,11 +996,11 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                           <div className="flex-1 space-y-3">
                             <div>
                               <p className="text-xs text-gray-400">Pickup</p>
-                              <p className="text-sm text-white font-medium truncate">{pickupLocation}</p>
+                              <p className="text-sm text-white font-medium break-words whitespace-normal leading-snug">{pickupLocation}</p>
                             </div>
                             <div>
                               <p className="text-xs text-gray-400">Drop-off</p>
-                              <p className="text-sm text-white font-medium truncate">{dropoffLocation}</p>
+                              <p className="text-sm text-white font-medium break-words whitespace-normal leading-snug">{dropoffLocation}</p>
                             </div>
                           </div>
                         </div>
@@ -1054,6 +1098,17 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                         <h4 className="text-sm font-semibold text-white mb-2">Price Breakdown</h4>
                         {finalBookingType === 'RIDE_HAILING' ? (
                           <>
+                            {(() => {
+                              const base = priceBreakdown.base_fare ?? 0
+                              const distance = priceBreakdown.distance_fare ?? 0
+                              const time = priceBreakdown.time_fare ?? 0
+                              const preSurgeSubtotal = base + distance + time
+                              const surgeAmount = Math.max(
+                                0,
+                                (priceBreakdown.total_amount || 0) - (priceBreakdown.platform_fee || 0) - preSurgeSubtotal,
+                              )
+                              return (
+                                <>
                             <div className="flex justify-between text-sm">
                               <span className="text-gray-400">Base Fare</span>
                               <span className="text-gray-200">PKR {(priceBreakdown.base_fare ?? 0).toLocaleString()}</span>
@@ -1074,13 +1129,16 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                                   </svg>
                                   Surge ({surgeMultiplier.toFixed(1)}x)
                                 </span>
-                                <span className="text-orange-400">Applied</span>
+                                <span className="text-orange-400">PKR {surgeAmount.toLocaleString()}</span>
                               </div>
                             )}
                             <div className="flex justify-between text-sm">
                               <span className="text-gray-400">Platform Fee ({priceBreakdown.platform_fee_percentage ?? 15}%)</span>
                               <span className="text-gray-200">PKR {priceBreakdown.platform_fee.toLocaleString()}</span>
                             </div>
+                                </>
+                              )
+                            })()}
                           </>
                         ) : (
                           <>

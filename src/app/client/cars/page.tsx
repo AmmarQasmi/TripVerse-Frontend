@@ -150,6 +150,10 @@ export default function CarsPage() {
 
   const handleSearch = (newParams: CarSearchFormData) => {
     setSearchParams(newParams)
+    // Persist latest explicit user search so details/booking modal use this first.
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cached_car_search', JSON.stringify(newParams))
+    }
     // When user searches with a pickup location, disable showAllCars so it filters properly
     if (newParams.pickupLocation) {
       setShowAllCars(false)
@@ -428,12 +432,20 @@ export default function CarsPage() {
                           description: `${car.car.make} ${car.car.model} - ${car.car.year}`,
                           features: [`${car.car.seats} seats`, car.car.transmission, car.car.fuel_type],
                           driverId: car.driver.id,
-                          rating: 0,
+                          rating: (car.driver as any)?.rating ?? undefined,
                           isAvailable: true,
                           createdAt: car.createdAt,
                           updatedAt: car.createdAt,
                           transmission: car.car.transmission,
                           fuelType: car.car.fuel_type,
+                          driver: {
+                            id: Number(car.driver.id),
+                            full_name: car.driver.name,
+                            city: car.driver.city as any,
+                            isVerified: car.driver.isVerified,
+                            rating: (car.driver as any)?.rating,
+                            totalTrips: (car.driver as any)?.totalTrips,
+                          },
                           // Dual-mode availability
                           availableForRental: car.availability?.available_for_rental ?? true,
                           availableForRideHailing: car.availability?.available_for_ride_hailing ?? false,

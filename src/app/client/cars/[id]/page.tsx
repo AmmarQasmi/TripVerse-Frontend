@@ -73,6 +73,16 @@ export default function CarDetailPage() {
   const driver = car.driver
   const carDetails = car.car
   const pricing = car.pricing
+  const availability = car.availability
+  const rideBaseFare = pricing.base_fare ?? 0
+  const ridePerKm = pricing.per_km_rate ?? 0
+  const ridePerMinute = pricing.per_minute_rate ?? 0
+  const rentalBasePerDay = pricing.base_price_per_day ?? 0
+  const rentalPerKm = pricing.distance_rate_per_km ?? 0
+  const ridePricingPreferred = Boolean(
+    availability?.available_for_ride_hailing &&
+      (rideBaseFare > 0 || ridePerKm > 0 || (availability?.available_for_rental === false && rentalBasePerDay <= 0)),
+  )
   const carImages = car.images?.length ? car.images : [
     'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80',
   ]
@@ -165,9 +175,11 @@ export default function CarDetailPage() {
               </div>
               <div className="text-right">
                 <p className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400">
-                  PKR {pricing.base_price_per_day?.toLocaleString()}
+                  PKR {(ridePricingPreferred ? rideBaseFare : rentalBasePerDay).toLocaleString()}
                 </p>
-                <p className="text-sm text-gray-400">per day + distance</p>
+                <p className="text-sm text-gray-400">
+                  {ridePricingPreferred ? 'base fare + distance/time' : 'per day + distance'}
+                </p>
               </div>
             </motion.div>
 
@@ -195,15 +207,24 @@ export default function CarDetailPage() {
               className="bg-gray-800/40 border border-white/5 rounded-xl p-5"
             >
               <h2 className="text-lg font-semibold text-white mb-3">Pricing Details</h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className={`grid ${ridePricingPreferred ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-2'} gap-4`}>
                 <div className="bg-gray-800/60 rounded-lg p-3">
-                  <p className="text-xs text-gray-400">Base Rate</p>
-                  <p className="text-lg font-bold text-white">PKR {pricing.base_price_per_day?.toLocaleString()}<span className="text-sm text-gray-400 font-normal">/day</span></p>
+                  <p className="text-xs text-gray-400">{ridePricingPreferred ? 'Base Fare' : 'Base Rate'}</p>
+                  <p className="text-lg font-bold text-white">
+                    PKR {(ridePricingPreferred ? rideBaseFare : rentalBasePerDay).toLocaleString()}
+                    <span className="text-sm text-gray-400 font-normal">{ridePricingPreferred ? '' : '/day'}</span>
+                  </p>
                 </div>
                 <div className="bg-gray-800/60 rounded-lg p-3">
                   <p className="text-xs text-gray-400">Distance Rate</p>
-                  <p className="text-lg font-bold text-white">PKR {pricing.distance_rate_per_km?.toLocaleString()}<span className="text-sm text-gray-400 font-normal">/km</span></p>
+                  <p className="text-lg font-bold text-white">PKR {(ridePricingPreferred ? ridePerKm : rentalPerKm).toLocaleString()}<span className="text-sm text-gray-400 font-normal">/km</span></p>
                 </div>
+                {ridePricingPreferred && (
+                  <div className="bg-gray-800/60 rounded-lg p-3">
+                    <p className="text-xs text-gray-400">Time Rate</p>
+                    <p className="text-lg font-bold text-white">PKR {ridePerMinute.toLocaleString()}<span className="text-sm text-gray-400 font-normal">/min</span></p>
+                  </div>
+                )}
               </div>
               <p className="text-xs text-gray-500 mt-3">* 5% platform fee applies. Final price calculated based on trip duration and distance.</p>
             </motion.div>
@@ -282,8 +303,14 @@ export default function CarDetailPage() {
             >
               <div className="text-center mb-4">
                 <p className="text-sm text-gray-400">Starting from</p>
-                <p className="text-3xl font-bold text-white mt-1">PKR {pricing.base_price_per_day?.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">per day + PKR {pricing.distance_rate_per_km}/km</p>
+                <p className="text-3xl font-bold text-white mt-1">
+                  PKR {(ridePricingPreferred ? rideBaseFare : rentalBasePerDay).toLocaleString()}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {ridePricingPreferred
+                    ? `base fare + PKR ${ridePerKm.toLocaleString()}/km`
+                    : `per day + PKR ${rentalPerKm.toLocaleString()}/km`}
+                </p>
               </div>
 
               {/* Quick Features */}
