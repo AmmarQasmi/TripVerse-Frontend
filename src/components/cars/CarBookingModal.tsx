@@ -285,6 +285,20 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
       // Rental requires dates
       if (!pickupDate) newErrors.pickupDate = 'Pickup date is required'
       if (numberOfDays < 1 || numberOfDays > 30) newErrors.days = 'Days must be between 1 and 30'
+
+      // Manual rental mode must be intercity.
+      if (bookingMode === 'city-to-city') {
+        const pickupCityName = extractCity(pickupLocation)
+        const dropoffCityName = extractCity(dropoffLocation)
+
+        if (
+          pickupCityName &&
+          dropoffCityName &&
+          pickupCityName.toLowerCase() === dropoffCityName.toLowerCase()
+        ) {
+          newErrors.dropoff = `Drop-off must be outside ${pickupCityName}`
+        }
+      }
     } else if (bookingMode === 'within-city' || finalBookingType === 'RIDE_HAILING') {
       // Ride-hailing: if not ASAP, need scheduled time
       if (!isAsap && !scheduledPickup) newErrors.scheduledPickup = 'Scheduled pickup time is required'
