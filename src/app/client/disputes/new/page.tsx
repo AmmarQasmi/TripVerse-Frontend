@@ -170,6 +170,29 @@ export default function NewDisputePage() {
     )
   }
 
+  // ── Hotel disputes are no longer supported ───────────────────────────────
+  if (bookingType === 'hotel') {
+    return (
+      <div className="min-h-screen bg-white">
+        <PageHeader title="Complaint" backUrl="/client/dashboard" backLabel="Back to Dashboard" />
+        <div className="container mx-auto px-4 py-20 max-w-md text-center">
+          <div className="text-6xl mb-6">⭐</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-3">Hotel Disputes Not Available</h2>
+          <p className="text-gray-600 mb-6">
+            Disputes for hotel bookings are no longer supported. If you had an issue with your stay,
+            please leave a review on the hotel page to share your experience.
+          </p>
+          <a
+            href="/client/hotels"
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold transition-colors"
+          >
+            Browse Hotels &amp; Leave a Review
+          </a>
+        </div>
+      </div>
+    )
+  }
+
   // ── Step numbering (step 1 hidden when pre-selected) ─────────────────────
   const stepNum = (n: number) => isPreSelected ? n - 1 : n
 
@@ -207,12 +230,10 @@ export default function NewDisputePage() {
                     </p>
                     <p className="font-semibold text-gray-900">
                       {preSelectedBooking
-                        ? bookingType === 'hotel'
-                          ? preSelectedBooking.hotel?.name ?? `Hotel Booking #${selectedBookingId}`
-                          : preSelectedBooking.car?.make
+                        ? preSelectedBooking.car?.make
                             ? `${preSelectedBooking.car.make} ${preSelectedBooking.car.model}`
                             : `Car Booking #${selectedBookingId}`
-                        : `${bookingType === 'hotel' ? 'Hotel' : 'Car'} Booking #${selectedBookingId}`}
+                        : `Car Booking #${selectedBookingId}`}
                     </p>
                     {preSelectedBooking && (
                       <p className="text-xs text-gray-500 mt-0.5">
@@ -245,7 +266,7 @@ export default function NewDisputePage() {
               <CardHeader><CardTitle className="text-base">1. Select the Booking</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex gap-3">
-                  {(['car', 'hotel'] as const).map((type) => (
+                  {(['car'] as const).map((type) => (
                     <button
                       key={type}
                       type="button"
@@ -280,16 +301,12 @@ export default function NewDisputePage() {
                       >
                         <div className="flex justify-between items-center">
                           <span className="font-medium">
-                            {bookingType === 'hotel'
-                              ? booking.hotel?.name ?? `Hotel Booking #${booking.id}`
-                              : booking.car?.make
-                                ? `${booking.car.make} ${booking.car.model} (#${booking.id})`
-                                : `Car Booking #${booking.id}`}
+                            {booking.car?.make
+                              ? `${booking.car.make} ${booking.car.model} (#${booking.id})`
+                              : `Car Booking #${booking.id}`}
                           </span>
                           <span className="text-xs text-gray-400">
-                            {bookingType === 'hotel'
-                              ? `${booking.check_in ?? ''} – ${booking.check_out ?? ''}`
-                              : `${booking.start_date ?? ''} – ${booking.end_date ?? ''}`}
+                            {`${booking.start_date ?? ''} – ${booking.end_date ?? ''}`}
                           </span>
                         </div>
                       </button>
