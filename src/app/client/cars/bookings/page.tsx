@@ -8,6 +8,7 @@ import { useUserBookings } from '@/features/cars/useCarSearch'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { ChatInterface } from '@/components/cars/ChatInterface'
 import { ComplaintModal } from '@/components/client/ComplaintModal'
+import { DriverReviewModal } from '@/components/cars/DriverReviewModal'
 import { useToast } from '@/components/ui/Toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { PageLoader } from '@/components/shared/PageLoader'
@@ -30,6 +31,9 @@ export default function CarBookingsPage() {
   const [trackingBookingId, setTrackingBookingId] = useState<number | null>(null)
   const [complaintModalOpen, setComplaintModalOpen] = useState(false)
   const [complaintBookingId, setComplaintBookingId] = useState<number | null>(null)
+  const [reviewModalOpen, setReviewModalOpen] = useState(false)
+  const [reviewBookingId, setReviewBookingId] = useState<number | null>(null)
+  const [reviewDriverName, setReviewDriverName] = useState<string>('')
   const [driverLocation, setDriverLocation] = useState<{
     latitude: number
     longitude: number
@@ -571,6 +575,21 @@ export default function CarBookingsPage() {
                         )}
                         {booking.status === 'COMPLETED' && (
                           <button
+                            onClick={() => {
+                              setReviewBookingId(booking.id)
+                              setReviewDriverName(booking.driver?.name || 'Driver')
+                              setReviewModalOpen(true)
+                            }}
+                            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-yellow-500/15 hover:bg-yellow-500/25 text-yellow-400 rounded-lg text-sm font-medium transition-colors border border-yellow-500/20"
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            Rate Driver
+                          </button>
+                        )}
+                        {booking.status === 'COMPLETED' && (
+                          <button
                             onClick={() => { setComplaintBookingId(booking.id); setComplaintModalOpen(true) }}
                             className="flex items-center gap-1.5 px-3.5 py-1.5 bg-orange-500/15 hover:bg-orange-500/25 text-orange-400 rounded-lg text-sm font-medium transition-colors border border-orange-500/20"
                           >
@@ -808,6 +827,20 @@ export default function CarBookingsPage() {
         bookingType="car"
         bookingId={complaintBookingId}
       />
+
+      {/* Driver Review Modal */}
+      {reviewBookingId && (
+        <DriverReviewModal
+          bookingId={String(reviewBookingId)}
+          driverName={reviewDriverName}
+          isOpen={reviewModalOpen}
+          onClose={() => {
+            setReviewModalOpen(false)
+            setReviewBookingId(null)
+            setReviewDriverName('')
+          }}
+        />
+      )}
     </div>
   )
 }

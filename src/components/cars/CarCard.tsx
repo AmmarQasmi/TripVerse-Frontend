@@ -13,6 +13,8 @@ interface CarCardProps {
       isVerified?: boolean
       rating?: number
       totalTrips?: number
+      avg_in_app_rating?: number | null
+      total_in_app_reviews?: number
     }
     // Dual-mode availability
     availableForRental?: boolean
@@ -49,6 +51,8 @@ export function CarCard({ car, isAvailable = true }: CarCardProps) {
   const driverName = car.driver?.full_name || 'Driver'
   const driverInitial = driverName.charAt(0).toUpperCase()
   const driverRating = car.driver?.rating ?? car.rating
+  const inAppRating = car.driver?.avg_in_app_rating
+  const totalInAppReviews = car.driver?.total_in_app_reviews
   const totalTrips = car.driver?.totalTrips
   const numericDayRate = Number(car.pricePerDay ?? 0)
   const numericBaseFare = Number(car.baseFare ?? 0)
@@ -136,12 +140,25 @@ export function CarCard({ car, isAvailable = true }: CarCardProps) {
               <div className="min-w-0">
                 <p className="font-semibold truncate">{driverName}</p>
                 <div className="flex items-center gap-2 text-[10px] text-gray-300">
-                  <span className="flex items-center gap-1">
-                    <svg className="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    {driverRating && driverRating > 0 ? Number(driverRating).toFixed(1) : 'New'}
-                  </span>
+                  {driverRating && driverRating > 0 && (
+                    <span className="flex items-center gap-1" title="Platform rating (Uber/Careem)">
+                      <svg className="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <span className="text-gray-400">{Number(driverRating).toFixed(1)}</span>
+                    </span>
+                  )}
+                  {inAppRating != null && inAppRating > 0 ? (
+                    <span className="flex items-center gap-1" title="TripVerse passenger rating">
+                      <svg className="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      {Number(inAppRating).toFixed(1)}
+                      {totalInAppReviews ? ` (${totalInAppReviews})` : ''}
+                    </span>
+                  ) : (
+                    !driverRating && <span className="text-gray-500">New</span>
+                  )}
                   <span>{totalTrips && totalTrips > 0 ? `${totalTrips} trips` : 'Verified profile'}</span>
                 </div>
               </div>

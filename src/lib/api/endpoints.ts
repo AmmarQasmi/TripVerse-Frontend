@@ -93,7 +93,10 @@ export const API_ENDPOINTS = {
     UPDATE_AVAILABILITY: (id: string) => `/cars/${id}/availability`,
     BOOKINGS: {
       DRIVER_BOOKINGS: '/cars/bookings/driver-bookings',
+      CAN_REVIEW: (bookingId: string) => `/cars/bookings/${bookingId}/can-review`,
+      REVIEW: (bookingId: string) => `/cars/bookings/${bookingId}/review`,
     },
+    DRIVER_REVIEWS: (driverId: string) => `/cars/drivers/${driverId}/reviews`,
   },
 
   // Hotel booking endpoints

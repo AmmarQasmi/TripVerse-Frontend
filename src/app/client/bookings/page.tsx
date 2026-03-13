@@ -158,16 +158,6 @@ export default function BookingsPage() {
                         Cancel
                       </Button>
                     )}
-                    {(booking.status === 'CHECKED_OUT' || booking.status === 'CONFIRMED') && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-orange-600 hover:text-orange-700 border-orange-300 hover:border-orange-400"
-                        onClick={() => router.push(`/client/disputes/new?type=hotel&bookingId=${booking.id}`)}
-                      >
-                        ⚠️ File Complaint
-                      </Button>
-                    )}
                   </div>
                 </div>
               </CardContent>

@@ -34,4 +34,20 @@ export const carBookingsApi = {
   cancel: async (id: string) => {
     return httpClient.patch(API_ENDPOINTS.CAR_BOOKINGS.CANCEL(id))
   },
+
+  canReviewDriver: async (bookingId: string) => {
+    return httpClient.get<{ can_review: boolean; reason?: string }>(
+      API_ENDPOINTS.CARS.BOOKINGS.CAN_REVIEW(bookingId),
+    )
+  },
+
+  createDriverReview: async (bookingId: string, data: { rating: number; comment?: string }) => {
+    return httpClient.post(API_ENDPOINTS.CARS.BOOKINGS.REVIEW(bookingId), data)
+  },
+
+  getDriverReviews: async (driverId: string, page = 1, limit = 10) => {
+    return httpClient.get(API_ENDPOINTS.CARS.DRIVER_REVIEWS(driverId), {
+      params: { page, limit },
+    })
+  },
 }
