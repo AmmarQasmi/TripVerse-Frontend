@@ -123,7 +123,7 @@ export function FlightCard({ flight, onSelect }: FlightCardProps) {
     <motion.div
       whileHover={{ scale: 1.02, y: -2 }}
       transition={{ duration: 0.2 }}
-      className="bg-gray-800/80 backdrop-blur-md rounded-2xl p-6 border border-cyan-700/40 hover:border-cyan-500/60 transition-all cursor-pointer group"
+      className="bg-gray-800/80 backdrop-blur-md rounded-2xl p-6 border-2 border-cyan-500/60 hover:border-cyan-300/80 transition-all cursor-pointer group"
       onClick={onSelect || undefined}
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
@@ -241,7 +241,7 @@ export function FlightCard({ flight, onSelect }: FlightCardProps) {
                 <Button
                   onClick={handleBookNow}
                   disabled={isBooking}
-                  className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white px-6 py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                  className="bg-gradient-to-r from-[#1e3a8a] via-[#0f4c75] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:via-[#0f4c75]/90 hover:to-[#0d9488]/90 text-white px-6 py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                 >
                   {isBooking ? 'Loading...' : 'Book Now'}
                 </Button>
@@ -252,7 +252,7 @@ export function FlightCard({ flight, onSelect }: FlightCardProps) {
                       e.stopPropagation()
                       onSelect()
                     }}
-                    className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white px-6 py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                    className="bg-gradient-to-r from-[#1e3a8a] via-[#0f4c75] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:via-[#0f4c75]/90 hover:to-[#0d9488]/90 text-white px-6 py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
                     View Details
                   </Button>

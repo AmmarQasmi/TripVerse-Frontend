@@ -2,23 +2,11 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { Filter, X, Clock, Plane, DollarSign } from 'lucide-react'
+import { Filter, Clock, DollarSign, Minus } from 'lucide-react'
 
 export function FlightFilters() {
   const [filters, setFilters] = useState({
-    stops: {
-      nonStop: true,
-      oneStop: true,
-      twoPlusStops: false
-    },
     priceRange: [30000, 300000],
-    airlines: {
-      pia: true,
-      emirates: true,
-      saudia: true,
-      airBlue: true,
-      sereneAir: true
-    },
     departureTime: {
       earlyMorning: true,
       morning: true,
@@ -35,26 +23,6 @@ export function FlightFilters() {
     },
     duration: [60, 720] // min=0 (~1h) to max (~12h) preselected full range
   })
-
-  const handleStopsChange = (stopType: string) => {
-    setFilters(prev => ({
-      ...prev,
-      stops: {
-        ...prev.stops,
-        [stopType]: !prev.stops[stopType as keyof typeof prev.stops]
-      }
-    }))
-  }
-
-  const handleAirlineChange = (airline: string) => {
-    setFilters(prev => ({
-      ...prev,
-      airlines: {
-        ...prev.airlines,
-        [airline]: !prev.airlines[airline as keyof typeof prev.airlines]
-      }
-    }))
-  }
 
   const handleDepartureTimeChange = (timeSlot: string) => {
     setFilters(prev => ({
@@ -78,19 +46,7 @@ export function FlightFilters() {
 
   const clearAllFilters = () => {
     setFilters({
-      stops: {
-        nonStop: true,
-        oneStop: true,
-        twoPlusStops: false
-      },
       priceRange: [30000, 300000],
-      airlines: {
-        pia: true,
-        emirates: true,
-        saudia: true,
-        airBlue: true,
-        sereneAir: true
-      },
       departureTime: {
         earlyMorning: true,
         morning: true,
@@ -117,74 +73,37 @@ export function FlightFilters() {
     { key: 'night', label: 'Night (10PM-6AM)' }
   ]
 
-  const airlines = [
-    { key: 'pia', name: 'Pakistan International Airlines', logo: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=30&h=30&fit=crop' },
-    { key: 'emirates', name: 'Emirates', logo: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=30&h=30&fit=crop' },
-    { key: 'saudia', name: 'Saudia', logo: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=30&h=30&fit=crop' },
-    { key: 'airBlue', name: 'Air Blue', logo: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=30&h=30&fit=crop' },
-    { key: 'sereneAir', name: 'Serene Air', logo: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=30&h=30&fit=crop' }
-  ]
-
   return (
-    <div className="rounded-2xl bg-gray-900/60 backdrop-blur-md border border-cyan-600/40 p-6">
+    <div className="rounded-2xl bg-slate-700/45 backdrop-blur-md border border-slate-500/40 p-6 shadow-xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
           <Filter className="w-5 h-5 text-cyan-400 mr-2" />
           <h3 className="text-lg font-semibold text-white">Filters</h3>
         </div>
-        <Button
+        <button
           onClick={clearAllFilters}
-          variant="ghost"
-          size="sm"
-          className="text-gray-400 hover:text-white"
+          className="w-8 h-8 rounded-lg bg-gradient-to-r from-[#1e3a8a] via-[#0f4c75] to-[#0d9488] text-white hover:from-[#1e3a8a]/90 hover:via-[#0f4c75]/90 hover:to-[#0d9488]/90 transition-colors flex items-center justify-center"
+          aria-label="Clear filters"
         >
-          <X className="w-4 h-4 mr-1" />
-          Clear All
-        </Button>
+          <Minus className="w-4 h-4" />
+        </button>
       </div>
 
       <div className="space-y-6">
-        {/* Stops Filter */}
-        <div>
-          <h4 className="text-sm font-medium text-gray-300 mb-3 flex items-center">
-            <Plane className="w-4 h-4 mr-2" />
-            Stops
-          </h4>
-          <div className="space-y-2">
-            {[
-              { key: 'nonStop', label: 'Non-stop', color: 'text-green-400' },
-              { key: 'oneStop', label: '1 Stop', color: 'text-yellow-400' },
-              { key: 'twoPlusStops', label: '2+ Stops', color: 'text-red-400' }
-            ].map(({ key, label, color }) => (
-              <label key={key} className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={filters.stops[key as keyof typeof filters.stops]}
-                  onChange={() => handleStopsChange(key)}
-                  className="w-4 h-4 text-cyan-600 bg-gray-700 border-gray-600 rounded focus:ring-cyan-500"
-                />
-                <span className={`ml-3 text-sm ${filters.stops[key as keyof typeof filters.stops] ? color : 'text-gray-400'}`}>
-                  {label}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-
         {/* Price Range */}
         <div>
-          <h4 className="text-sm font-medium text-gray-300 mb-3 flex items-center">
+          <h4 className="text-sm font-semibold text-slate-100 mb-3 flex items-center">
             <DollarSign className="w-4 h-4 mr-2" />
-            Price Range
+            Price
           </h4>
           <div className="space-y-3">
-            <div className="flex justify-between text-sm text-gray-400">
+            <div className="flex justify-between text-sm text-slate-300">
               <span>PKR {filters.priceRange[0].toLocaleString()}</span>
               <span>PKR {filters.priceRange[1].toLocaleString()}</span>
             </div>
             <div className="relative pb-1">
-              <div className="h-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500" />
+              <div className="h-2 rounded-full bg-slate-600/70" />
               <div className="absolute inset-0 flex items-center gap-4">
                 <input
                   type="range"
@@ -193,7 +112,7 @@ export function FlightFilters() {
                   step={10000}
                   value={filters.priceRange[0]}
                   onChange={(e)=> setFilters(f=>({ ...f, priceRange: [Number(e.target.value), Math.max(f.priceRange[1], Number(e.target.value))] }))}
-                  className="w-full appearance-none bg-transparent"
+                  className="w-full appearance-none bg-transparent accent-cyan-400"
                 />
                 <input
                   type="range"
@@ -202,87 +121,67 @@ export function FlightFilters() {
                   step={10000}
                   value={filters.priceRange[1]}
                   onChange={(e)=> setFilters(f=>({ ...f, priceRange: [Math.min(f.priceRange[0], Number(e.target.value)), Number(e.target.value)] }))}
-                  className="w-full appearance-none bg-transparent"
+                  className="w-full appearance-none bg-transparent accent-cyan-400"
                 />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Airlines */}
+        {/* Time */}
         <div>
-          <h4 className="text-sm font-medium text-gray-300 mb-3">Airlines</h4>
-          <div className="space-y-2">
-            {airlines.map(({ key, name, logo }) => (
-              <label key={key} className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={filters.airlines[key as keyof typeof filters.airlines]}
-                  onChange={() => handleAirlineChange(key)}
-                  className="w-4 h-4 text-cyan-600 bg-gray-700 border-gray-600 rounded focus:ring-cyan-500"
-                />
-                <img src={logo} alt={name} className="w-6 h-6 rounded ml-3 mr-2" />
-                <span className={`text-sm ${filters.airlines[key as keyof typeof filters.airlines] ? 'text-white' : 'text-gray-400'}`}>
-                  {name}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Departure Time */}
-        <div>
-          <h4 className="text-sm font-medium text-gray-300 mb-3 flex items-center">
+          <h4 className="text-sm font-semibold text-slate-100 mb-3 flex items-center">
             <Clock className="w-4 h-4 mr-2" />
-            Departure Time
+            Time
           </h4>
-          <div className="space-y-2">
-            {timeSlots.map(({ key, label }) => (
-              <label key={key} className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={filters.departureTime[key as keyof typeof filters.departureTime]}
-                  onChange={() => handleDepartureTimeChange(key)}
-                  className="w-4 h-4 text-cyan-600 bg-gray-700 border-gray-600 rounded focus:ring-cyan-500"
-                />
-                <span className={`ml-3 text-sm ${filters.departureTime[key as keyof typeof filters.departureTime] ? 'text-white' : 'text-gray-400'}`}>
-                  {label}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
+          <div className="space-y-4">
+            <div>
+              <h5 className="text-xs uppercase tracking-wide text-slate-300 mb-2">Departure</h5>
+              <div className="space-y-2">
+                {timeSlots.map(({ key, label }) => (
+                  <label key={`dep-${key}`} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={filters.departureTime[key as keyof typeof filters.departureTime]}
+                      onChange={() => handleDepartureTimeChange(key)}
+                      className="w-4 h-4 accent-cyan-400 bg-slate-700 border-slate-500 rounded focus:ring-cyan-500"
+                    />
+                    <span className={`ml-3 text-sm ${filters.departureTime[key as keyof typeof filters.departureTime] ? 'text-white' : 'text-slate-300/70'}`}>
+                      {label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
 
-        {/* Arrival Time */}
-        <div>
-          <h4 className="text-sm font-medium text-gray-300 mb-3 flex items-center">
-            <Clock className="w-4 h-4 mr-2" />
-            Arrival Time
-          </h4>
-          <div className="space-y-2">
-            {timeSlots.map(({ key, label }) => (
-              <label key={key} className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={filters.arrivalTime[key as keyof typeof filters.arrivalTime]}
-                  onChange={() => handleArrivalTimeChange(key)}
-                  className="w-4 h-4 text-cyan-600 bg-gray-700 border-gray-600 rounded focus:ring-cyan-500"
-                />
-                <span className={`ml-3 text-sm ${filters.arrivalTime[key as keyof typeof filters.arrivalTime] ? 'text-white' : 'text-gray-400'}`}>
-                  {label}
-                </span>
-              </label>
-            ))}
+            <div>
+              <h5 className="text-xs uppercase tracking-wide text-slate-300 mb-2">Arrival</h5>
+              <div className="space-y-2">
+                {timeSlots.map(({ key, label }) => (
+                  <label key={`arr-${key}`} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={filters.arrivalTime[key as keyof typeof filters.arrivalTime]}
+                      onChange={() => handleArrivalTimeChange(key)}
+                      className="w-4 h-4 accent-cyan-400 bg-slate-700 border-slate-500 rounded focus:ring-cyan-500"
+                    />
+                    <span className={`ml-3 text-sm ${filters.arrivalTime[key as keyof typeof filters.arrivalTime] ? 'text-white' : 'text-slate-300/70'}`}>
+                      {label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Duration */}
         <div>
-          <h4 className="text-sm font-medium text-gray-300 mb-3">Duration</h4>
+          <h4 className="text-sm font-semibold text-slate-100 mb-3">Duration</h4>
           <div className="space-y-3">
-            <div className="flex justify-between text-sm text-gray-400">
-              <span>{Math.floor(filters.duration[0] / 60)}h {filters.duration[0] % 60}m</span>
-              <span>{Math.floor(filters.duration[1] / 60)}h {filters.duration[1] % 60}m</span>
+            <div className="flex justify-between text-sm text-slate-300">
+              <span>{Math.floor(filters.duration[0] / 60)}h</span>
+              <span>{Math.floor(filters.duration[1] / 60)}h</span>
             </div>
             <div className="relative">
               <input
@@ -295,7 +194,7 @@ export function FlightFilters() {
                   ...prev,
                   duration: [parseInt(e.target.value), prev.duration[1]]
                 }))}
-                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                className="w-full h-2 bg-slate-600/70 rounded-lg appearance-none cursor-pointer accent-cyan-400"
               />
               <input
                 type="range"
@@ -307,21 +206,31 @@ export function FlightFilters() {
                   ...prev,
                   duration: [prev.duration[0], parseInt(e.target.value)]
                 }))}
-                className="absolute top-0 w-full h-2 bg-transparent rounded-lg appearance-none cursor-pointer"
+                className="absolute top-0 w-full h-2 bg-transparent rounded-lg appearance-none cursor-pointer accent-cyan-400"
               />
             </div>
           </div>
         </div>
 
+        <div className="border-t border-slate-500/30 pt-4" />
+
         {/* Apply Button */}
-        <div className="flex justify-end mt-4">
+        <div className="flex justify-end mt-2">
           <Button 
             onClick={() => console.log('Applying filters:', filters)}
-            className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white px-5 py-2 rounded-xl font-semibold shadow-lg hover:shadow-cyan-500/20 transition-all"
+            className="w-full bg-gradient-to-r from-[#1e3a8a] via-[#0f4c75] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:via-[#0f4c75]/90 hover:to-[#0d9488]/90 text-white px-5 py-2.5 rounded-xl font-semibold shadow-md transition-all"
           >
             Apply Filters
           </Button>
         </div>
+
+        <Button
+          onClick={clearAllFilters}
+          variant="ghost"
+          className="w-full bg-gradient-to-r from-[#1e3a8a] via-[#0f4c75] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:via-[#0f4c75]/90 hover:to-[#0d9488]/90 text-white rounded-xl py-2.5"
+        >
+          Clear All Filters
+        </Button>
       </div>
     </div>
   )
