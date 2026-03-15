@@ -312,7 +312,7 @@ export default function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gradient-to-r from-primary to-accent">
+      <section className="py-16 bg-gradient-to-r from-[#1e3a8a] via-[#0f4c75] to-[#0d9488]">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-white">
             <div>
