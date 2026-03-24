@@ -60,7 +60,7 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
   const [pickupDate, setPickupDate] = useState('')
   const [numberOfDays, setNumberOfDays] = useState(1)
   const [customerNotes, setCustomerNotes] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState('cash')
+  const [paymentMethod, setPaymentMethod] = useState('wallet')
   
   // Ride-hailing specific states
   const [scheduledPickup, setScheduledPickup] = useState('')
@@ -139,7 +139,7 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
       setPickupDate('')
       setNumberOfDays(1)
       setCustomerNotes('')
-      setPaymentMethod('cash')
+      setPaymentMethod('wallet')
       setPriceBreakdown(null)
       setEstimatedDistance(0)
       setTripDays(0)
@@ -452,7 +452,12 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
       queryClient.invalidateQueries({ queryKey: ['car-bookings', 'user'] })
       
       onClose()
-      showToast('Booking request sent to driver! You will be notified when they respond.', 'success')
+      showToast(
+        paymentMethod === 'wallet'
+          ? 'Booking request sent. Your wallet amount is held and will be released after trip completion and your approval.'
+          : 'Booking request sent to driver! You will be notified when they respond.',
+        'success',
+      )
       
       setTimeout(() => {
         router.push('/client/cars/bookings')
@@ -1196,17 +1201,22 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                       className="space-y-4"
                     >
                       <h3 className="text-lg font-semibold text-white mb-1">Payment Method</h3>
-                      <p className="text-sm text-gray-400 mb-4">Choose how you'd like to pay after the driver accepts</p>
+                      <p className="text-sm text-gray-400 mb-4">Choose how you'd like to pay. Wallet funds are held immediately for wallet bookings.</p>
 
                       {/* Payment Options */}
                       <div className="space-y-3">
-                        {[
-                          { id: 'cash', label: 'Cash', desc: 'Pay the driver in cash', icon: (
+                      {[
+                          { id: 'wallet', label: 'Wallet (Recommended)', desc: 'Hold amount now; release to driver after completion + your approval', icon: (
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a5 5 0 00-10 0v2M5 9h14a1 1 0 011 1v9a1 1 0 01-1 1H5a1 1 0 01-1-1v-9a1 1 0 011-1zm8 4h.01" />
+                          </svg>
+                          )},
+                          { id: 'cash', label: 'Cash', desc: 'Pay the driver in cash after trip completion', icon: (
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                           )},
-                          { id: 'card', label: 'Card Payment', desc: 'Pay securely with your card', icon: (
+                          { id: 'online', label: 'Card (Stripe)', desc: 'Pay online after driver accepts', icon: (
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                             </svg>
@@ -1242,14 +1252,23 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                       </div>
 
                       {/* Card payment coming soon note */}
-                      {paymentMethod === 'card' && (
+                      {paymentMethod === 'online' && (
                         <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 flex items-start gap-2">
                           <svg className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                           </svg>
-                          <p className="text-xs text-yellow-200">Card payments are processed after the driver accepts your request. You'll be notified to complete payment.</p>
+                          <p className="text-xs text-yellow-200">Card payments are processed after the driver accepts your request. You will complete payment in the confirmation step.</p>
                         </div>
                       )}
+
+                        {paymentMethod === 'wallet' && (
+                        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex items-start gap-2">
+                          <svg className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <p className="text-xs text-emerald-200">Your wallet balance will be checked and held immediately when you place the booking request. On rejection/cancellation, it is auto-refunded.</p>
+                        </div>
+                        )}
 
                       {/* Total Summary */}
                       {priceBreakdown && (

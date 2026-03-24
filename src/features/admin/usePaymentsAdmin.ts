@@ -1,24 +1,38 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { adminApi } from '@/lib/api/admin.api'
+import { paymentsApi } from '@/lib/api/payments.api'
 
 export function usePaymentsAdmin() {
   const queryClient = useQueryClient()
 
-  const { data: payments, isLoading } = useQuery({
-    queryKey: ['admin-payments'],
-    queryFn: adminApi.getPayments,
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ['admin-payments-stats'],
+    queryFn: paymentsApi.getAdminPaymentStats,
   })
 
-  const processRefund = useMutation({
-    mutationFn: (paymentId: string) => adminApi.processRefund?.(paymentId) || Promise.resolve(),
+  const { data: debts, isLoading: debtsLoading } = useQuery({
+    queryKey: ['admin-payments-debts'],
+    queryFn: () => paymentsApi.getAdminDebts('pending'),
+  })
+
+  const { data: auditTrail, isLoading: auditLoading } = useQuery({
+    queryKey: ['admin-payments-audit'],
+    queryFn: paymentsApi.getAdminAuditTrail,
+  })
+
+  const enforceDebt = useMutation({
+    mutationFn: (debtId: string) => paymentsApi.enforceDebt(debtId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-payments'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-payments-debts'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-payments-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-payments-audit'] })
     },
   })
 
   return {
-    payments,
-    isLoading,
-    processRefund: processRefund.mutateAsync,
+    stats,
+    debts: debts?.debts || [],
+    auditTrail: auditTrail?.transactions || [],
+    isLoading: statsLoading || debtsLoading || auditLoading,
+    enforceDebt: enforceDebt.mutateAsync,
   }
 }

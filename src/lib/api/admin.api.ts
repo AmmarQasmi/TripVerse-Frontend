@@ -107,6 +107,16 @@ export interface DisputeFilters {
   booking_type?: 'car' | 'hotel'
 }
 
+export interface MyDisputesResponse {
+  data: any[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    total_pages: number
+  }
+}
+
 export interface SuspendDriverDto {
   reason: string
 }
@@ -202,6 +212,10 @@ export const adminApi = {
     return httpClient.get(API_ENDPOINTS.ADMIN.DISPUTES, { params: filters })
   },
 
+  getMyDisputes: async (filters?: DisputeFilters): Promise<MyDisputesResponse> => {
+    return httpClient.get<MyDisputesResponse>(API_ENDPOINTS.ADMIN.MY_DISPUTES, { params: filters })
+  },
+
   getDisputeDetails: async (disputeId: number) => {
     return httpClient.get(API_ENDPOINTS.ADMIN.DISPUTE_DETAILS(disputeId.toString()))
   },
@@ -229,7 +243,11 @@ export const adminApi = {
       // Append each category as a repeated field
       categories.forEach((cat) => form.append('categories', cat))
       evidence.forEach((file) => form.append('evidence', file))
-      return httpClient.post(API_ENDPOINTS.ADMIN.CREATE_DISPUTE, form)
+      return httpClient.post(API_ENDPOINTS.ADMIN.CREATE_DISPUTE, form, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
     }
 
     return httpClient.post(API_ENDPOINTS.ADMIN.CREATE_DISPUTE, fields)
