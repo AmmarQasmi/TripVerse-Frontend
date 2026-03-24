@@ -496,6 +496,28 @@ export default function ClientDashboard() {
           </div>
         </motion.section>
 
+        <motion.section
+          className="mb-10"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+        >
+          <div className="rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50 to-blue-50 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">My Complaints</h3>
+              <p className="text-sm text-gray-600">Track all previously filed and new complaints with live status updates.</p>
+            </div>
+            <div className="flex gap-3">
+              <Link href="/client/disputes">
+                <Button className="bg-cyan-600 hover:bg-cyan-700 text-white">View Complaints</Button>
+              </Link>
+              <Link href="/client/disputes/new">
+                <Button variant="outline">File New</Button>
+              </Link>
+            </div>
+          </div>
+        </motion.section>
+
         {/* My Itineraries Section */}
         <motion.section
           className="mb-12"

@@ -101,7 +101,9 @@ export default function BookingConfirmationPage() {
       showToast(
         booking?.payment_method === 'cash'
           ? 'Booking confirmed! You will pay PKR ' + (booking?.total_amount?.toLocaleString() || '') + ' in cash to the driver at trip end.'
-          : 'Payment successful! Booking confirmed. Admin and you have been notified.',
+        : booking?.payment_method === 'wallet'
+        ? 'Booking confirmed. Wallet funds are held and will be released to the driver only after trip completion and your approval.'
+        : 'Payment successful! Booking confirmed. Admin and you have been notified.',
         'success',
       )
       
@@ -139,8 +141,8 @@ export default function BookingConfirmationPage() {
   }
 
   const handleConfirmBooking = () => {
-    if (booking?.payment_method === 'cash') {
-      // Cash booking: confirm directly without payment
+    if (booking?.payment_method === 'cash' || booking?.payment_method === 'wallet') {
+    // Cash and wallet bookings: confirm directly (wallet is already held)
       handlePaymentSuccess()
     } else {
       setShowPaymentModal(true)
@@ -237,6 +239,8 @@ export default function BookingConfirmationPage() {
             <p className="text-xl text-gray-300">
               {booking.payment_method === 'cash'
                 ? 'Driver has accepted your request. Please confirm to finalise your booking. You will pay the driver in cash at the end of the trip.'
+              : booking.payment_method === 'wallet'
+                ? 'Driver has accepted your request. Your wallet amount is already held. Confirm to finalize the booking.'
                 : 'Driver has accepted your request. Please confirm and complete payment to finalize your booking.'}
             </p>
           </motion.div>
@@ -335,13 +339,34 @@ export default function BookingConfirmationPage() {
                       PKR {booking.total_amount?.toLocaleString() || '0'}
                     </p>
                     <p className="text-sm text-gray-300">
-                      {booking.payment_method === 'cash' ? '💵 Pay in cash to driver' : 'Includes all fees'}
+                      {booking.payment_method === 'cash'
+                      ? '💵 Pay in cash to driver'
+                      : booking.payment_method === 'wallet'
+                        ? '👛 Held in wallet (released on your approval)'
+                        : 'Includes all fees'}
                     </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
+
+                {booking.payment_method === 'wallet' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.65 }}
+                  className="mt-6 bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 flex items-start gap-3"
+                >
+                  <span className="text-2xl flex-shrink-0">👛</span>
+                  <div>
+                  <p className="text-emerald-300 font-semibold text-sm mb-1">Wallet Hold Active</p>
+                  <p className="text-emerald-200/80 text-sm">
+                    PKR {booking.total_amount?.toLocaleString()} is already held in your wallet. It will be released to the driver only after trip completion and your approval.
+                  </p>
+                  </div>
+                </motion.div>
+                )}
 
           {/* Cash Payment Notice */}
           {booking.payment_method === 'cash' && (
@@ -377,6 +402,8 @@ export default function BookingConfirmationPage() {
               ? 'Confirming...'
               : booking.payment_method === 'cash'
               ? '✅ Confirm Booking'
+              : booking.payment_method === 'wallet'
+              ? '✅ Confirm Booking (Wallet Held)'
               : '✅ Confirm Booking & Pay'}
             </Button>
             <Button
@@ -404,8 +431,8 @@ export default function BookingConfirmationPage() {
         </motion.div>
       </div>
 
-      {/* Payment Modal — only for online bookings */}
-      {booking && booking.payment_method !== 'cash' && (
+      {/* Payment Modal — only for online card bookings */}
+      {booking && booking.payment_method === 'online' && (
         <PaymentModal
           isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}

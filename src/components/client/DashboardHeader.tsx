@@ -102,6 +102,17 @@ export function DashboardHeader() {
                   
                   <div className="py-2">
                     <Link
+                      href="/client/wallet"
+                      className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a5 5 0 00-10 0v2M5 9h14a1 1 0 011 1v9a1 1 0 01-1 1H5a1 1 0 01-1-1v-9a1 1 0 011-1zm8 4h.01" />
+                      </svg>
+                      <span className="text-sm text-gray-700">Wallet</span>
+                    </Link>
+
+                    <Link
                       href="/client/profile"
                       className="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 transition-colors"
                       onClick={() => setIsDropdownOpen(false)}

@@ -17,6 +17,8 @@ export const ROLE_PERMISSIONS = {
     'weather:read',
     'booking:read:own',
     'payment:create',
+    'dispute:create:own',
+    'dispute:read:own',
   ],
   [USER_ROLES.DRIVER]: [
     'hotel:read',
@@ -62,6 +64,8 @@ export function canAccessRoute(role: UserRole, route: string): boolean {
     '/client/hotelbookings': ['booking:read:own'],
     '/client/monuments': ['monument:read', 'monument:recognize'],
     '/client/weather': ['weather:read'],
+    '/client/disputes': ['dispute:read:own'],
+    '/client/disputes/new': ['dispute:create:own'],
     '/driver/dashboard': ['car:read'],
     '/driver/cars': ['car:create', 'car:update:own', 'car:delete:own'],
     '/driver/bookings': ['booking:read:own', 'booking:update:own'],

@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { useUserHotelBookings } from '@/features/bookings/useHotelBooking'
 import { useUserCarBookings } from '@/features/bookings/useCarBooking'
 import { useCreateDispute, DisputeCategory } from '@/features/bookings/useCreateDispute'
+import { adminApi } from '@/lib/api/admin.api'
 
 const CATEGORY_OPTIONS: { value: DisputeCategory; label: string; icon: string; evidenceRequired?: boolean }[] = [
   { value: 'service',      label: 'Service Quality',   icon: '⭐' },
@@ -55,11 +56,27 @@ export function ComplaintModal({ isOpen, onClose, bookingType: defaultType = 'ca
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
   const [step, setStep] = useState(1)
+  const [myDisputes, setMyDisputes] = useState<any[]>([])
 
   useEffect(() => {
     if (defaultBookingId) setSelectedBookingId(defaultBookingId)
     setBookingType(defaultType)
   }, [defaultBookingId, defaultType])
+
+  useEffect(() => {
+    const loadMyDisputes = async () => {
+      try {
+        const response = await adminApi.getMyDisputes({ limit: 300 })
+        setMyDisputes(response?.data || [])
+      } catch {
+        setMyDisputes([])
+      }
+    }
+
+    if (isOpen) {
+      loadMyDisputes()
+    }
+  }, [isOpen])
 
   const { data: hotelBookings, isLoading: loadingHotel } = useUserHotelBookings()
   const { data: carBookingsData, isLoading: loadingCar } = useUserCarBookings()
@@ -73,10 +90,16 @@ export function ComplaintModal({ isOpen, onClose, bookingType: defaultType = 'ca
     (b: any) => b.status === 'COMPLETED' || b.status === 'CONFIRMED',
   )
   const bookingList = bookingType === 'hotel' ? eligibleHotelBookings : eligibleCarBookings
+  const disputedBookingIds = new Set(
+    myDisputes
+      .map((d: any) => Number(bookingType === 'hotel' ? d.booking_hotel_id : d.booking_car_id))
+      .filter((id: number) => !Number.isNaN(id) && id > 0),
+  )
 
   const preSelectedBooking = isPreSelected
     ? bookingList.find((b: any) => b.id === selectedBookingId) ?? null
     : null
+  const selectedBookingAlreadyFiled = selectedBookingId ? disputedBookingIds.has(selectedBookingId) : false
 
   const evidenceRequired = selectedCategories.includes('safety') || selectedCategories.includes('fraud')
 
@@ -102,6 +125,9 @@ export function ComplaintModal({ isOpen, onClose, bookingType: defaultType = 'ca
   const validate = () => {
     const errs: Record<string, string> = {}
     if (!selectedBookingId) errs.booking = 'Please select a booking.'
+    if (selectedBookingId && disputedBookingIds.has(selectedBookingId)) {
+      errs.booking = 'You have already filed a complaint for this booking.'
+    }
     if (selectedCategories.length === 0) errs.categories = 'Please select at least one complaint reason.'
     if (!incidentAt) errs.incidentAt = 'Please provide the date and time of the incident.'
     if (evidenceRequired && evidenceFiles.length === 0)
@@ -213,6 +239,12 @@ export function ComplaintModal({ isOpen, onClose, bookingType: defaultType = 'ca
                       </div>
                     )}
 
+                    {selectedBookingAlreadyFiled && (
+                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">
+                        Complaint already filed for this booking. You can track updates from My Complaints.
+                      </div>
+                    )}
+
                     {/* Step 1: Booking selector (skipped if pre-selected) */}
                     {!isPreSelected ? (
                       <Card>
@@ -247,31 +279,42 @@ export function ComplaintModal({ isOpen, onClose, bookingType: defaultType = 'ca
                           ) : (
                             <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                               {bookingList.map((booking: any) => (
-                                <button
-                                  key={booking.id}
-                                  type="button"
-                                  onClick={() => setSelectedBookingId(booking.id)}
-                                  className={`w-full text-left p-3 rounded-lg border text-sm transition-colors ${
-                                    selectedBookingId === booking.id
-                                      ? 'bg-blue-50 border-blue-500'
-                                      : 'bg-white border-gray-200 hover:bg-gray-50'
-                                  }`}
-                                >
-                                  <div className="flex justify-between items-center">
-                                    <span className="font-medium">
-                                      {bookingType === 'hotel'
-                                        ? booking.hotel?.name ?? `Hotel Booking #${booking.id}`
-                                        : booking.car?.make
-                                          ? `${booking.car.make} ${booking.car.model} (#${booking.id})`
-                                          : `Car Booking #${booking.id}`}
-                                    </span>
-                                    <span className="text-xs text-gray-400">
-                                      {bookingType === 'hotel'
-                                        ? `${booking.check_in ?? ''} – ${booking.check_out ?? ''}`
-                                        : `${booking.start_date ?? ''} – ${booking.end_date ?? ''}`}
-                                    </span>
-                                  </div>
-                                </button>
+                                (() => {
+                                  const alreadyFiled = disputedBookingIds.has(booking.id)
+                                  return (
+                                    <button
+                                      key={booking.id}
+                                      type="button"
+                                      onClick={() => !alreadyFiled && setSelectedBookingId(booking.id)}
+                                      disabled={alreadyFiled}
+                                      className={`w-full text-left p-3 rounded-lg border text-sm transition-colors ${
+                                        alreadyFiled
+                                          ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+                                          : selectedBookingId === booking.id
+                                            ? 'bg-blue-50 border-blue-500'
+                                            : 'bg-white border-gray-200 hover:bg-gray-50'
+                                      }`}
+                                    >
+                                      <div className="flex justify-between items-center">
+                                        <span className="font-medium">
+                                          {bookingType === 'hotel'
+                                            ? booking.hotel?.name ?? `Hotel Booking #${booking.id}`
+                                            : booking.car?.make
+                                              ? `${booking.car.make} ${booking.car.model} (#${booking.id})`
+                                              : `Car Booking #${booking.id}`}
+                                        </span>
+                                        <span className="text-xs text-gray-400">
+                                          {bookingType === 'hotel'
+                                            ? `${booking.check_in ?? ''} – ${booking.check_out ?? ''}`
+                                            : `${booking.start_date ?? ''} – ${booking.end_date ?? ''}`}
+                                        </span>
+                                      </div>
+                                      {alreadyFiled && (
+                                        <p className="text-xs text-amber-600 mt-1">Complaint already filed for this booking</p>
+                                      )}
+                                    </button>
+                                  )
+                                })()
                               ))}
                             </div>
                           )}
@@ -474,7 +517,7 @@ export function ComplaintModal({ isOpen, onClose, bookingType: defaultType = 'ca
 
                     {/* Submit Buttons */}
                     <div className="flex gap-3">
-                      <Button type="submit" disabled={isPending} className="flex-1">
+                      <Button type="submit" disabled={isPending || selectedBookingAlreadyFiled} className="flex-1">
                         {isPending ? 'Submitting...' : 'Submit Complaint'}
                       </Button>
                       <Button type="button" variant="outline" onClick={handleClose}>

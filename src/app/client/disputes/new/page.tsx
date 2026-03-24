@@ -9,6 +9,7 @@ import { PageLoader } from '@/components/shared/PageLoader'
 import { useUserHotelBookings } from '@/features/bookings/useHotelBooking'
 import { useUserCarBookings } from '@/features/bookings/useCarBooking'
 import { useCreateDispute, DisputeCategory } from '@/features/bookings/useCreateDispute'
+import { adminApi } from '@/lib/api/admin.api'
 
 const CATEGORY_OPTIONS: { value: DisputeCategory; label: string; icon: string; evidenceRequired?: boolean }[] = [
   { value: 'service',      label: 'Service Quality',   icon: '⭐' },
@@ -55,12 +56,26 @@ export default function NewDisputePage() {
   const [evidenceFiles, setEvidenceFiles]         = useState<File[]>([])
   const [errors, setErrors]                       = useState<Record<string, string>>({})
   const [submitted, setSubmitted]                 = useState(false)
+  const [myDisputes, setMyDisputes]               = useState<any[]>([])
 
   // Sync if URL params change after mount
   useEffect(() => {
     if (preBookingId) setSelectedBookingId(preBookingId)
     setBookingType(preType)
   }, [preBookingId, preType])
+
+  useEffect(() => {
+    const loadMyDisputes = async () => {
+      try {
+        const response = await adminApi.getMyDisputes({ limit: 200 })
+        setMyDisputes(response?.data || [])
+      } catch {
+        setMyDisputes([])
+      }
+    }
+
+    loadMyDisputes()
+  }, [])
 
   const { data: hotelBookings, isLoading: loadingHotel } = useUserHotelBookings()
   const { data: carBookingsData,  isLoading: loadingCar  } = useUserCarBookings()
@@ -74,6 +89,12 @@ export default function NewDisputePage() {
     (b: any) => b.status === 'COMPLETED' || b.status === 'CONFIRMED',
   )
   const bookingList = bookingType === 'hotel' ? eligibleHotelBookings : eligibleCarBookings
+
+  const disputedBookingIds = new Set(
+    myDisputes
+      .filter((d: any) => (bookingType === 'car' ? d.booking_car_id : d.booking_hotel_id))
+      .map((d: any) => (bookingType === 'car' ? d.booking_car_id : d.booking_hotel_id)),
+  )
 
   // Locate the pre-selected booking object for the summary card
   const preSelectedBooking = isPreSelected
@@ -108,6 +129,8 @@ export default function NewDisputePage() {
     const errs: Record<string, string> = {}
     if (!selectedBookingId)
       errs.booking = 'Please select a booking.'
+    if (selectedBookingId && disputedBookingIds.has(selectedBookingId))
+      errs.booking = 'You have already filed a complaint for this booking.'
     if (selectedCategories.length === 0)
       errs.categories = 'Please select at least one complaint reason.'
     if (!incidentAt)
@@ -165,6 +188,11 @@ export default function NewDisputePage() {
         <div className="container mx-auto px-4 py-20 max-w-md text-center">
           <div className="text-6xl mb-6">✅</div>
           <h2 className="text-2xl font-bold text-gray-800">Complaint Successfully Filed</h2>
+          <div className="mt-6">
+            <Button onClick={() => router.push('/client/disputes')}>
+              View My Complaints
+            </Button>
+          </div>
         </div>
       </div>
     )
@@ -288,29 +316,38 @@ export default function NewDisputePage() {
                   </p>
                 ) : (
                   <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                    {bookingList.map((booking: any) => (
-                      <button
-                        key={booking.id}
-                        type="button"
-                        onClick={() => setSelectedBookingId(booking.id)}
-                        className={`w-full text-left p-3 rounded-lg border text-sm transition-colors ${
-                          selectedBookingId === booking.id
-                            ? 'bg-blue-50 border-blue-500'
-                            : 'bg-white border-gray-200 hover:bg-gray-50'
-                        }`}
-                      >
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">
-                            {booking.car?.make
-                              ? `${booking.car.make} ${booking.car.model} (#${booking.id})`
-                              : `Car Booking #${booking.id}`}
-                          </span>
-                          <span className="text-xs text-gray-400">
-                            {`${booking.start_date ?? ''} – ${booking.end_date ?? ''}`}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
+                    {bookingList.map((booking: any) => {
+                      const alreadyFiled = disputedBookingIds.has(booking.id)
+                      return (
+                        <button
+                          key={booking.id}
+                          type="button"
+                          onClick={() => !alreadyFiled && setSelectedBookingId(booking.id)}
+                          disabled={alreadyFiled}
+                          className={`w-full text-left p-3 rounded-lg border text-sm transition-colors ${
+                            alreadyFiled
+                              ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+                              : selectedBookingId === booking.id
+                              ? 'bg-blue-50 border-blue-500'
+                              : 'bg-white border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">
+                              {booking.car?.make
+                                ? `${booking.car.make} ${booking.car.model} (#${booking.id})`
+                                : `Car Booking #${booking.id}`}
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              {`${booking.start_date ?? ''} – ${booking.end_date ?? ''}`}
+                            </span>
+                          </div>
+                          {alreadyFiled && (
+                            <p className="text-xs text-amber-600 mt-1">Complaint already filed for this booking</p>
+                          )}
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
 

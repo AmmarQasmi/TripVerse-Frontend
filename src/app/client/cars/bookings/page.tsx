@@ -13,6 +13,7 @@ import { useToast } from '@/components/ui/Toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { PageLoader } from '@/components/shared/PageLoader'
 import { carsApi } from '@/lib/api/cars.api'
+import { adminApi } from '@/lib/api/admin.api'
 import { getSocket } from '@/lib/socket'
 import type { Socket } from 'socket.io-client'
 
@@ -44,9 +45,32 @@ export default function CarBookingsPage() {
   } | null>(null)
   const [isTrackingConnected, setIsTrackingConnected] = useState(false)
   const [dismissedTrackingBookingIds, setDismissedTrackingBookingIds] = useState<number[]>([])
+  const [myDisputedBookingIds, setMyDisputedBookingIds] = useState<Set<number>>(new Set())
   const socketRef = useRef<Socket | null>(null)
   
   const { data: bookings, isLoading, error } = useUserBookings(statusFilter)
+
+  useEffect(() => {
+    const loadMyDisputes = async () => {
+      try {
+        const response = await adminApi.getMyDisputes({ booking_type: 'car', limit: 500 })
+        const ids = new Set<number>()
+        ;(response?.data || []).forEach((dispute: any) => {
+          const bookingId = Number(dispute?.booking?.id ?? dispute?.booking_car_id)
+          if (!Number.isNaN(bookingId) && bookingId > 0) {
+            ids.add(bookingId)
+          }
+        })
+        setMyDisputedBookingIds(ids)
+      } catch {
+        setMyDisputedBookingIds(new Set())
+      }
+    }
+
+    if (user?.id) {
+      loadMyDisputes()
+    }
+  }, [user?.id])
 
   const canChat = (status: string) => ['ACCEPTED', 'CONFIRMED', 'IN_PROGRESS'].includes(status)
   const canCancel = (status: string) => ['PENDING_DRIVER_ACCEPTANCE', 'ACCEPTED'].includes(status)
@@ -366,6 +390,17 @@ export default function CarBookingsPage() {
           </button>
           <h1 className="text-3xl font-bold text-white">My Bookings</h1>
           <p className="text-gray-400 text-sm mt-1">Track and manage your car rental bookings</p>
+          <div className="mt-3">
+            <Link
+              href="/client/disputes"
+              className="inline-flex items-center gap-2 rounded-lg border border-orange-500/30 bg-orange-500/15 px-3 py-1.5 text-sm font-medium text-orange-300 hover:bg-orange-500/25 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              View Complaints
+            </Link>
+          </div>
         </motion.div>
 
         {/* Booking Type Filter */}
@@ -423,6 +458,7 @@ export default function CarBookingsPage() {
                 const bookingType = booking.booking_type || 'rental'
                 const isRideHailing = bookingType === 'ride_hailing'
                 const showTrackDriver = canTrackDriver(booking)
+                const complaintAlreadyFiled = myDisputedBookingIds.has(booking.id)
 
                 return (
                   <motion.div
@@ -590,13 +626,22 @@ export default function CarBookingsPage() {
                         )}
                         {booking.status === 'COMPLETED' && (
                           <button
-                            onClick={() => { setComplaintBookingId(booking.id); setComplaintModalOpen(true) }}
-                            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-orange-500/15 hover:bg-orange-500/25 text-orange-400 rounded-lg text-sm font-medium transition-colors border border-orange-500/20"
+                            onClick={() => {
+                              if (complaintAlreadyFiled) return
+                              setComplaintBookingId(booking.id)
+                              setComplaintModalOpen(true)
+                            }}
+                            disabled={complaintAlreadyFiled}
+                            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors border ${
+                              complaintAlreadyFiled
+                                ? 'bg-gray-700/30 text-gray-500 border-gray-600/40 cursor-not-allowed'
+                                : 'bg-orange-500/15 hover:bg-orange-500/25 text-orange-400 border-orange-500/20'
+                            }`}
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            File Complaint
+                            {complaintAlreadyFiled ? 'Complaint Filed' : 'File Complaint'}
                           </button>
                         )}
                         {canChat(booking.status) && (

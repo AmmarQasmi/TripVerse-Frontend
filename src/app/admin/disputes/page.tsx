@@ -294,6 +294,12 @@ export default function AdminDisputesPage() {
                               {formatDate(dispute.incident_at)}
                             </div>
                           )}
+                          {dispute.booking?.financials?.driver_earnings !== undefined && (
+                            <div>
+                              <span className="font-medium">Driver earned:</span>{' '}
+                              PKR {Number(dispute.booking.financials.driver_earnings).toLocaleString()}
+                            </div>
+                          )}
                         </div>
 
                         {dispute.resolution && (
@@ -445,6 +451,18 @@ export default function AdminDisputesPage() {
                     {selectedDispute.booking_car_id || selectedDispute.booking_hotel_id}{' '}
                     ({selectedDispute.booking_car_id ? '🚗 Car' : '🏨 Hotel'})
                   </p>
+                  {selectedDispute.booking?.financials && (
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Ride financials:</span>{' '}
+                      Total PKR {Number(selectedDispute.booking.financials.total_amount || 0).toLocaleString()}
+                      {selectedDispute.booking.financials.driver_earnings !== undefined
+                        ? ` • Driver earned PKR ${Number(selectedDispute.booking.financials.driver_earnings).toLocaleString()}`
+                        : ''}
+                      {selectedDispute.booking.financials.platform_fee !== undefined
+                        ? ` • Platform fee PKR ${Number(selectedDispute.booking.financials.platform_fee).toLocaleString()}`
+                        : ''}
+                    </p>
+                  )}
                   {selectedDispute.incident_at && (
                     <p className="text-sm text-gray-600">
                       <span className="font-medium">Incident at:</span>{' '}
@@ -517,7 +535,7 @@ export default function AdminDisputesPage() {
                       />
                       {fineAmount && Number(fineAmount) > 0 && (
                         <p className="text-xs text-amber-600 mt-1">
-                          PKR {Number(fineAmount).toLocaleString()} will be deducted from provider's wallet and credited to admin.
+                          Customer is refunded immediately. Provider is charged from wallet, and any shortfall becomes debt.
                         </p>
                       )}
                     </div>
