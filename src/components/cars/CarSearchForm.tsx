@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/Button'
 import { carsApi } from '@/lib/api/cars.api'
 import { MapPickerModal } from '@/components/cars/MapPickerModal'
+import { BookingCalendar } from '@/components/cars/BookingCalendar'
 
 interface CarSearchFormProps {
   onSearch: (params: CarSearchParams) => void
@@ -41,6 +42,7 @@ export function CarSearchForm({ onSearch, initialParams, embedded = false }: Car
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
   const [showMapPicker, setShowMapPicker] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
   const debounceTimer = useRef<NodeJS.Timeout | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -66,8 +68,12 @@ export function CarSearchForm({ onSearch, initialParams, embedded = false }: Car
   // Close suggestions on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setShowSuggestions(false)
+      }
+      if (!(target as HTMLElement).closest('[data-calendar-container]')) {
+        setShowCalendar(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -222,21 +228,39 @@ export function CarSearchForm({ onSearch, initialParams, embedded = false }: Car
           </div>
 
           {/* Pickup Date */}
-          <div className="space-y-2">
+          <div className="space-y-2 relative" data-calendar-container>
             <label className="text-sm font-medium leading-none text-white flex items-center">
               <svg className="w-4 h-4 mr-2 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               Pickup Date
             </label>
-            <input
-              type="date"
-              value={searchParams.pickupDate}
-              onChange={(e) => updateParam('pickupDate', e.target.value)}
-              min={today}
-              className={dateInputClasses}
-              required
-            />
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowCalendar(!showCalendar)}
+                className={`flex h-12 w-full items-center justify-between rounded-xl border border-gray-600 bg-gray-900/80 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 backdrop-blur-sm ${searchParams.pickupDate ? 'text-white' : 'text-gray-400'}`}
+              >
+                {searchParams.pickupDate ? searchParams.pickupDate.replace(/-/g, ' - ') : 'yyyy - mm - dd'}
+                <svg className="w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </button>
+              
+              {showCalendar && (
+                <div className="absolute top-full left-0 mt-2 z-50 w-[320px] max-w-[calc(100vw-2rem)] bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
+                  <BookingCalendar
+                    selectedDate={searchParams.pickupDate || ''}
+                    onDateSelect={(date) => {
+                      updateParam('pickupDate', date)
+                      setShowCalendar(false)
+                    }}
+                    unavailableDates={[]}
+                    numberOfDays={1}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Pickup Time */}

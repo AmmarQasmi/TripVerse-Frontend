@@ -9,6 +9,7 @@ import { useCreateBooking } from '@/features/bookings/useBooking'
 import { bookingsApi } from '@/lib/api/bookings.api'
 import { Hotel } from '@/types'
 import { BookingResponse } from '@/lib/api/bookings.api'
+import { BookingCalendar } from '@/components/cars/BookingCalendar'
 
 // --- SVG Icons ---
 const XIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
@@ -51,6 +52,18 @@ const SpinnerIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
   <svg className={`${className} animate-spin`} fill="none" viewBox="0 0 24 24">
     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+  </svg>
+)
+
+const ChevronLeftIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+  </svg>
+)
+
+const ChevronRightIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
   </svg>
 )
 
@@ -98,6 +111,8 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
   const [cardExpiry, setCardExpiry] = useState('')
   const [cardCvv, setCardCvv] = useState('')
   const [cardName, setCardName] = useState('')
+  const [showExpiryCalendar, setShowExpiryCalendar] = useState(false)
+  const [expiryYearView, setExpiryYearView] = useState(new Date().getFullYear())
 
   // Unavailable dates for selected room type
   const [unavailableDates, setUnavailableDates] = useState<string[]>([])
@@ -113,6 +128,17 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
       if (searchDates.rooms > 0) setQuantity(searchDates.rooms)
     }
   }, [searchDates])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (target.closest('[data-calendar-container]')) return
+      setShowExpiryCalendar(false)
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // Fetch unavailable dates when a room type is selected
   const fetchUnavailableDates = useCallback(async (roomTypeId: string) => {
@@ -614,16 +640,76 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
-                          <div>
+                          <div className="relative" data-calendar-container>
                             <label className="block text-sm text-gray-400 mb-1">Expiry *</label>
-                            <input
-                              type="text"
-                              value={cardExpiry}
-                              onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
-                              placeholder="MM/YY"
-                              maxLength={5}
-                              className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none transition-all text-sm tracking-wider"
-                            />
+                            <div className="relative">
+                              <CalendarIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400 pointer-events-none" />
+                              <button
+                                type="button"
+                                onClick={() => setShowExpiryCalendar(prev => !prev)}
+                                className={`w-full pl-10 pr-10 py-2.5 bg-gray-800/50 border border-gray-600/50 rounded-xl text-left focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none transition-all text-sm tracking-wider ${
+                                  cardExpiry ? 'text-white' : 'text-gray-500'
+                                }`}
+                              >
+                                {cardExpiry || 'MM/YY'}
+                              </button>
+                              <CalendarIcon className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            </div>
+
+                            {showExpiryCalendar && (
+                              <div className="absolute bottom-full left-0 mb-2 z-50 w-[320px] max-w-[calc(100vw-2rem)] bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-4">
+                                <div className="flex items-center justify-between mb-4">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); setExpiryYearView(prev => prev - 1) }}
+                                    className="p-1 hover:bg-gray-800 rounded-lg transition-colors text-gray-400 hover:text-white"
+                                  >
+                                    <ChevronLeftIcon className="w-5 h-5" />
+                                  </button>
+                                  <span className="text-white font-semibold">{expiryYearView}</span>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); setExpiryYearView(prev => prev + 1) }}
+                                    className="p-1 hover:bg-gray-800 rounded-lg transition-colors text-gray-400 hover:text-white"
+                                  >
+                                    <ChevronRightIcon className="w-5 h-5" />
+                                  </button>
+                                </div>
+                                <div className="grid grid-cols-4 gap-2">
+                                  {Array.from({ length: 12 }).map((_, i) => {
+                                    const monthStr = (i + 1).toString().padStart(2, '0');
+                                    const yearStr = expiryYearView.toString().slice(2);
+                                    const isSelected = cardExpiry === `${monthStr}/${yearStr}`;
+                                    
+                                    const currentYear = new Date().getFullYear();
+                                    const currentMonth = new Date().getMonth() + 1;
+                                    const isPast = expiryYearView < currentYear || (expiryYearView === currentYear && i + 1 < currentMonth);
+
+                                    return (
+                                      <button
+                                        key={i}
+                                        type="button"
+                                        disabled={isPast}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setCardExpiry(`${monthStr}/${yearStr}`);
+                                          setShowExpiryCalendar(false);
+                                        }}
+                                        className={`p-2 rounded-lg text-sm transition-all focus:outline-none ${
+                                          isSelected
+                                            ? 'bg-cyan-500 text-white font-medium'
+                                            : isPast
+                                            ? 'text-gray-600 cursor-not-allowed opacity-50'
+                                            : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                        }`}
+                                      >
+                                        {new Date(2000, i).toLocaleString('default', { month: 'short' })}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
                           </div>
                           <div>
                             <label className="block text-sm text-gray-400 mb-1">CVV *</label>
