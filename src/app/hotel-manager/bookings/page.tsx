@@ -40,7 +40,7 @@ interface ManagerBooking {
 
 export default function HotelManagerBookingsPage() {
   const { user } = useAuth()
-  const [statusFilter, setStatusFilter] = useState<'all' | 'CONFIRMED' | 'CHECKED_IN' | 'CHECKED_OUT' | 'CANCELLED' | 'PENDING'>('all')
+  const [statusFilter, setStatusFilter] = useState<'CONFIRMED' | 'CANCELLED'>('CONFIRMED')
   const [bookings, setBookings] = useState<ManagerBooking[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -50,7 +50,7 @@ export default function HotelManagerBookingsPage() {
       try {
         setIsLoading(true)
         setError(null)
-        const response = await hotelBookingsApi.getManagerBookings(statusFilter === 'all' ? undefined : statusFilter)
+        const response = await hotelBookingsApi.getManagerBookings(statusFilter)
         setBookings(response.data || [])
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to load bookings')
@@ -167,14 +167,14 @@ export default function HotelManagerBookingsPage() {
 
           {/* Status Filter */}
           <div className="mb-6 flex flex-wrap gap-2">
-            {(['all', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED', 'PENDING'] as const).map((status) => (
+            {(['CONFIRMED', 'CANCELLED'] as const).map((status) => (
               <Button
                 key={status}
                 variant={statusFilter === status ? 'default' : 'outline'}
                 onClick={() => setStatusFilter(status)}
                 className={statusFilter === status ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}
               >
-                {status === 'all' ? 'All' : status.replace('_', ' ')}
+                {status.replace('_', ' ')}
               </Button>
             ))}
           </div>
@@ -189,9 +189,7 @@ export default function HotelManagerBookingsPage() {
                 <div className="p-12 text-center">
                   <h3 className="text-xl font-semibold mb-2">No Bookings Found</h3>
                   <p className="text-gray-600">
-                    {statusFilter === 'all' 
-                      ? 'You don\'t have any bookings yet.' 
-                      : `No bookings with status "${statusFilter}"`}
+                    {`No bookings with status "${statusFilter}"`}
                   </p>
                 </div>
               ) : (
@@ -239,7 +237,7 @@ export default function HotelManagerBookingsPage() {
                           <p className="text-2xl font-bold">PKR {booking.total_amount.toLocaleString()}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-gray-600 text-sm">Your Earnings (95%)</p>
+                          <p className="text-gray-600 text-sm">Your Earnings (85%)</p>
                           <p className="text-xl font-bold text-green-600">PKR {booking.manager_earnings.toLocaleString()}</p>
                         </div>
                       </div>

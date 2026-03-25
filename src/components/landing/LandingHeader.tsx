@@ -160,9 +160,9 @@ export function LandingHeader() {
     <>
       <header className="fixed top-0 left-0 right-0 bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 shadow-lg z-40">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-16 gap-2">
             {/* Left: Hamburger Menu + Logo */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 min-w-0 flex-1">
               <div className="relative">
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -240,7 +240,7 @@ export function LandingHeader() {
               {/* Logo - Non-clients: link to dashboard, Clients: link to home */}
               {isClient ? (
                 <Link href="/" className="flex items-center">
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-300 via-teal-200 to-blue-300 bg-clip-text text-transparent">
+                  <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-cyan-300 via-teal-200 to-blue-300 bg-clip-text text-transparent whitespace-nowrap">
                     TripVerse
                   </h1>
                 </Link>
@@ -249,7 +249,7 @@ export function LandingHeader() {
                   href={getDashboardPath()}
                   className="flex items-center"
                 >
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-300 via-teal-200 to-blue-300 bg-clip-text text-transparent">
+                  <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-cyan-300 via-teal-200 to-blue-300 bg-clip-text text-transparent whitespace-nowrap">
                     TripVerse
                   </h1>
                 </Link>
@@ -257,17 +257,17 @@ export function LandingHeader() {
 
               {/* Weather Display (only for logged-in clients) */}
               {isClient && (
-                <div className="flex items-center space-x-2 px-3 py-1 rounded-lg bg-white/10 backdrop-blur-sm ml-4">
+                <div className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 rounded-lg bg-white/10 backdrop-blur-sm ml-1 sm:ml-3 min-w-0">
                   {weatherLoading || isLoadingCity ? (
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span className="text-xs text-white/70">
+                      <span className="text-xs text-white/70 hidden sm:inline">
                         {isLoadingCity ? 'Detecting location...' : 'Loading...'}
                       </span>
                     </div>
                   ) : weather ? (
-                    <Link href="/client/weather" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-                      <span className="text-lg">{weather.icon}</span>
+                    <Link href="/client/weather" className="flex items-center space-x-1 sm:space-x-2 hover:opacity-80 transition-opacity min-w-0">
+                      <span className="text-base sm:text-lg">{weather.icon}</span>
                       <span className="text-sm font-medium text-white">{weather.temperature}°C</span>
                       <span className="text-xs text-white/80 hidden sm:inline">
                         {hasCoordinates && detectedCity ? `📍 ${detectedCity}` : weather.cityName}
@@ -279,7 +279,7 @@ export function LandingHeader() {
             </div>
 
             {/* Right: Camera Icon (only for clients), Login/Sign Up or Profile Dropdown */}
-            <div className="flex items-center space-x-4 ml-auto pr-4">
+            <div className="flex items-center space-x-1 sm:space-x-3 shrink-0">
               {/* Monument Upload Button - Only for clients */}
               {isClient && (
                 <button
@@ -288,7 +288,7 @@ export function LandingHeader() {
                   aria-label="Upload monument photo"
                   title="Upload Monument"
                 >
-                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
@@ -299,11 +299,11 @@ export function LandingHeader() {
               {isClient && (
                 <button
                   onClick={() => setIsChatOpen(true)}
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-75 relative group"
+                  className="hidden sm:inline-flex p-2 hover:bg-white/10 rounded-lg transition-colors duration-75 relative group"
                   aria-label="AI Travel Assistant"
                   title="AI Assistant"
                 >
-                  <TravelBotIcon className="w-5 h-5 text-cyan-300 group-hover:text-white transition-colors" />
+                  <TravelBotIcon className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-300 group-hover:text-white transition-colors" />
                 </button>
               )}
 
@@ -315,16 +315,16 @@ export function LandingHeader() {
                   <div className="relative" ref={dropdownRef}>
                     <button
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors duration-75"
+                      className="flex items-center space-x-2 p-2 rounded-lg hover:bg-white/10 transition-colors duration-75"
                     >
               <div className="hidden md:flex flex-col items-end">
                 <span className="text-sm font-medium text-white">{user?.full_name || 'User'}</span>
               </div>
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center text-white font-semibold shadow-lg">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center text-white font-semibold shadow-lg text-sm sm:text-base">
                         <span>{user?.full_name ? getInitials(user.full_name) : 'U'}</span>
                       </div>
                       <svg 
-                        className={`w-4 h-4 text-white transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} 
+                        className={`hidden sm:block w-4 h-4 text-white transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} 
                         fill="none" 
                         viewBox="0 0 24 24" 
                         stroke="currentColor"
@@ -447,6 +447,20 @@ export function LandingHeader() {
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
       />
+
+      {/* Mobile Floating Chat Button - Only visible on mobile */}
+      {isClient && (
+        <motion.button
+          onClick={() => setIsChatOpen(true)}
+          className="fixed bottom-6 right-6 sm:hidden w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 shadow-lg hover:shadow-xl transition-all z-50 flex items-center justify-center"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          aria-label="AI Travel Assistant"
+          title="AI Assistant"
+        >
+          <TravelBotIcon className="w-7 h-7 text-white" />
+        </motion.button>
+      )}
 
       {/* Location Permission Modal */}
       <LocationPermissionModal

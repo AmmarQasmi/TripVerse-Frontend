@@ -14,6 +14,16 @@ export function usePaymentsAdmin() {
     queryFn: () => paymentsApi.getAdminDebts('pending'),
   })
 
+  const { data: driverDebts, isLoading: driverDebtsLoading } = useQuery({
+    queryKey: ['admin-driver-debts'],
+    queryFn: () => paymentsApi.getAdminDriverDebts('pending'),
+  })
+
+  const { data: hotelDebts, isLoading: hotelDebtsLoading } = useQuery({
+    queryKey: ['admin-hotel-debts'],
+    queryFn: () => paymentsApi.getAdminHotelDebts('pending'),
+  })
+
   const { data: auditTrail, isLoading: auditLoading } = useQuery({
     queryKey: ['admin-payments-audit'],
     queryFn: paymentsApi.getAdminAuditTrail,
@@ -23,16 +33,25 @@ export function usePaymentsAdmin() {
     mutationFn: (debtId: string) => paymentsApi.enforceDebt(debtId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-payments-debts'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-driver-debts'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-hotel-debts'] })
       queryClient.invalidateQueries({ queryKey: ['admin-payments-stats'] })
       queryClient.invalidateQueries({ queryKey: ['admin-payments-audit'] })
     },
   })
 
+  const getDriverDebtDetail = (debtId: string) => paymentsApi.getAdminDriverDebtDetail(debtId)
+  const getHotelDebtDetail = (transactionId: string) => paymentsApi.getAdminHotelDebtDetail(transactionId)
+
   return {
     stats,
     debts: debts?.debts || [],
+    driverDebts: driverDebts?.debts || [],
+    hotelDebts: hotelDebts?.debts || [],
     auditTrail: auditTrail?.transactions || [],
-    isLoading: statsLoading || debtsLoading || auditLoading,
+    isLoading: statsLoading || debtsLoading || driverDebtsLoading || hotelDebtsLoading || auditLoading,
     enforceDebt: enforceDebt.mutateAsync,
+    getDriverDebtDetail,
+    getHotelDebtDetail,
   }
 }

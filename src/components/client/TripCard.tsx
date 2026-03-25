@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
+import Image from 'next/image'
 
 interface TripCardProps {
   id: string
@@ -251,16 +252,14 @@ export function NewTripCard({ onClick }: { onClick?: () => void }) {
           {/* Inner Glow on Hover */}
           <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/10 group-hover:to-blue-500/10 transition-all duration-75 rounded-2xl"></div>
           
-          {/* Floating Plus Icon */}
+          {/* Floating Bot Icon */}
           <motion.div
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
             className="text-center relative z-10"
           >
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center mx-auto mb-2 shadow-lg group-hover:shadow-blue-500/50 transition-all">
-              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center mx-auto mb-2 shadow-lg group-hover:shadow-blue-500/50 transition-all overflow-hidden">
+              <Image src="/bot.png" alt="AI bot" width={42} height={42} className="object-contain" />
             </div>
             <p className="text-white font-semibold text-sm mb-0.5">Plan New Trip</p>
             <p className="text-cyan-300 text-xs px-2">AI Travel Assistant</p>

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CarApiResponse, BookingType, PriceCalculationResponse } from '@/types'
 import { carsApi } from '@/lib/api/cars.api'
+import { paymentsApi } from '@/lib/api/payments.api'
 import { useToast } from '@/components/ui/Toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
@@ -434,6 +435,16 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
+      if (paymentMethod === 'wallet' && priceBreakdown) {
+        const wallet = await paymentsApi.getWalletBalance()
+        const availablePaisa = BigInt(wallet.available)
+        const requiredPaisa = BigInt(Math.round(priceBreakdown.total_amount * 100))
+        if (availablePaisa < requiredPaisa) {
+          showToast('Insufficient wallet balance. Please top up your balance.', 'error')
+          return
+        }
+      }
+
       const endDate = pickupDate ? computeEndDate(pickupDate, numberOfDays) : undefined
       
       await carsApi.createBookingRequest({
@@ -1216,11 +1227,11 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                           )},
-                          { id: 'online', label: 'Card (Stripe)', desc: 'Pay online after driver accepts', icon: (
+                          /* { id: 'online', label: 'Card (Stripe)', desc: 'Pay online after driver accepts', icon: (
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                             </svg>
-                          )},
+                          )}, */
                         ].map((method) => (
                           <button
                             key={method.id}
@@ -1250,16 +1261,6 @@ export default function CarBookingModal({ isOpen, onClose, car, initialData }: C
                           </button>
                         ))}
                       </div>
-
-                      {/* Card payment coming soon note */}
-                      {paymentMethod === 'online' && (
-                        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 flex items-start gap-2">
-                          <svg className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                          </svg>
-                          <p className="text-xs text-yellow-200">Card payments are processed after the driver accepts your request. You will complete payment in the confirmation step.</p>
-                        </div>
-                      )}
 
                         {paymentMethod === 'wallet' && (
                         <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex items-start gap-2">

@@ -7,9 +7,11 @@ import { HotelBookingCalendar } from './HotelBookingCalendar'
 import { useRoomAvailability } from '@/features/hotels/useHotelSearch'
 import { useCreateBooking } from '@/features/bookings/useBooking'
 import { bookingsApi } from '@/lib/api/bookings.api'
+import { paymentsApi } from '@/lib/api/payments.api'
 import { Hotel } from '@/types'
 import { BookingResponse } from '@/lib/api/bookings.api'
 import { BookingCalendar } from '@/components/cars/BookingCalendar'
+import Link from 'next/link'
 
 // --- SVG Icons ---
 const XIcon = ({ className = 'w-6 h-6' }: { className?: string }) => (
@@ -103,7 +105,8 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
   const [specialRequests, setSpecialRequests] = useState('')
 
   // Payment
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>('card')
+  const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'cash'>('wallet')
+  const [cashPolicyAcknowledged, setCashPolicyAcknowledged] = useState(false)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
 
   // Card info
@@ -193,6 +196,7 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
       setGuestPhone('')
       setSpecialRequests('')
       setAgreedToTerms(false)
+      setCashPolicyAcknowledged(false)
       setCardNumber('')
       setCardExpiry('')
       setCardCvv('')
@@ -202,17 +206,25 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
     }
   }, [isOpen])
 
-  const today = new Date().toISOString().split('T')[0]
+  const showShortNoticeCancellationWarning = useMemo(() => {
+    if (!checkIn) return false
+
+    const checkInDate = new Date(`${checkIn}T00:00:00`)
+    if (isNaN(checkInDate.getTime())) return false
+
+    const now = new Date()
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const diffMs = checkInDate.getTime() - todayStart.getTime()
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+    return diffDays === 0 || diffDays === 1
+  }, [checkIn])
 
   const canProceedStep0 = selectedRoomType && checkIn && checkOut && quantity > 0
   const canProceedStep1 = guestName.trim().length > 0
-  const isCardValid = paymentMethod === 'cash' || (
-    cardNumber.replace(/\s/g, '').length >= 15 &&
-    cardExpiry.length === 5 &&
-    cardCvv.length >= 3 &&
-    cardName.trim().length > 0
-  )
-  const canProceedStep2 = agreedToTerms && isCardValid && !createBooking.isPending
+  const isCardValid = true
+  const cashPolicyValid = paymentMethod !== 'cash' || cashPolicyAcknowledged
+  const canProceedStep2 = agreedToTerms && cashPolicyValid && isCardValid && !createBooking.isPending
 
   // Format card number with spaces
   const formatCardNumber = (value: string) => {
@@ -239,6 +251,16 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
     if (!selectedRoomType || !pricing) return
 
     try {
+      if (paymentMethod === 'wallet') {
+        const wallet = await paymentsApi.getWalletBalance()
+        const availablePaisa = BigInt(wallet.available)
+        const requiredPaisa = BigInt(Math.round(pricing.total * 100))
+
+        if (availablePaisa < requiredPaisa) {
+          throw new Error('Insufficient wallet balance. Please top up your balance.')
+        }
+      }
+
       const response = await createBooking.mutateAsync({
         hotel_id: parseInt(hotel.id),
         room_type_id: parseInt(selectedRoomType.id),
@@ -250,6 +272,7 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
         guest_phone: guestPhone || undefined,
         special_requests: specialRequests || undefined,
         payment_method: paymentMethod,
+        cash_policy_acknowledged: paymentMethod === 'cash' ? cashPolicyAcknowledged : undefined,
       })
       onSuccess(response)
     } catch (error: any) {
@@ -326,6 +349,14 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
                       unavailableDates={unavailableDates}
                       isLoading={isLoadingDates}
                     />
+
+                    {showShortNoticeCancellationWarning && (
+                      <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2">
+                        <p className="text-sm text-amber-200">
+                          Warning: You will not be able to cancel this booking if check-in is today or tomorrow.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Quantity */}
@@ -571,7 +602,7 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
                   <div>
                     <h3 className="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">Payment Method</h3>
                     <div className="space-y-2">
-                      <button
+                      {/* <button
                         type="button"
                         onClick={() => setPaymentMethod('card')}
                         className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all ${
@@ -586,6 +617,24 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
                           <p className="text-xs text-gray-400">Simulated payment — no charges</p>
                         </div>
                         {paymentMethod === 'card' && (
+                          <CheckCircleIcon className="w-5 h-5 text-cyan-400 ml-auto" />
+                        )}
+                      </button> */}
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('wallet')}
+                        className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all ${
+                          paymentMethod === 'wallet'
+                            ? 'border-cyan-500 bg-cyan-500/10'
+                            : 'border-gray-700/50 bg-gray-800/50 hover:border-gray-600'
+                        }`}
+                      >
+                        <CreditCardIcon className="w-5 h-5 text-gray-300" />
+                        <div className="text-left">
+                          <p className="text-sm font-medium text-white">Wallet</p>
+                          <p className="text-xs text-gray-400">Uses available wallet balance</p>
+                        </div>
+                        {paymentMethod === 'wallet' && (
                           <CheckCircleIcon className="w-5 h-5 text-cyan-400 ml-auto" />
                         )}
                       </button>
@@ -611,7 +660,7 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
                   </div>
 
                   {/* Card Details (shown when card is selected) */}
-                  {paymentMethod === 'card' && (
+                  {false && paymentMethod === 'wallet' && (
                     <div>
                       <h3 className="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">Card Details</h3>
                       <div className="space-y-3">
@@ -731,6 +780,20 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
                     </div>
                   )}
 
+                  {paymentMethod === 'cash' && (
+                    <label className="flex items-start gap-3 cursor-pointer group p-3 rounded-xl border border-amber-600/30 bg-amber-900/10">
+                      <input
+                        type="checkbox"
+                        checked={cashPolicyAcknowledged}
+                        onChange={(e) => setCashPolicyAcknowledged(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 rounded border-gray-600 bg-gray-800 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0"
+                      />
+                      <span className="text-sm text-amber-200">
+                        I acknowledge the cash booking policy: cancellation is only allowed before 1 day prior to check-in and cash cancellation applies a 25% debt.
+                      </span>
+                    </label>
+                  )}
+
                   {/* Terms */}
                   <label className="flex items-start gap-3 cursor-pointer group">
                     <input
@@ -740,7 +803,7 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
                       className="mt-0.5 w-4 h-4 rounded border-gray-600 bg-gray-800 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0"
                     />
                     <span className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">
-                      I agree to the booking terms and conditions. I understand that this is a simulated payment and no actual charges will be made.
+                      I agree to the booking <Link href="/terms/hotel-booking" target="_blank" className="text-cyan-400 hover:text-cyan-300 underline">terms and conditions</Link>. I understand that this is a simulated payment and no actual charges will be made.
                     </span>
                   </label>
 

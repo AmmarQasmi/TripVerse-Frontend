@@ -12,6 +12,7 @@ export interface CreateBookingWithPaymentRequest {
   guest_phone?: string
   special_requests?: string
   payment_method?: string
+  cash_policy_acknowledged?: boolean
 }
 
 export interface BookingPricing {

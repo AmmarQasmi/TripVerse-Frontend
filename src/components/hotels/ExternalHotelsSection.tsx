@@ -468,8 +468,16 @@ export function ExternalHotelsSection({ city }: ExternalHotelsSectionProps) {
   const handleExplore = useCallback(async () => {
     const key = city.trim().toLowerCase()
 
+    if (!key) {
+      setError('Please enter a city before exploring external hotels.')
+      setLoaded(false)
+      setHotels([])
+      return
+    }
+
     if (cacheRef.current[key]) {
       setHotels(cacheRef.current[key])
+      setError(null)
       setLoaded(true)
       return
     }
@@ -492,6 +500,12 @@ export function ExternalHotelsSection({ city }: ExternalHotelsSectionProps) {
   // When city changes while section is already expanded, auto-refresh for the new city
   useEffect(() => {
     if (!loaded) return
+    if (!city.trim()) {
+      setLoaded(false)
+      setHotels([])
+      setError('Please enter a city before exploring external hotels.')
+      return
+    }
     handleExplore()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [city])
@@ -545,6 +559,10 @@ export function ExternalHotelsSection({ city }: ExternalHotelsSectionProps) {
             <GlobeIcon />
             Explore External Hotels
           </button>
+
+          {error && (
+            <p className="mt-3 text-sm text-amber-300">{error}</p>
+          )}
         </motion.div>
       )}
 
