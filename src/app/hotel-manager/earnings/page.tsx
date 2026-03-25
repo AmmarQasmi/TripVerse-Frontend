@@ -57,6 +57,7 @@ export default function HotelManagerEarningsPage() {
   const [withdrawalStatus, setWithdrawalStatus] = useState<string | null>(null)
   const [withdrawing, setWithdrawing] = useState(false)
   const [txPage, setTxPage] = useState(1)
+  const [activeSection, setActiveSection] = useState<'transactions' | 'debts'>('transactions')
   const txPageSize = 6
 
   useEffect(() => {
@@ -272,6 +273,7 @@ export default function HotelManagerEarningsPage() {
   const eligibleWithdrawal = parsePaisa(withdrawalEligibility?.eligibleForWithdrawal || '0')
   const minimumWithdrawal = parsePaisa(withdrawalEligibility?.minimumWithdrawalAmount || '0')
   const canWithdraw = Boolean(withdrawalEligibility?.canWithdraw)
+  const debtItems = summary?.debts?.items || []
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -445,56 +447,106 @@ export default function HotelManagerEarningsPage() {
         </div>
 
         <Card>
-          <CardHeader><CardTitle className="text-lg">Transaction History</CardTitle></CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left">
-                    <th className="py-2">Type</th>
-                    <th className="py-2">Details</th>
-                    <th className="py-2">Amount</th>
-                    <th className="py-2">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedTransactions.map((tx) => (
-                    <tr key={tx.id} className="border-b last:border-b-0">
-                      <td className="py-2 capitalize">{tx.type.replace(/_/g, ' ')}</td>
-                      <td className="py-2 text-gray-700">{getTxDetails(tx)}</td>
-                      <td className="py-2 font-medium">{formatPkr(Math.abs(parsePaisa(tx.amount)))}</td>
-                      <td className="py-2 text-gray-600">{new Date(tx.createdAt).toLocaleString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <p className="text-xs text-gray-500">
-                Showing {(txPage - 1) * txPageSize + (paginatedTransactions.length ? 1 : 0)}-
-                {(txPage - 1) * txPageSize + paginatedTransactions.length} of {transactions?.transactions?.length || 0}
-              </p>
-              <div className="flex items-center gap-2">
+          <CardHeader>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <CardTitle className="text-lg">Records</CardTitle>
+              <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setTxPage((prev) => Math.max(1, prev - 1))}
-                  disabled={txPage === 1}
-                  className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => setActiveSection('transactions')}
+                  className={`px-3 py-1.5 text-sm rounded border ${activeSection === 'transactions' ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-300 text-gray-700'}`}
                 >
-                  Previous
+                  Transactions
                 </button>
-                <span className="text-xs text-gray-600">Page {txPage} of {txTotalPages}</span>
                 <button
                   type="button"
-                  onClick={() => setTxPage((prev) => Math.min(txTotalPages, prev + 1))}
-                  disabled={txPage >= txTotalPages}
-                  className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => setActiveSection('debts')}
+                  className={`px-3 py-1.5 text-sm rounded border ${activeSection === 'debts' ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-300 text-gray-700'}`}
                 >
-                  Next
+                  Debts
                 </button>
               </div>
             </div>
+          </CardHeader>
+          <CardContent>
+            {activeSection === 'debts' ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left">
+                      <th className="py-2">Booking ID</th>
+                      <th className="py-2">Due Date</th>
+                      <th className="py-2">Amount</th>
+                      <th className="py-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {debtItems.map((row) => (
+                      <tr key={row.id} className="border-b last:border-b-0">
+                        <td className="py-2 text-gray-700">{row.bookingId ? `#${row.bookingId}` : 'N/A'}</td>
+                        <td className="py-2 text-gray-700">{row.dueDate ? new Date(row.dueDate).toLocaleDateString() : 'N/A'}</td>
+                        <td className="py-2 font-medium">{formatPkr(parsePaisa(row.amount))}</td>
+                        <td className="py-2 capitalize text-gray-600">{(row.status || 'pending').replace(/_/g, ' ')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {!debtItems.length && (
+                  <p className="text-sm text-gray-500 py-3">No pending debts.</p>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-left">
+                        <th className="py-2">Type</th>
+                        <th className="py-2">Details</th>
+                        <th className="py-2">Amount</th>
+                        <th className="py-2">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedTransactions.map((tx) => (
+                        <tr key={tx.id} className="border-b last:border-b-0">
+                          <td className="py-2 capitalize">{tx.type.replace(/_/g, ' ')}</td>
+                          <td className="py-2 text-gray-700">{getTxDetails(tx)}</td>
+                          <td className="py-2 font-medium">{formatPkr(Math.abs(parsePaisa(tx.amount)))}</td>
+                          <td className="py-2 text-gray-600">{new Date(tx.createdAt).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <p className="text-xs text-gray-500">
+                    Showing {(txPage - 1) * txPageSize + (paginatedTransactions.length ? 1 : 0)}-
+                    {(txPage - 1) * txPageSize + paginatedTransactions.length} of {transactions?.transactions?.length || 0}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTxPage((prev) => Math.max(1, prev - 1))}
+                      disabled={txPage === 1}
+                      className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Previous
+                    </button>
+                    <span className="text-xs text-gray-600">Page {txPage} of {txTotalPages}</span>
+                    <button
+                      type="button"
+                      onClick={() => setTxPage((prev) => Math.min(txTotalPages, prev + 1))}
+                      disabled={txPage >= txTotalPages}
+                      className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

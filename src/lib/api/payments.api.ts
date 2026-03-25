@@ -85,6 +85,14 @@ export interface EarningsSummaryResponse {
   debts: {
     pending: string
     count: number
+    items?: Array<{
+      id: string
+      bookingId: string | number | null
+      dueDate: string | null
+      amount: string
+      status: string
+      createdAt: string
+    }>
   }
   earnings: {
     total: string
