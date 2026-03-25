@@ -116,6 +116,7 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
   const [cardName, setCardName] = useState('')
   const [showExpiryCalendar, setShowExpiryCalendar] = useState(false)
   const [expiryYearView, setExpiryYearView] = useState(new Date().getFullYear())
+  const [bookingError, setBookingError] = useState<string | null>(null)
 
   // Unavailable dates for selected room type
   const [unavailableDates, setUnavailableDates] = useState<string[]>([])
@@ -202,6 +203,7 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
       setCardCvv('')
       setCardName('')
       setUnavailableDates([])
+      setBookingError(null)
       createBooking.reset()
     }
   }, [isOpen])
@@ -251,13 +253,16 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
     if (!selectedRoomType || !pricing) return
 
     try {
+      setBookingError(null)
+
       if (paymentMethod === 'wallet') {
         const wallet = await paymentsApi.getWalletBalance()
         const availablePaisa = BigInt(wallet.available)
         const requiredPaisa = BigInt(Math.round(pricing.total * 100))
 
         if (availablePaisa < requiredPaisa) {
-          throw new Error('Insufficient wallet balance. Please top up your balance.')
+          setBookingError('Insufficient wallet balance. Please top up your balance.')
+          return
         }
       }
 
@@ -276,7 +281,13 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
       })
       onSuccess(response)
     } catch (error: any) {
-      // Error is handled by the mutation state
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        (createBooking.error as any)?.response?.data?.message ||
+        createBooking.error?.message ||
+        'Booking failed. Please try again.'
+      setBookingError(message)
       console.error('Booking failed:', error)
     }
   }
@@ -622,7 +633,10 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
                       </button> */}
                       <button
                         type="button"
-                        onClick={() => setPaymentMethod('wallet')}
+                        onClick={() => {
+                          setPaymentMethod('wallet')
+                          setBookingError(null)
+                        }}
                         className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all ${
                           paymentMethod === 'wallet'
                             ? 'border-cyan-500 bg-cyan-500/10'
@@ -640,7 +654,10 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
                       </button>
                       <button
                         type="button"
-                        onClick={() => setPaymentMethod('cash')}
+                        onClick={() => {
+                          setPaymentMethod('cash')
+                          setBookingError(null)
+                        }}
                         className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all ${
                           paymentMethod === 'cash'
                             ? 'border-cyan-500 bg-cyan-500/10'
@@ -808,9 +825,9 @@ export function BookingModal({ hotel, isOpen, onClose, onSuccess, searchDates }:
                   </label>
 
                   {/* Error */}
-                  {createBooking.isError && (
+                  {(bookingError || createBooking.isError) && (
                     <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-sm text-red-400">
-                      {(createBooking.error as any)?.response?.data?.message || createBooking.error?.message || 'Booking failed. Please try again.'}
+                      {bookingError || (createBooking.error as any)?.response?.data?.message || createBooking.error?.message || 'Booking failed. Please try again.'}
                     </div>
                   )}
                 </motion.div>
