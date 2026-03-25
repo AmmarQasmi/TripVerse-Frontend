@@ -26,8 +26,10 @@ const formatPkr = (value: number) =>
 const CHART_COLORS = ['#0f766e', '#1d4ed8', '#0ea5e9', '#d97706']
 
 export default function AdminPaymentsPage() {
-  const { stats, debts, auditTrail, isLoading, enforceDebt } = usePaymentsAdmin()
+  const { stats, debts, driverDebts, hotelDebts, auditTrail, isLoading, enforceDebt, getDriverDebtDetail, getHotelDebtDetail } = usePaymentsAdmin()
   const [auditPage, setAuditPage] = useState(1)
+  const [selectedDebtDetail, setSelectedDebtDetail] = useState<any | null>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
   const auditPageSize = 6
 
   const commissionPieData = useMemo(() => {
@@ -102,8 +104,8 @@ export default function AdminPaymentsPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
           <Card><CardHeader><CardTitle className="text-sm">Commission Wallet (15%)</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-sky-700">{formatPkr(commissionWalletTotal)}</p></CardContent></Card>
-          <Card><CardHeader><CardTitle className="text-sm">Tax Share (8.5%)</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-teal-700">{formatPkr(totalTaxReserve)}</p></CardContent></Card>
-          <Card><CardHeader><CardTitle className="text-sm">Platform Share (6.5%)</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-cyan-700">{formatPkr(totalCommission)}</p></CardContent></Card>
+          <Card><CardHeader><CardTitle className="text-sm">Tax Reserve (2.25%)</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-teal-700">{formatPkr(totalTaxReserve)}</p></CardContent></Card>
+          <Card><CardHeader><CardTitle className="text-sm">Net Commission (12.75%)</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-cyan-700">{formatPkr(totalCommission)}</p></CardContent></Card>
           <Card><CardHeader><CardTitle className="text-sm">Outstanding Debts</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-amber-700">{formatPkr(outstandingDebt)}</p></CardContent></Card>
           <Card><CardHeader><CardTitle className="text-sm">Topups Processed</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-indigo-700">{formatPkr(topupProcessed)}</p></CardContent></Card>
         </div>
@@ -156,33 +158,109 @@ export default function AdminPaymentsPage() {
           </Card>
 
           <Card>
-            <CardHeader><CardTitle className="text-lg">Debt Queue</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-lg">Driver Debts</CardTitle></CardHeader>
             <CardContent className="max-h-[280px] overflow-auto">
               <div className="space-y-3">
-                {debts.slice(0, 8).map((debt) => (
+                {(driverDebts.length ? driverDebts : debts).slice(0, 8).map((debt) => (
                   <div key={debt.id} className="border rounded-md p-3">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="font-medium text-sm">{debt.driverName}</p>
+                        <p className="font-medium text-sm">{debt.driverName || 'N/A'}</p>
                         <p className="text-xs text-gray-500">Due: {new Date(debt.dueDate).toLocaleDateString()}</p>
                       </div>
                       <div className="text-right">
                         <p className="font-semibold">{formatPkr(parsePaisa(debt.amount))}</p>
-                        <button
-                          onClick={() => enforceDebt(debt.id)}
-                          className="text-xs text-blue-600 hover:text-blue-800"
-                        >
-                          Enforce
-                        </button>
+                        <div className="flex gap-2 justify-end">
+                          <button
+                            onClick={async () => {
+                              setDetailLoading(true)
+                              try {
+                                const detail = await getDriverDebtDetail(debt.id)
+                                setSelectedDebtDetail(detail)
+                              } finally {
+                                setDetailLoading(false)
+                              }
+                            }}
+                            className="text-xs text-cyan-600 hover:text-cyan-800"
+                          >
+                            Details
+                          </button>
+                          <button
+                            onClick={() => enforceDebt(debt.id)}
+                            className="text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            Enforce
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 ))}
-                {!debts.length && <p className="text-sm text-gray-500">No pending debts.</p>}
+                {!driverDebts.length && !debts.length && <p className="text-sm text-gray-500">No pending driver debts.</p>}
               </div>
             </CardContent>
           </Card>
         </div>
+
+        <Card className="mb-6">
+          <CardHeader><CardTitle className="text-lg">Hotel Debts</CardTitle></CardHeader>
+          <CardContent className="max-h-[280px] overflow-auto">
+            <div className="space-y-3">
+              {hotelDebts.slice(0, 8).map((debt: any) => (
+                <div key={debt.id} className="border rounded-md p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-medium text-sm">{debt.managerName || 'Hotel Manager'}</p>
+                      <p className="text-xs text-gray-500">Due: {debt.dueDate ? new Date(debt.dueDate).toLocaleDateString() : 'N/A'}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">{formatPkr(parsePaisa(debt.amount))}</p>
+                      <button
+                        onClick={async () => {
+                          setDetailLoading(true)
+                          try {
+                            const detail = await getHotelDebtDetail(debt.id)
+                            setSelectedDebtDetail(detail)
+                          } finally {
+                            setDetailLoading(false)
+                          }
+                        }}
+                        className="text-xs text-cyan-600 hover:text-cyan-800"
+                      >
+                        Details
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {!hotelDebts.length && <p className="text-sm text-gray-500">No pending hotel debts.</p>}
+            </div>
+          </CardContent>
+        </Card>
+
+        {selectedDebtDetail && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setSelectedDebtDetail(null)}>
+            <div className="w-full max-w-lg bg-white rounded-lg shadow-xl" onClick={(e) => e.stopPropagation()}>
+              <div className="px-5 py-4 border-b flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Debt Detail</h3>
+                <button className="text-sm text-gray-600 hover:text-gray-900" onClick={() => setSelectedDebtDetail(null)}>Close</button>
+              </div>
+              <div className="px-5 py-4 text-sm space-y-2">
+                <p><strong>Type:</strong> {selectedDebtDetail.type}</p>
+                <p><strong>Actor:</strong> {selectedDebtDetail.actor?.name} ({selectedDebtDetail.actor?.email})</p>
+                <p><strong>Booking:</strong> {selectedDebtDetail.bookingId || 'N/A'}</p>
+                <p><strong>Amount:</strong> {formatPkr(parsePaisa(selectedDebtDetail.amount || '0'))}</p>
+                <p><strong>Status:</strong> {selectedDebtDetail.status}</p>
+                <p><strong>Due:</strong> {selectedDebtDetail.dueDate ? new Date(selectedDebtDetail.dueDate).toLocaleString() : 'N/A'}</p>
+                <p><strong>Created:</strong> {selectedDebtDetail.createdAt ? new Date(selectedDebtDetail.createdAt).toLocaleString() : 'N/A'}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {detailLoading && (
+          <Card className="mb-6"><CardContent className="p-3 text-sm text-gray-600">Loading debt details...</CardContent></Card>
+        )}
 
         <Card>
           <CardHeader><CardTitle className="text-lg">Wallet Audit Trail</CardTitle></CardHeader>

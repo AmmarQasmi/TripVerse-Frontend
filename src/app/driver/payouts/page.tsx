@@ -8,12 +8,33 @@ import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageLoader } from '@/components/shared/PageLoader'
 import { SimpleChart } from '@/components/shared/SimpleChart'
-import { paymentsApi, type EarningsSummaryResponse, type WalletTransactionsResponse } from '@/lib/api/payments.api'
+import { paymentsApi, type EarningsSummaryResponse, type WalletTransaction, type WalletTransactionsResponse } from '@/lib/api/payments.api'
 
 const parsePaisa = (value: string) => Number(value) / 100
 
 const formatPkr = (value: number) =>
   `PKR ${value.toLocaleString('en-PK', { maximumFractionDigits: 2 })}`
+
+const getTxDetails = (tx: WalletTransaction) => {
+  if (tx.description && tx.description.trim().length > 0) {
+    return tx.description
+  }
+
+  const metadata = (tx.metadata || {}) as Record<string, unknown>
+  const bookingId = typeof metadata.bookingId === 'number' || typeof metadata.bookingId === 'string'
+    ? String(metadata.bookingId)
+    : null
+  const debtId = typeof metadata.debtId === 'string' ? metadata.debtId : null
+
+  if (bookingId) {
+    return `Booking #${bookingId}`
+  }
+  if (debtId) {
+    return `Debt reference ${debtId}`
+  }
+
+  return 'Wallet adjustment'
+}
 
 const TOPUP_OPTIONS = [50000, 100000, 200000]
 
@@ -29,6 +50,14 @@ export default function DriverPayoutsPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [topupLoading, setTopupLoading] = useState(false)
   const [customTopup, setCustomTopup] = useState('')
+  const [withdrawalAmount, setWithdrawalAmount] = useState('')
+  const [bankAccountNumber, setBankAccountNumber] = useState('')
+  const [bankRoutingNumber, setBankRoutingNumber] = useState('')
+  const [bankHolderName, setBankHolderName] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState<'stripe_payout' | 'manual_transfer'>('manual_transfer')
+  const [withdrawalEligibility, setWithdrawalEligibility] = useState<any | null>(null)
+  const [withdrawalStatus, setWithdrawalStatus] = useState<string | null>(null)
+  const [withdrawing, setWithdrawing] = useState(false)
   const [txPage, setTxPage] = useState(1)
   const txPageSize = 6
 
@@ -73,12 +102,14 @@ export default function DriverPayoutsPage() {
           }
         }
 
-        const [summaryRes, txRes] = await Promise.all([
+        const [summaryRes, txRes, eligibilityRes] = await Promise.all([
           paymentsApi.getDriverEarningsSummary(),
           paymentsApi.getWalletTransactions(100, 0),
+          paymentsApi.getWithdrawalEligibility(),
         ])
         setSummary(summaryRes)
         setTransactions(txRes)
+        setWithdrawalEligibility(eligibilityRes)
       } catch (e: any) {
         setError(e?.response?.data?.message || 'Failed to load payouts data')
       } finally {
@@ -112,6 +143,58 @@ export default function DriverPayoutsPage() {
       return
     }
     await handleTopup(Math.round(amountInRupees * 100))
+  }
+
+  const handleInitiateWithdrawal = async () => {
+    try {
+      setWithdrawing(true)
+      setWithdrawalStatus(null)
+      setError(null)
+
+      const rupees = Number(withdrawalAmount)
+      if (!Number.isFinite(rupees) || rupees <= 0) {
+        setError('Enter a valid withdrawal amount in PKR')
+        return
+      }
+
+      const amountInPaisa = Math.round(rupees * 100)
+      const max = Number(withdrawalEligibility?.eligibleForWithdrawal || '0')
+      const min = Number(withdrawalEligibility?.minimumWithdrawalAmount || '0')
+
+      if (amountInPaisa < min) {
+        setError(`Minimum withdrawal is ${formatPkr(parsePaisa(String(min)))}`)
+        return
+      }
+
+      if (amountInPaisa > max) {
+        setError(`Maximum withdrawable amount is ${formatPkr(parsePaisa(String(max)))}`)
+        return
+      }
+
+      const response = await paymentsApi.initiateWithdrawal({
+        amountInPaisa: String(amountInPaisa),
+        bankAccountNumber: bankAccountNumber || undefined,
+        bankRoutingNumber: bankRoutingNumber || undefined,
+        bankHolderName: bankHolderName || undefined,
+        paymentMethod,
+      })
+
+      setWithdrawalStatus(response.message || `Withdrawal ${response.status}`)
+      setWithdrawalAmount('')
+
+      const [summaryRes, txRes, eligibilityRes] = await Promise.all([
+        paymentsApi.getDriverEarningsSummary(),
+        paymentsApi.getWalletTransactions(100, 0),
+        paymentsApi.getWithdrawalEligibility(),
+      ])
+      setSummary(summaryRes)
+      setTransactions(txRes)
+      setWithdrawalEligibility(eligibilityRes)
+    } catch (e: any) {
+      setError(e?.response?.data?.message || e?.message || 'Failed to initiate withdrawal')
+    } finally {
+      setWithdrawing(false)
+    }
   }
 
   const chartData = useMemo(() => {
@@ -189,6 +272,9 @@ export default function DriverPayoutsPage() {
   const debtPending = parsePaisa(summary?.debts.pending || '0')
   const totalEarned = parsePaisa(summary?.earnings.fromTrips || summary?.earnings.total || '0')
   const totalTopups = parsePaisa(summary?.earnings.topups || '0')
+  const eligibleWithdrawal = parsePaisa(withdrawalEligibility?.eligibleForWithdrawal || '0')
+  const minimumWithdrawal = parsePaisa(withdrawalEligibility?.minimumWithdrawalAmount || '0')
+  const canWithdraw = Boolean(withdrawalEligibility?.canWithdraw)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -247,6 +333,77 @@ export default function DriverPayoutsPage() {
           </CardContent>
         </Card>
 
+        <Card className="mb-6">
+          <CardHeader><CardTitle className="text-lg">Withdraw to Bank</CardTitle></CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3 text-sm">
+              <div className="rounded-md border p-3">
+                <p className="text-gray-500">Withdrawable</p>
+                <p className="font-semibold text-emerald-700">{formatPkr(eligibleWithdrawal)}</p>
+              </div>
+              <div className="rounded-md border p-3">
+                <p className="text-gray-500">Minimum</p>
+                <p className="font-semibold">{formatPkr(minimumWithdrawal)}</p>
+              </div>
+              <div className="rounded-md border p-3">
+                <p className="text-gray-500">Status</p>
+                <p className={`font-semibold ${canWithdraw ? 'text-emerald-700' : 'text-red-700'}`}>
+                  {canWithdraw ? 'Eligible' : 'Not eligible'}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+              <input
+                type="number"
+                min={1}
+                step={50}
+                value={withdrawalAmount}
+                onChange={(e) => setWithdrawalAmount(e.target.value)}
+                placeholder="Withdrawal amount in PKR"
+                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <select
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value as 'stripe_payout' | 'manual_transfer')}
+                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="manual_transfer">Manual transfer</option>
+                <option value="stripe_payout">Stripe payout</option>
+              </select>
+              <input
+                type="text"
+                value={bankHolderName}
+                onChange={(e) => setBankHolderName(e.target.value)}
+                placeholder="Bank account holder name"
+                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                value={bankAccountNumber}
+                onChange={(e) => setBankAccountNumber(e.target.value)}
+                placeholder="Bank account number"
+                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                value={bankRoutingNumber}
+                onChange={(e) => setBankRoutingNumber(e.target.value)}
+                placeholder="Bank routing number"
+                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <Button onClick={handleInitiateWithdrawal} disabled={withdrawing || !canWithdraw}>
+              {withdrawing ? 'Submitting...' : 'Initiate Withdrawal'}
+            </Button>
+
+            {withdrawalStatus && (
+              <p className="text-sm text-blue-700 mt-3">{withdrawalStatus}</p>
+            )}
+          </CardContent>
+        </Card>
+
         {debtPending > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <Card className="border-amber-300 bg-amber-50 mb-6">
@@ -280,6 +437,7 @@ export default function DriverPayoutsPage() {
                 <thead>
                   <tr className="text-left border-b">
                     <th className="py-2">Type</th>
+                    <th className="py-2">Details</th>
                     <th className="py-2">Amount</th>
                     <th className="py-2">Date</th>
                   </tr>
@@ -291,6 +449,7 @@ export default function DriverPayoutsPage() {
                     return (
                       <tr key={tx.id} className="border-b last:border-b-0">
                         <td className="py-2 capitalize">{tx.type.replace(/_/g, ' ')}</td>
+                        <td className="py-2 text-gray-700">{getTxDetails(tx)}</td>
                         <td className={`py-2 font-medium ${positive ? 'text-green-700' : 'text-red-700'}`}>
                           {positive ? '+' : '-'}{formatPkr(Math.abs(value))}
                         </td>

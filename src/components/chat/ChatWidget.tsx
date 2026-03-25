@@ -184,7 +184,7 @@ export function ChatWidget({ isOpen, onClose }: ChatWidgetProps) {
             onClick={() => setIsMinimized(false)}
             className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-blue-800 via-cyan-900 to-teal-900 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-105 group"
           >
-            <TravelBotIcon className="w-5 h-5 text-cyan-300" />
+            <TravelBotIcon className="w-6 h-6 text-cyan-300" />
             <span className="text-sm font-semibold">AI Travel Assistant</span>
             <Maximize2 className="w-4 h-4 text-white/60 group-hover:text-white transition-colors" />
           </button>
@@ -212,7 +212,7 @@ export function ChatWidget({ isOpen, onClose }: ChatWidgetProps) {
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                 )}
-                <TravelBotIcon className="w-5 h-5 text-cyan-300" />
+                <TravelBotIcon className="w-6 h-6 text-cyan-300" />
                 <h2 className="text-lg font-semibold">AI Travel Assistant</h2>
               </div>
               <div className="flex items-center gap-2">

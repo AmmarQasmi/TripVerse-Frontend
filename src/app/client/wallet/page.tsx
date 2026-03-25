@@ -6,11 +6,32 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageLoader } from '@/components/shared/PageLoader'
-import { paymentsApi, type WalletBalanceResponse, type WalletTransactionsResponse } from '@/lib/api/payments.api'
+import { paymentsApi, type WalletBalanceResponse, type WalletTransaction, type WalletTransactionsResponse } from '@/lib/api/payments.api'
 
 const parsePaisa = (value: string) => Number(value) / 100
 const formatPkr = (value: number) =>
   `PKR ${value.toLocaleString('en-PK', { maximumFractionDigits: 2 })}`
+
+const getTxDetails = (tx: WalletTransaction) => {
+  if (tx.description && tx.description.trim().length > 0) {
+    return tx.description
+  }
+
+  const metadata = (tx.metadata || {}) as Record<string, unknown>
+  const bookingId = typeof metadata.bookingId === 'number' || typeof metadata.bookingId === 'string'
+    ? String(metadata.bookingId)
+    : null
+  const debtId = typeof metadata.debtId === 'string' ? metadata.debtId : null
+
+  if (bookingId) {
+    return `Booking #${bookingId}`
+  }
+  if (debtId) {
+    return `Debt reference ${debtId}`
+  }
+
+  return 'Wallet adjustment'
+}
 
 const TOPUP_OPTIONS = [50000, 100000, 200000, 500000]
 
@@ -211,6 +232,7 @@ export default function ClientWalletPage() {
                 <thead>
                   <tr className="border-b text-left">
                     <th className="py-2">Type</th>
+                    <th className="py-2">Details</th>
                     <th className="py-2">Amount</th>
                     <th className="py-2">Date</th>
                   </tr>
@@ -221,6 +243,7 @@ export default function ClientWalletPage() {
                     return (
                       <tr key={tx.id} className="border-b last:border-b-0">
                         <td className="py-2 capitalize">{tx.type.replace(/_/g, ' ')}</td>
+                        <td className="py-2 text-gray-700">{getTxDetails(tx)}</td>
                         <td className={`py-2 font-semibold ${amount >= 0 ? 'text-green-700' : 'text-red-700'}`}>
                           {amount >= 0 ? '+' : '-'}{formatPkr(Math.abs(amount))}
                         </td>

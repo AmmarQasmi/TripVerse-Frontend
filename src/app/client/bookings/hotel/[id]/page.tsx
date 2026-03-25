@@ -68,6 +68,30 @@ export default function HotelBookingDetailPage() {
       return 'N/A'
     }
   }
+
+  const parseCheckInDate = (value: string | undefined) => {
+    if (!value) return null
+    const normalized = /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00.000Z` : value
+    const parsed = new Date(normalized)
+    return isNaN(parsed.getTime()) ? null : parsed
+  }
+
+  const formatDateTime = (date: Date | null) => {
+    if (!date) return 'N/A'
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    })
+  }
+
+  const checkInRaw = booking?.checkInDate || booking?.booking_details?.dates?.check_in
+  const checkInDate = parseCheckInDate(checkInRaw)
+  const cancellationDeadline = checkInDate ? new Date(checkInDate.getTime() - 24 * 60 * 60 * 1000) : null
+  const canCancelByDate = cancellationDeadline ? new Date() < cancellationDeadline : false
+  const cancelDisabled = cancelling || !canCancelByDate
   
   const handleConfirm = async () => {
     if (!confirm('Are you sure you want to confirm this booking? This will process the payment.')) {
@@ -88,6 +112,11 @@ export default function HotelBookingDetailPage() {
   }
   
   const handleCancel = async () => {
+    if (!canCancelByDate) {
+      alert(`Cancellation is closed. You could cancel only until ${formatDateTime(cancellationDeadline)} (one day before check-in).`)
+      return
+    }
+
     if (!confirm('Are you sure you want to cancel this booking?')) {
       return
     }
@@ -278,14 +307,21 @@ export default function HotelBookingDetailPage() {
                   </Button>
                 )}
                 {(booking.status === 'PENDING_PAYMENT' || booking.status === 'CONFIRMED') && (
-                  <Button
-                    onClick={handleCancel}
-                    disabled={cancelling}
-                    variant="outline"
-                    className="w-full text-red-600 hover:text-red-700 border-red-600"
-                  >
-                    {cancelling ? 'Cancelling...' : 'Cancel Booking'}
-                  </Button>
+                  <div className="space-y-2">
+                    <Button
+                      onClick={handleCancel}
+                      disabled={cancelDisabled}
+                      variant="outline"
+                      className="w-full text-red-600 hover:text-red-700 border-red-600 disabled:opacity-60"
+                    >
+                      {cancelling ? 'Cancelling...' : 'Cancel Booking'}
+                    </Button>
+                    <p className={`text-xs ${canCancelByDate ? 'text-gray-500' : 'text-red-600'}`}>
+                      {canCancelByDate
+                        ? `You can cancel this booking until ${formatDateTime(cancellationDeadline)} (one day before check-in).`
+                        : `Cancellation closed. Last cancellation date was ${formatDateTime(cancellationDeadline)} (one day before check-in).`}
+                    </p>
+                  </div>
                 )}
                 <Link href={`/client/hotels/${booking.hotelId}`}>
                   <Button variant="outline" className="w-full">

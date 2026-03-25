@@ -114,6 +114,33 @@ export interface DebtListResponse {
   offset: number
 }
 
+export interface WithdrawalEligibilityResponse {
+  walletId: string
+  totalBalance: string
+  reserved: string
+  locked: string
+  available: string
+  pendingDebts: string
+  eligibleForWithdrawal: string
+  canWithdraw: boolean
+  minimumWithdrawalAmount: string
+}
+
+export interface WithdrawalResponse {
+  success: boolean
+  transactionId: string
+  amount: string
+  currency: string
+  status: string
+  message: string
+  stripePayoutId?: string | null
+  details?: {
+    walletId: string
+    remainingBalance: string
+    fee: string
+  }
+}
+
 export interface AuditTrailResponse {
   transactions: Array<{
     id: string
@@ -166,6 +193,26 @@ export const paymentsApi = {
     })
   },
 
+  getAdminDriverDebts: async (status: 'pending' | 'paid' | 'all' = 'pending') => {
+    return httpClient.get<DebtListResponse>(API_ENDPOINTS.PAYMENTS.ADMIN_DRIVER_DEBTS, {
+      params: { status, limit: 100, offset: 0 },
+    })
+  },
+
+  getAdminHotelDebts: async (status: 'pending' | 'paid' | 'all' = 'pending') => {
+    return httpClient.get<DebtListResponse>(API_ENDPOINTS.PAYMENTS.ADMIN_HOTEL_DEBTS, {
+      params: { status, limit: 100, offset: 0 },
+    })
+  },
+
+  getAdminDriverDebtDetail: async (debtId: string) => {
+    return httpClient.get<any>(API_ENDPOINTS.PAYMENTS.ADMIN_DRIVER_DEBT_DETAIL(debtId))
+  },
+
+  getAdminHotelDebtDetail: async (transactionId: string) => {
+    return httpClient.get<any>(API_ENDPOINTS.PAYMENTS.ADMIN_HOTEL_DEBT_DETAIL(transactionId))
+  },
+
   getAdminAuditTrail: async () => {
     return httpClient.get<AuditTrailResponse>(API_ENDPOINTS.PAYMENTS.ADMIN_AUDIT_TRAIL, {
       params: { limit: 100, offset: 0 },
@@ -184,5 +231,23 @@ export const paymentsApi = {
 
   getHotelManagerEarningsSummary: async () => {
     return httpClient.get<EarningsSummaryResponse>(API_ENDPOINTS.PAYMENTS.HOTEL_MANAGER_EARNINGS_SUMMARY)
+  },
+
+  getWithdrawalEligibility: async () => {
+    return httpClient.get<WithdrawalEligibilityResponse>(API_ENDPOINTS.PAYMENTS.WITHDRAWAL_ELIGIBILITY)
+  },
+
+  initiateWithdrawal: async (payload: {
+    amountInPaisa: string
+    bankAccountNumber?: string
+    bankRoutingNumber?: string
+    bankHolderName?: string
+    paymentMethod?: 'stripe_payout' | 'manual_transfer'
+  }) => {
+    return httpClient.post<WithdrawalResponse>(API_ENDPOINTS.PAYMENTS.WITHDRAWAL_INITIATE, payload)
+  },
+
+  getWithdrawalStatus: async (transactionId: string) => {
+    return httpClient.get<any>(API_ENDPOINTS.PAYMENTS.WITHDRAWAL_STATUS(transactionId))
   },
 }
