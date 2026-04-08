@@ -27,6 +27,7 @@ const publicRoutes = [
   '/',
   '/auth/login',
   '/auth/signup',
+  '/client/flights',
   '/client/hotels',
   '/client/cars',
   '/client/monuments',

@@ -248,6 +248,15 @@ export function NewTripCard({ onClick }: { onClick?: () => void }) {
           {/* Corner Highlights */}
           <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-cyan-400/30 to-transparent rounded-br-full blur-sm"></div>
           <div className="absolute bottom-0 right-0 w-16 h-16 bg-gradient-to-tl from-blue-400/30 to-transparent rounded-tl-full blur-sm"></div>
+
+          {/* Background Image Layer */}
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-20"
+            style={{ backgroundImage: 'url(/images/cities/lahore/lahore-02.jpg)' }}
+          />
+
+          {/* Readability Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black/35 via-black/20 to-black/30"></div>
           
           {/* Inner Glow on Hover */}
           <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/10 group-hover:to-blue-500/10 transition-all duration-75 rounded-2xl"></div>

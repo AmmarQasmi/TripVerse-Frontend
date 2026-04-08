@@ -97,7 +97,17 @@ export function HotelFilters({ filters, onFiltersChange }: HotelFiltersProps) {
                           filters.priceRange[1] < 50000
 
   return (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
+    <div className="relative overflow-hidden bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-55 pointer-events-none"
+        style={{
+          backgroundImage: 'url(/images/hotels/punjab/avari-lahore/main.jpg)',
+          filter: 'saturate(1.15) contrast(1.08)'
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900/38 via-gray-900/30 to-slate-900/34 pointer-events-none" />
+
+      <div className="relative z-10">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-semibold text-white">Filters</h3>
         {hasActiveFilters && (
@@ -319,6 +329,7 @@ export function HotelFilters({ filters, onFiltersChange }: HotelFiltersProps) {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

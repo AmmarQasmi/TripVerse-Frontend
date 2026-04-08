@@ -336,12 +336,12 @@ export function NotificationBell() {
             transition={{ duration: 0.2 }}
             className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50"
           >
-            <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+            <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-green-600">Notifications</h3>
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllAsRead}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-sm text-green-600 hover:text-green-700 font-medium"
                 >
                   Mark all as read
                 </button>
@@ -381,7 +381,7 @@ export function NotificationBell() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2">
-                              <p className={`text-sm font-medium flex-1 ${!notification.read_at ? 'text-gray-900' : 'text-gray-700'}`}>
+                              <p className={`text-sm font-medium flex-1 ${!notification.read_at ? 'text-green-600' : 'text-green-600'}`}>
                                 {notification.title}
                               </p>
                               <div className="flex items-center gap-2 flex-shrink-0">
@@ -400,7 +400,7 @@ export function NotificationBell() {
                                 )}
                               </div>
                             </div>
-                            <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
+                            <p className="text-sm text-green-600 mt-1">{notification.message}</p>
                             <p className="text-xs text-gray-400 mt-2">
                               {formatDate(notification.sent_at)}
                             </p>

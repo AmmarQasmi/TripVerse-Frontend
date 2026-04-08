@@ -181,44 +181,51 @@ export function LandingHeader() {
                       <>
                         <Link 
                           href="/client/dashboard" 
-                          className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
+                          className="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
                           onClick={() => setIsMenuOpen(false)}
                         >
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                          </svg>
-                          <span>Dashboard</span>
+                          <span className="w-9 h-9 rounded-full bg-white border-2 border-[#2f80ff] shadow-[0_0_0_2px_rgba(20,184,166,0.2)] flex items-center justify-center">
+                            <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6" />
+                            </svg>
+                          </span>
+                          <span className="text-sm font-semibold text-gray-700">Dashboard</span>
                         </Link>
                         <Link 
                           href="/client/hotels" 
-                          className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
+                          className="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
                           onClick={() => setIsMenuOpen(false)}
                         >
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                          </svg>
-                          <span>Hotels</span>
+                          <span className="w-9 h-9 rounded-full bg-white border-2 border-[#2f80ff] shadow-[0_0_0_2px_rgba(20,184,166,0.2)] flex items-center justify-center">
+                            <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M5 21V7a2 2 0 012-2h10a2 2 0 012 2v14M9 10h.01M9 14h.01M9 18h.01M15 10h.01M15 14h.01M15 18h.01" />
+                            </svg>
+                          </span>
+                          <span className="text-sm font-semibold text-gray-700">Hotels</span>
                         </Link>
                         <Link 
                           href="/client/cars" 
-                          className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
+                          className="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
                           onClick={() => setIsMenuOpen(false)}
                         >
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                          </svg>
-                          <span>Car Rentals</span>
+                          <span className="w-9 h-9 rounded-full bg-white border-2 border-[#2f80ff] shadow-[0_0_0_2px_rgba(20,184,166,0.2)] flex items-center justify-center">
+                            <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 13l1.5-4.5A2 2 0 016.4 7h11.2a2 2 0 011.9 1.5L21 13M5 16h14M7 16a2 2 0 100 4 2 2 0 000-4zm10 0a2 2 0 100 4 2 2 0 000-4z" />
+                            </svg>
+                          </span>
+                          <span className="text-sm font-semibold text-gray-700">Car Rentals</span>
                         </Link>
                         <Link 
                           href="/client/flights" 
-                          className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
+                          className="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-75"
                           onClick={() => setIsMenuOpen(false)}
                         >
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                          </svg>
-                          <span>Flights</span>
+                          <span className="w-9 h-9 rounded-full bg-white border-2 border-[#2f80ff] shadow-[0_0_0_2px_rgba(20,184,166,0.2)] flex items-center justify-center">
+                            <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2 16l20-4-20-4v3l13 1-13 1v3z" />
+                            </svg>
+                          </span>
+                          <span className="text-sm font-semibold text-gray-700">Flights</span>
                         </Link>
                       </>
                     ) : (

@@ -91,7 +91,11 @@ export function DoughnutChart({
     
     // Handle currency labels
     if (label === 'Total Spent' || label === 'Total Revenue' || label.includes('Earnings') || label.includes('Revenue')) {
-      return { display: `PKR ${val.toLocaleString()}`, prefix: '', isCurrency: true }
+      // Format with K for thousands to fit better
+      if (val >= 1000) {
+        return { display: `${(val / 1000).toFixed(1)}K`, prefix: 'PKR', isCurrency: true }
+      }
+      return { display: Math.floor(val).toLocaleString(), prefix: 'PKR', isCurrency: true }
     }
     
     // Regular numeric values
@@ -103,8 +107,8 @@ export function DoughnutChart({
   }
   const formatted = formatValue(displayValue)
 
-  // Use slightly smaller center text for large currency values so they stay inside the ring
-  const valueTextClass = formatted.isCurrency ? 'text-2xl md:text-3xl' : 'text-3xl'
+  // Use smaller center text for large currency values so they stay inside the ring
+  const valueTextClass = formatted.isCurrency ? 'text-lg md:text-2xl' : 'text-3xl'
 
   return (
     <motion.div
@@ -219,9 +223,9 @@ export function DoughnutChart({
         </svg>
         
         {/* Number in center */}
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-2">
           <motion.div 
-            className={`${valueTextClass} font-bold`}
+            className={`${valueTextClass} font-bold text-center leading-tight`}
             initial={{ scale: 0.5, opacity: 0, rotate: -180 }}
             animate={{ scale: 1, opacity: 1, rotate: 0 }}
             transition={{ 
@@ -236,12 +240,14 @@ export function DoughnutChart({
             }}
           >
             {formatted.prefix ? (
-              <>
-                <span className="animated-gradient-text">{formatted.prefix}</span>
-                <span className="animated-gradient-text">
-                  {formatted.display === '0' ? formatted.display : ` ${formatted.display}`}
-                </span>
-              </>
+              <div className="flex flex-col items-center justify-center w-full">
+                <div className="animated-gradient-text leading-none">
+                  {formatted.display}
+                </div>
+                <div className="animated-gradient-text text-xs md:text-sm mt-0.5 font-semibold">
+                  {formatted.prefix}
+                </div>
+              </div>
             ) : (
               <span className="animated-gradient-text">
                 {formatted.display}

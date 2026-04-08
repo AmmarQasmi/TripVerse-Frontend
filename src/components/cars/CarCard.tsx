@@ -81,6 +81,21 @@ export function CarCard({ car, isAvailable = true }: CarCardProps) {
     return 'Price on request'
   })()
 
+  const getLocationBackgroundImage = (location?: string) => {
+    const normalized = (location || '').toLowerCase()
+
+    if (normalized.includes('karachi')) return '/images/cities/karachi/karachi-03.png'
+    if (normalized.includes('lahore')) return '/images/cities/lahore/lahore-02.jpg'
+    if (normalized.includes('islamabad')) return '/images/cities/islamabad/islamabad-01.jpg'
+    if (normalized.includes('peshawar')) return '/images/cities/peshawar/peshawar-02.png'
+    if (normalized.includes('multan')) return '/images/cities/multan/multan-01.png'
+    if (normalized.includes('faisalabad')) return '/images/cities/faisalabad/faisalabad-01.png'
+
+    return '/images/cities/karachi/karachi-01.png'
+  }
+
+  const cardBackgroundImage = getLocationBackgroundImage(car.location)
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -89,9 +104,18 @@ export function CarCard({ car, isAvailable = true }: CarCardProps) {
       transition={{ duration: 0.3 }}
       className={`relative h-full ${!isAvailable ? 'opacity-75' : ''}`}
     >
-      <Card className="overflow-hidden hover:shadow-xl transition-all duration-75 cursor-pointer border border-white/10 shadow-lg bg-gray-800/50 backdrop-blur-sm h-full flex flex-col">
+      <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-75 cursor-pointer border border-white/10 shadow-lg bg-gray-800/50 backdrop-blur-sm h-full flex flex-col">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-55 pointer-events-none"
+          style={{
+            backgroundImage: `url(${cardBackgroundImage})`,
+            filter: 'saturate(1.18) contrast(1.12)'
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900/42 via-gray-900/34 to-slate-900/40 pointer-events-none" />
+
         {/* Image Section */}
-        <div className="aspect-video bg-gray-700 relative overflow-hidden">
+        <div className="aspect-video bg-gray-700 relative overflow-hidden z-10">
           {car.images?.[0] ? (
             <Image
               src={car.images[0]}
@@ -173,53 +197,61 @@ export function CarCard({ car, isAvailable = true }: CarCardProps) {
           )}
         </div>
         
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-bold text-white">
-            {car.brand} {car.model}
-          </CardTitle>
-          <p className="text-sm text-gray-400">{car.year} {car.color ? `• ${car.color}` : ''}</p>
-          <p className="text-sm text-teal-300 font-semibold">{priceBadge}</p>
-        </CardHeader>
-        
-        <CardContent className="py-2 flex-1">
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="flex items-center">
-              <svg className="w-4 h-4 text-cyan-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="text-gray-300">{car.seats} seats</span>
+        <div className="relative z-10 flex flex-col flex-1 overflow-hidden">
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-40 pointer-events-none"
+            style={{ backgroundImage: `url(${cardBackgroundImage})` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/56 via-gray-900/46 to-slate-900/52 pointer-events-none" />
+
+          <CardHeader className="relative z-10 pb-2">
+            <CardTitle className="text-lg font-bold text-white">
+              {car.brand} {car.model}
+            </CardTitle>
+            <p className="text-sm text-gray-400">{car.year} {car.color ? `• ${car.color}` : ''}</p>
+            <p className="text-sm text-teal-300 font-semibold">{priceBadge}</p>
+          </CardHeader>
+          
+          <CardContent className="relative z-10 py-2 flex-1">
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="flex items-center">
+                <svg className="w-4 h-4 text-cyan-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="text-gray-300">{car.seats} seats</span>
+              </div>
+              <div className="flex items-center">
+                <svg className="w-4 h-4 text-cyan-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="text-gray-300 capitalize">{car.transmission}</span>
+              </div>
+              <div className="flex items-center">
+                <svg className="w-4 h-4 text-cyan-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span className="text-gray-300 capitalize">{car.fuelType}</span>
+              </div>
+              <div className="flex items-center">
+                <svg className="w-4 h-4 text-cyan-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="text-gray-300 truncate">{car.location}</span>
+              </div>
             </div>
-            <div className="flex items-center">
-              <svg className="w-4 h-4 text-cyan-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="text-gray-300 capitalize">{car.transmission}</span>
-            </div>
-            <div className="flex items-center">
-              <svg className="w-4 h-4 text-cyan-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              <span className="text-gray-300 capitalize">{car.fuelType}</span>
-            </div>
-            <div className="flex items-center">
-              <svg className="w-4 h-4 text-cyan-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="text-gray-300 truncate">{car.location}</span>
-            </div>
-          </div>
-        </CardContent>
-        
-        <CardFooter className="pt-2">
-          <Button 
-            className="w-full bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold py-2.5 rounded-xl transition-all duration-75 shadow-lg hover:shadow-xl"
-            disabled={!isAvailable}
-          >
-            {isAvailable ? 'View Details' : 'Unavailable'}
-          </Button>
-        </CardFooter>
+          </CardContent>
+          
+          <CardFooter className="relative z-10 pt-2">
+            <Button 
+              className="w-full bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white font-semibold py-2.5 rounded-xl transition-all duration-75 shadow-lg hover:shadow-xl"
+              disabled={!isAvailable}
+            >
+              {isAvailable ? 'View Details' : 'Unavailable'}
+            </Button>
+          </CardFooter>
+        </div>
       </Card>
     </motion.div>
   )

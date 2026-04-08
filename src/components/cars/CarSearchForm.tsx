@@ -135,6 +135,7 @@ export function CarSearchForm({ onSearch, initialParams, embedded = false }: Car
 
   const inputClasses = "flex h-12 w-full rounded-xl border border-gray-600 bg-gray-900/80 px-4 py-3 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all backdrop-blur-sm"
   const dateInputClasses = "flex h-12 w-full rounded-xl border border-gray-600 bg-gray-900/80 px-4 py-3 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all [color-scheme:dark] backdrop-blur-sm"
+  const selectClasses = "flex h-12 w-full appearance-none rounded-xl border border-gray-600 bg-gray-900/80 px-4 pr-10 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all backdrop-blur-sm"
 
   const containerClass = embedded
     ? ''
@@ -290,18 +291,23 @@ export function CarSearchForm({ onSearch, initialParams, embedded = false }: Car
               </svg>
               Passengers
             </label>
-            <select
-              value={searchParams.passengers}
-              onChange={(e) => updateParam('passengers', parseInt(e.target.value))}
-              className={inputClasses}
-            >
-              <option value={0} className="bg-gray-800">Any</option>
-              <option value={2} className="bg-gray-800">1-2 passengers</option>
-              <option value={4} className="bg-gray-800">3-4 passengers</option>
-              <option value={5} className="bg-gray-800">5 passengers</option>
-              <option value={7} className="bg-gray-800">6-7 passengers</option>
-              <option value={8} className="bg-gray-800">8+ passengers</option>
-            </select>
+            <div className="relative">
+              <select
+                value={searchParams.passengers}
+                onChange={(e) => updateParam('passengers', parseInt(e.target.value))}
+                className={selectClasses}
+              >
+                <option value={0} className="bg-gray-800">Any</option>
+                <option value={2} className="bg-gray-800">1-2 passengers</option>
+                <option value={4} className="bg-gray-800">3-4 passengers</option>
+                <option value={5} className="bg-gray-800">5 passengers</option>
+                <option value={7} className="bg-gray-800">6-7 passengers</option>
+                <option value={8} className="bg-gray-800">8+ passengers</option>
+              </select>
+              <svg className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </div>
 
           {/* Transmission */}
@@ -313,15 +319,20 @@ export function CarSearchForm({ onSearch, initialParams, embedded = false }: Car
               </svg>
               Transmission
             </label>
-            <select
-              value={searchParams.carType}
-              onChange={(e) => updateParam('carType', e.target.value)}
-              className={inputClasses}
-            >
-              <option value="" className="bg-gray-800">Any</option>
-              <option value="automatic" className="bg-gray-800">Automatic</option>
-              <option value="manual" className="bg-gray-800">Manual</option>
-            </select>
+            <div className="relative">
+              <select
+                value={searchParams.carType}
+                onChange={(e) => updateParam('carType', e.target.value)}
+                className={selectClasses}
+              >
+                <option value="" className="bg-gray-800">Any</option>
+                <option value="automatic" className="bg-gray-800">Automatic</option>
+                <option value="manual" className="bg-gray-800">Manual</option>
+              </select>
+              <svg className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </div>
 
           {/* Search Button */}

@@ -154,40 +154,25 @@ const mockFlights = [
 ]
 
 const cityImages: Record<string, string> = {
-  Karachi: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400&h=300&fit=crop',
-  Lahore: 'https://images.unsplash.com/photo-1580655653885-65763b2597d0?w=400&h=300&fit=crop',
-  Islamabad: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?w=400&h=300&fit=crop',
-  Hyderabad: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=300&fit=crop',
-  Sukkur: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400&h=300&fit=crop',
-  Nawabshah: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400&h=300&fit=crop',
-  Jacobabad: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop',
-  Larkana: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=300&fit=crop',
-  'Mirpur Khas': 'https://images.unsplash.com/photo-1493244040629-496f6d136cc3?w=400&h=300&fit=crop',
-  Dadu: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=400&h=300&fit=crop',
-  Faisalabad: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=400&h=300&fit=crop',
-  Multan: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop',
-  Sialkot: 'https://images.unsplash.com/photo-1516496636080-14fb876e029d?w=400&h=300&fit=crop',
-  Bahawalpur: 'https://images.unsplash.com/photo-1439853949127-fa647821eba0?w=400&h=300&fit=crop',
-  'Dera Ghazi Khan': 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=300&fit=crop',
-  Sargodha: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=300&fit=crop',
-  'Rahim Yar Khan': 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=400&h=300&fit=crop',
-  Peshawar: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400&h=300&fit=crop',
-  Bannu: 'https://images.unsplash.com/photo-1527668752968-14dc70a27c95?w=400&h=300&fit=crop',
-  Chitral: 'https://images.unsplash.com/photo-1464823063530-08f10ed1a2dd?w=400&h=300&fit=crop',
-  'Dera Ismail Khan': 'https://images.unsplash.com/photo-1500534623283-312aade485b7?w=400&h=300&fit=crop',
-  Parachinar: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=400&h=300&fit=crop',
-  Swat: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400&h=300&fit=crop',
-  Quetta: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=400&h=300&fit=crop',
-  Gwadar: 'https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=400&h=300&fit=crop',
-  Turbat: 'https://images.unsplash.com/photo-1472396961693-142e6e269027?w=400&h=300&fit=crop',
-  Zhob: 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400&h=300&fit=crop',
-  Panjgur: 'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=400&h=300&fit=crop',
-  Dalbandin: 'https://images.unsplash.com/photo-1482192505345-5655af888cc4?w=400&h=300&fit=crop',
-  Pasni: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=400&h=300&fit=crop',
-  Ormara: 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400&h=300&fit=crop',
-  Skardu: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
-  Gilgit: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=300&fit=crop',
-  Chilas: 'https://images.unsplash.com/photo-1439853949127-fa647821eba0?w=400&h=300&fit=crop'
+  Karachi: '/images/cities/karachi/karachi-02.png',
+  Lahore: '/images/cities/lahore/lahore-02.jpg',
+  Islamabad: '/images/cities/islamabad/islamabad-02.jpg',
+  Faisalabad: '/images/cities/faisalabad/faisalabad-02.png',
+  Multan: '/images/cities/multan/multan-02.png',
+  Peshawar: '/images/cities/peshawar/peshawar-02.png',
+}
+
+const storedCityImageFallbacks = [
+  '/images/cities/karachi/karachi-01.png',
+  '/images/cities/lahore/lahore-01.png',
+  '/images/cities/islamabad/islamabad-01.jpg',
+  '/images/cities/faisalabad/faisalabad-01.png',
+  '/images/cities/multan/multan-01.png',
+  '/images/cities/peshawar/peshawar-01.png',
+]
+
+const getStoredCityImage = (city: string, index: number) => {
+  return cityImages[city] || storedCityImageFallbacks[index % storedCityImageFallbacks.length]
 }
 
 const pakistanAirports = [
@@ -246,7 +231,7 @@ const mockPopularRoutes = pakistanAirports.map((airport, index) => ({
   },
   startingPrice: 8500 + (index % 8) * 1700,
   currency: 'PKR',
-  image: cityImages[airport.city] || 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400&h=300&fit=crop',
+  image: getStoredCityImage(airport.city, index),
   airlineLogos: [
     'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=50&h=50&fit=crop',
     'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=50&h=50&fit=crop'

@@ -74,7 +74,14 @@ export function FlightFilters() {
   ]
 
   return (
-    <div className="rounded-2xl bg-slate-700/45 backdrop-blur-md border border-slate-500/40 p-6 shadow-xl">
+    <div className="relative overflow-hidden rounded-2xl bg-slate-700/45 backdrop-blur-md border border-slate-500/40 p-6 shadow-xl">
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-20 pointer-events-none"
+        style={{ backgroundImage: 'url(/images/cities/karachi/karachi-03.png)' }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-slate-900/75 via-slate-900/65 to-slate-900/70 pointer-events-none" />
+
+      <div className="relative z-10">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
@@ -231,6 +238,7 @@ export function FlightFilters() {
         >
           Clear All Filters
         </Button>
+      </div>
       </div>
     </div>
   )

@@ -31,7 +31,14 @@ export function CarFilters({ filters, onFiltersChange, onClearFilters }: CarFilt
     filters.sortBy !== 'newest'
 
   return (
-    <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-lg border border-white/20 p-6">
+    <div className="relative overflow-hidden bg-white/10 backdrop-blur-md rounded-2xl shadow-lg border border-white/20 p-6">
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-20 pointer-events-none"
+        style={{ backgroundImage: 'url(/images/cities/karachi/karachi-03.png)' }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-slate-900/75 via-slate-900/65 to-slate-900/70 pointer-events-none" />
+
+      <div className="relative z-10">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-white flex items-center gap-2">
@@ -151,6 +158,7 @@ export function CarFilters({ filters, onFiltersChange, onClearFilters }: CarFilt
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

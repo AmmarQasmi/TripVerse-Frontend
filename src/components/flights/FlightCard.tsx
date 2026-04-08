@@ -45,6 +45,15 @@ const convertToPKR = (amount: number, currency: string): number => {
 
 export function FlightCard({ flight, onSelect }: FlightCardProps) {
   const [isBooking, setIsBooking] = useState(false)
+
+  const flightCardBackgrounds = [
+    '/images/cities/karachi/karachi-03.png',
+    '/images/cities/lahore/lahore-03.png',
+    '/images/cities/islamabad/islamabad-03.jpg',
+    '/images/cities/faisalabad/faisalabad-03.png',
+    '/images/cities/multan/multan-03.png',
+    '/images/cities/peshawar/peshawar-03.png',
+  ]
   
   // Check if flight is from Duffel API (has offer_id) or mock data
   const isDuffelFlight = 'offer_id' in flight && flight.offer_id
@@ -98,6 +107,17 @@ export function FlightCard({ flight, onSelect }: FlightCardProps) {
     }
   } : flight as any
 
+  const getStableCardIndex = () => {
+    const base = `${flightData.id || ''}${flightData.flightNumber || ''}${flightData.origin?.code || ''}${flightData.destination?.code || ''}`
+    let hash = 0
+    for (let i = 0; i < base.length; i++) {
+      hash = (hash * 31 + base.charCodeAt(i)) % 100000
+    }
+    return hash % flightCardBackgrounds.length
+  }
+
+  const backgroundImage = flightCardBackgrounds[getStableCardIndex()]
+
   const handleBookNow = async (e: React.MouseEvent) => {
     e.stopPropagation()
     
@@ -123,10 +143,16 @@ export function FlightCard({ flight, onSelect }: FlightCardProps) {
     <motion.div
       whileHover={{ scale: 1.02, y: -2 }}
       transition={{ duration: 0.2 }}
-      className="bg-gray-800/80 backdrop-blur-md rounded-2xl p-6 border-2 border-cyan-500/60 hover:border-cyan-300/80 transition-all cursor-pointer group"
+      className="relative overflow-hidden bg-gray-800/80 backdrop-blur-md rounded-2xl p-6 border-2 border-cyan-500/60 hover:border-cyan-300/80 transition-all cursor-pointer group"
       onClick={onSelect || undefined}
     >
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-20 pointer-events-none"
+        style={{ backgroundImage: `url(${backgroundImage})` }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-slate-900/75 via-slate-900/65 to-slate-900/70 pointer-events-none" />
+
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
         {/* Airline Info */}
         <div className="lg:col-span-3">
           <div className="flex items-center mb-3">
@@ -264,7 +290,7 @@ export function FlightCard({ flight, onSelect }: FlightCardProps) {
       </div>
 
       {/* Additional Info */}
-      <div className="mt-4 pt-4 border-t border-gray-700/50">
+      <div className="relative z-10 mt-4 pt-4 border-t border-gray-700/50">
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center space-x-4">
             <div className="flex items-center text-gray-400">
