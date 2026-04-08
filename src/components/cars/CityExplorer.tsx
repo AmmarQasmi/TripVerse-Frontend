@@ -28,31 +28,93 @@ export function CityExplorer() {
           ))}
         </div>
       ) : popularCities && popularCities.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-10 justify-items-center">
           {popularCities.map((city) => (
             <button
               key={city.city}
               onClick={() => setSelectedCity(selectedCity === city.city ? null : city.city)}
-              className={`relative p-5 rounded-xl text-left transition-all duration-200 border group ${
-                selectedCity === city.city
-                  ? 'bg-gradient-to-br from-[#1e3a8a] to-[#0d9488] border-transparent text-white shadow-lg shadow-teal-500/20 scale-[1.02]'
-                  : 'bg-gray-800/50 backdrop-blur-sm border-white/10 text-gray-300 hover:bg-gray-700/60 hover:border-white/20'
+              className={`group w-full max-w-[200px] transition-all duration-75 ${
+                selectedCity === city.city ? 'scale-[1.03]' : 'hover:scale-[1.01]'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-semibold text-base">{city.city}</div>
-                  <div className={`text-xs mt-1 ${selectedCity === city.city ? 'text-white/80' : 'text-gray-400'}`}>{city.region}</div>
-                </div>
-                <div className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${
-                  selectedCity === city.city
-                    ? 'bg-white/20 text-white'
-                    : 'bg-gray-700/50 text-gray-400'
-                }`}>
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  {city.available_drivers}
+              <div
+                className="relative w-full aspect-[1.35/1] rounded-2xl overflow-hidden backdrop-blur-md bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 opacity-95 shadow-2xl hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-75 flex items-center justify-center"
+                style={{
+                  border: '2px solid transparent',
+                  backgroundImage: `
+                    linear-gradient(to right, rgb(29, 78, 216), rgb(21, 94, 117), rgb(30, 64, 175)),
+                    linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)
+                  `,
+                  backgroundOrigin: 'border-box',
+                  backgroundClip: 'padding-box, border-box'
+                }}
+              >
+                <motion.div
+                  className="absolute inset-0 rounded-2xl"
+                  style={{
+                    background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
+                    backgroundSize: '200% 100%',
+                    opacity: 0.9,
+                    filter: 'blur(1px)',
+                    zIndex: -1,
+                    border: '2px solid transparent',
+                    backgroundClip: 'border-box'
+                  }}
+                  animate={{
+                    backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: 'easeInOut'
+                  }}
+                />
+
+                <motion.div
+                  className="absolute inset-0 rounded-2xl"
+                  style={{
+                    background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
+                    backgroundSize: '200% 100%',
+                    filter: 'blur(3px)',
+                    opacity: selectedCity === city.city ? 0.55 : 0.4,
+                    zIndex: -2
+                  }}
+                  animate={{
+                    backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: 'easeInOut'
+                  }}
+                />
+
+                <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-cyan-400/30 to-transparent rounded-br-full blur-sm" />
+                <div className="absolute bottom-0 right-0 w-16 h-16 bg-gradient-to-tl from-blue-400/30 to-transparent rounded-tl-full blur-sm" />
+
+                <div
+                  className="absolute inset-0 bg-cover bg-center opacity-30"
+                  style={{ backgroundImage: 'url(/images/cities/lahore/lahore-02.jpg)' }}
+                />
+
+                <div className="absolute inset-0 bg-gradient-to-br from-black/35 via-black/20 to-black/30" />
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/10 group-hover:to-blue-500/10 transition-all duration-75 rounded-2xl" />
+
+                <div className="relative z-10 text-center px-3">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center mx-auto mb-2 shadow-lg group-hover:shadow-blue-500/50 transition-all">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-white font-semibold text-sm mb-0.5">{city.city}</p>
+                  <p className="text-cyan-300 text-xs">{city.region}</p>
+                  <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full bg-black/40 text-white border border-white/15">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    {city.available_drivers} drivers
+                  </div>
                 </div>
               </div>
             </button>

@@ -106,6 +106,7 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
   const [showGuestsDropdown, setShowGuestsDropdown] = useState(false)
   const [showCityDropdown, setShowCityDropdown] = useState(false)
   const [showMapPicker, setShowMapPicker] = useState(false)
+  const [isLocationFocused, setIsLocationFocused] = useState(false)
   const [searchingText, setSearchingText] = useState('')
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([])
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
@@ -184,7 +185,7 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Destination */}
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center justify-between">
+          <label className="text-sm font-medium text-gray-300 mb-2 flex items-center justify-between">
             <span>Where to?</span>
             <button
               type="button"
@@ -201,7 +202,7 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
             <input
               ref={cityInputRef}
               type="text"
-              placeholder="Search city, region or address..."
+              placeholder=""
               value={showCityDropdown ? searchingText : params.location || searchingText}
               onChange={(e) => {
                 const val = e.target.value
@@ -212,12 +213,25 @@ export function HotelSearchForm({ onSearch, initialParams }: HotelSearchFormProp
                 debounceTimer.current = setTimeout(() => fetchSuggestions(val), 300)
               }}
               onFocus={() => {
+                setIsLocationFocused(true)
                 setSearchingText(params.location || '')
                 setShowCityDropdown(true)
               }}
+              onBlur={() => setIsLocationFocused(false)}
               className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:border-[#38bdf8] focus:ring-2 focus:ring-[#38bdf8]/20 focus:outline-none transition-all duration-75 pr-10"
               autoComplete="off"
             />
+            {!params.location && !searchingText && !isLocationFocused && (
+              <div className="pointer-events-none absolute inset-y-0 left-4 right-12 flex items-center overflow-hidden text-gray-400">
+                <motion.span
+                  className="whitespace-nowrap"
+                  animate={{ x: [0, -55, 0] }}
+                  transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  Search city, region or address
+                </motion.span>
+              </div>
+            )}
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
               {isLoadingSuggestions
                 ? <svg className="animate-spin h-4 w-4 text-cyan-400" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>

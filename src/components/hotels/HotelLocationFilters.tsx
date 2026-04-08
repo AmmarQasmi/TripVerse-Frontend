@@ -79,7 +79,13 @@ export function HotelLocationFilters({ onFilterChange, initialCity = '', initial
 
   return (
     <div className="mb-6">
-      <div className="rounded-2xl bg-gray-900/60 backdrop-blur-md border border-gray-700/50 p-5">
+      <div className="relative rounded-2xl bg-gray-900/60 backdrop-blur-md border border-gray-700/50 p-5 overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-20 pointer-events-none"
+          style={{ backgroundImage: 'url(/images/cities/karachi/karachi-03.png)' }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-900/75 via-gray-900/65 to-slate-900/70 pointer-events-none" />
+        <div className="relative z-10">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -195,6 +201,7 @@ export function HotelLocationFilters({ onFilterChange, initialCity = '', initial
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
       </div>
     </div>
   )

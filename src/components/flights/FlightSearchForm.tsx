@@ -64,6 +64,8 @@ export function FlightSearchForm({ onSearch, isLoading = false, embedded = false
   const [destinationSuggestions, setDestinationSuggestions] = useState<typeof airports>([])
   const [showOriginSuggestions, setShowOriginSuggestions] = useState(false)
   const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false)
+  const [isOriginFocused, setIsOriginFocused] = useState(false)
+  const [isDestinationFocused, setIsDestinationFocused] = useState(false)
 
   // Mock airports for autocomplete
   const airports = [
@@ -411,16 +413,31 @@ export function FlightSearchForm({ onSearch, isLoading = false, embedded = false
                   value={searchParams.origin}
                   onChange={(e) => handleOriginChange(e.target.value)}
                   onFocus={() => {
+                    setIsOriginFocused(true)
                     if (searchParams.origin) {
                       const suggestions = filterAirports(searchParams.origin)
                       setOriginSuggestions(suggestions)
                       setShowOriginSuggestions(suggestions.length > 0)
                     }
                   }}
-                  onBlur={() => setTimeout(() => setShowOriginSuggestions(false), 200)}
-                  placeholder="City or airport"
+                  onBlur={() => {
+                    setIsOriginFocused(false)
+                    setTimeout(() => setShowOriginSuggestions(false), 200)
+                  }}
+                  placeholder=""
                   className="w-full pl-12 pr-4 py-3 bg-transparent text-white placeholder-gray-400 focus:outline-none"
                 />
+                {!searchParams.origin && !isOriginFocused && (
+                  <div className="pointer-events-none absolute inset-y-0 left-12 right-4 flex items-center overflow-hidden text-gray-400">
+                    <motion.span
+                      className="whitespace-nowrap"
+                      animate={{ x: [0, -55, 0] }}
+                      transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                      City or Airport
+                    </motion.span>
+                  </div>
+                )}
                 {showOriginSuggestions && originSuggestions.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800/95 backdrop-blur-md rounded-lg border border-gray-600 shadow-xl z-50 max-h-48 overflow-y-auto">
                     {originSuggestions.map((airport) => (
@@ -461,16 +478,31 @@ export function FlightSearchForm({ onSearch, isLoading = false, embedded = false
                   value={searchParams.destination}
                   onChange={(e) => handleDestinationChange(e.target.value)}
                   onFocus={() => {
+                    setIsDestinationFocused(true)
                     if (searchParams.destination) {
                       const suggestions = filterAirports(searchParams.destination)
                       setDestinationSuggestions(suggestions)
                       setShowDestinationSuggestions(suggestions.length > 0)
                     }
                   }}
-                  onBlur={() => setTimeout(() => setShowDestinationSuggestions(false), 200)}
-                  placeholder="City or airport"
+                  onBlur={() => {
+                    setIsDestinationFocused(false)
+                    setTimeout(() => setShowDestinationSuggestions(false), 200)
+                  }}
+                  placeholder=""
                   className="w-full pl-12 pr-4 py-3 bg-transparent text-white placeholder-gray-400 focus:outline-none"
                 />
+                {!searchParams.destination && !isDestinationFocused && (
+                  <div className="pointer-events-none absolute inset-y-0 left-12 right-4 flex items-center overflow-hidden text-gray-400">
+                    <motion.span
+                      className="whitespace-nowrap"
+                      animate={{ x: [0, -55, 0] }}
+                      transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                      City or Airport
+                    </motion.span>
+                  </div>
+                )}
                 {showDestinationSuggestions && destinationSuggestions.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800/95 backdrop-blur-md rounded-lg border border-gray-600 shadow-xl z-50 max-h-48 overflow-y-auto">
                     {destinationSuggestions.map((airport) => (
@@ -545,16 +577,31 @@ export function FlightSearchForm({ onSearch, isLoading = false, embedded = false
                     value={searchParams.origin}
                     onChange={(e) => handleOriginChange(e.target.value)}
                     onFocus={() => {
+                      setIsOriginFocused(true)
                       if (searchParams.origin) {
                         const suggestions = filterAirports(searchParams.origin)
                         setOriginSuggestions(suggestions)
                         setShowOriginSuggestions(suggestions.length > 0)
                       }
                     }}
-                    onBlur={() => setTimeout(() => setShowOriginSuggestions(false), 200)}
-                    placeholder="City or airport"
+                    onBlur={() => {
+                      setIsOriginFocused(false)
+                      setTimeout(() => setShowOriginSuggestions(false), 200)
+                    }}
+                    placeholder=""
                     className="w-full pl-12 pr-4 py-3 bg-transparent text-white placeholder-gray-400 focus:outline-none"
                   />
+                  {!searchParams.origin && !isOriginFocused && (
+                    <div className="pointer-events-none absolute inset-y-0 left-12 right-4 flex items-center overflow-hidden text-gray-400">
+                      <motion.span
+                        className="whitespace-nowrap"
+                        animate={{ x: [0, -55, 0] }}
+                        transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                      >
+                        City or Airport
+                      </motion.span>
+                    </div>
+                  )}
                   {showOriginSuggestions && originSuggestions.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800/95 backdrop-blur-md rounded-lg border border-gray-600 shadow-xl z-50 max-h-48 overflow-y-auto">
                       {originSuggestions.map((airport) => (
@@ -595,16 +642,31 @@ export function FlightSearchForm({ onSearch, isLoading = false, embedded = false
                     value={searchParams.destination}
                     onChange={(e) => handleDestinationChange(e.target.value)}
                     onFocus={() => {
+                      setIsDestinationFocused(true)
                       if (searchParams.destination) {
                         const suggestions = filterAirports(searchParams.destination)
                         setDestinationSuggestions(suggestions)
                         setShowDestinationSuggestions(suggestions.length > 0)
                       }
                     }}
-                    onBlur={() => setTimeout(() => setShowDestinationSuggestions(false), 200)}
-                    placeholder="City or airport"
+                    onBlur={() => {
+                      setIsDestinationFocused(false)
+                      setTimeout(() => setShowDestinationSuggestions(false), 200)
+                    }}
+                    placeholder=""
                     className="w-full pl-12 pr-4 py-3 bg-transparent text-white placeholder-gray-400 focus:outline-none"
                   />
+                  {!searchParams.destination && !isDestinationFocused && (
+                    <div className="pointer-events-none absolute inset-y-0 left-12 right-4 flex items-center overflow-hidden text-gray-400">
+                      <motion.span
+                        className="whitespace-nowrap"
+                        animate={{ x: [0, -55, 0] }}
+                        transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                      >
+                        City or Airport
+                      </motion.span>
+                    </div>
+                  )}
                   {showDestinationSuggestions && destinationSuggestions.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800/95 backdrop-blur-md rounded-lg border border-gray-600 shadow-xl z-50 max-h-48 overflow-y-auto">
                       {destinationSuggestions.map((airport) => (
@@ -646,9 +708,20 @@ export function FlightSearchForm({ onSearch, isLoading = false, embedded = false
                         type="text"
                         value={leg.origin}
                         onChange={(e) => setMultiLegs((legs) => legs.map((l, i) => i===idx ? { ...l, origin: e.target.value } : l))}
-                        placeholder="City or airport"
-                        className="w-full pl-12 pr-4 py-3 bg-transparent text-white placeholder-gray-400 focus:outline-none"
+                        placeholder=""
+                        className="peer w-full pl-12 pr-4 py-3 bg-transparent text-white placeholder-gray-400 focus:outline-none"
                       />
+                      {!leg.origin && (
+                        <div className="pointer-events-none absolute inset-y-0 left-12 right-4 flex items-center overflow-hidden text-gray-400 transition-opacity duration-150 peer-focus:opacity-0">
+                          <motion.span
+                            className="whitespace-nowrap"
+                            animate={{ x: [0, -55, 0] }}
+                            transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                          >
+                            City or Airport
+                          </motion.span>
+                        </div>
+                      )}
                     </div>
                     <div className="relative flex items-center">
                       <div className="h-6 w-px bg-gray-600" />
@@ -659,9 +732,20 @@ export function FlightSearchForm({ onSearch, isLoading = false, embedded = false
                         type="text"
                         value={leg.destination}
                         onChange={(e) => setMultiLegs((legs) => legs.map((l, i) => i===idx ? { ...l, destination: e.target.value } : l))}
-                        placeholder="City or airport"
-                        className="w-full pl-12 pr-4 py-3 bg-transparent text-white placeholder-gray-400 focus:outline-none"
+                        placeholder=""
+                        className="peer w-full pl-12 pr-4 py-3 bg-transparent text-white placeholder-gray-400 focus:outline-none"
                       />
+                      {!leg.destination && (
+                        <div className="pointer-events-none absolute inset-y-0 left-12 right-4 flex items-center overflow-hidden text-gray-400 transition-opacity duration-150 peer-focus:opacity-0">
+                          <motion.span
+                            className="whitespace-nowrap"
+                            animate={{ x: [0, -55, 0] }}
+                            transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                          >
+                            City or Airport
+                          </motion.span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

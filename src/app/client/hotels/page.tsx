@@ -300,7 +300,7 @@ export default function HotelsPage() {
             </div>
             
             <p className="text-gray-300 mt-4 text-sm">
-              Compare hundreds of hotels — powered by TripVerse.
+              Compare hundreds of hotels powered by TripVerse.
             </p>
           </motion.div>
         </div>
@@ -457,7 +457,14 @@ export default function HotelsPage() {
           <div className="mb-8 grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Compact filters card */}
             <div className="lg:col-span-1">
-              <div className="rounded-2xl bg-gray-900/60 backdrop-blur-md border border-cyan-600/40 p-6 h-full flex flex-col">
+              <div className="relative overflow-hidden rounded-2xl bg-gray-900/60 backdrop-blur-md border border-cyan-600/40 p-6 h-full flex flex-col">
+                <div
+                  className="absolute inset-0 bg-cover bg-center opacity-20 pointer-events-none"
+                  style={{ backgroundImage: 'url(/images/cities/karachi/karachi-03.png)' }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-900/75 via-gray-900/65 to-slate-900/70 pointer-events-none" />
+
+                <div className="relative z-10 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-white font-semibold text-xl">Filters</h3>
                   <button
@@ -530,6 +537,7 @@ export default function HotelsPage() {
 
                 <div className="flex justify-end mt-auto pt-4">
                   <button onClick={()=> setSearchParams(prev=> ({ ...prev }))} className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white px-5 py-2 rounded-xl font-semibold shadow-lg hover:shadow-cyan-500/20 transition-all">Apply Filters</button>
+                </div>
                 </div>
               </div>
             </div>

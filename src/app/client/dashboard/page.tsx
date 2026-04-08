@@ -496,28 +496,6 @@ export default function ClientDashboard() {
           </div>
         </motion.section>
 
-        <motion.section
-          className="mb-10"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.55 }}
-        >
-          <div className="rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50 to-blue-50 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">My Complaints</h3>
-              <p className="text-sm text-gray-600">Track all previously filed and new complaints with live status updates.</p>
-            </div>
-            <div className="flex gap-3">
-              <Link href="/client/disputes">
-                <Button className="bg-cyan-600 hover:bg-cyan-700 text-white">View Complaints</Button>
-              </Link>
-              <Link href="/client/disputes/new">
-                <Button variant="outline">File New</Button>
-              </Link>
-            </div>
-          </div>
-        </motion.section>
-
         {/* My Itineraries Section */}
         <motion.section
           className="mb-12"
@@ -575,37 +553,57 @@ export default function ClientDashboard() {
                     key={it.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="group bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
+                    className="group bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col"
+                    style={{
+                      border: '2px solid transparent',
+                      backgroundImage: `
+                        linear-gradient(to right, rgb(240, 249, 255), rgb(240, 253, 250)),
+                        linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)
+                      `,
+                      backgroundOrigin: 'border-box',
+                      backgroundClip: 'padding-box, border-box'
+                    }}
                   >
                     <Link href={`/client/itinerary/${it.id}`}>
-                      <div className="p-4">
-                        <div className="flex items-start justify-between mb-2">
+                      <div className="bg-gradient-to-r from-blue-700 via-cyan-600 to-emerald-600 border-b border-cyan-400/50 px-5 py-3.5">
+                        <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-900 text-sm truncate">{it.title}</h3>
-                            <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                              <MapPin className="w-3 h-3" />
-                              {it.destination}
+                            <h3 className="font-bold text-white text-base leading-tight mb-1">{it.title}</h3>
+                            <p className="text-xs text-white/90 flex items-center gap-1 font-medium">
+                              <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="truncate">{it.destination}</span>
                             </p>
                           </div>
-                          <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${status.color}`}>
+                          <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold flex-shrink-0 ${status.color}`}>
                             {status.icon}
                             {status.label}
                           </span>
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-gray-400 mt-2">
-                          <span>{it.durationDays} days</span>
-                          {it.travelStyle && <span>{it.travelStyle}</span>}
-                          {it.budget && <span>{it.budget}</span>}
+                      </div>
+                      <div className="p-5 flex-1">
+                        <div className="space-y-2 pt-1">
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-gray-600 font-medium">{it.durationDays} days</span>
+                            {it.travelStyle && (
+                              <>
+                                <span className="text-gray-300">•</span>
+                                <span className="text-gray-600">{it.travelStyle}</span>
+                              </>
+                            )}
+                          </div>
+                          {it.budget && (
+                            <p className="text-xs text-cyan-700 font-medium">Budget: {it.budget}</p>
+                          )}
                         </div>
                       </div>
                     </Link>
-                    <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex justify-end">
+                    <div className="px-5 py-0 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteItineraryMutation.mutate(it.id) }}
-                        className="p-1 opacity-0 group-hover:opacity-100 hover:bg-red-50 rounded transition-all"
+                        className="p-1.5 hover:bg-red-50 rounded-lg transition-all"
                         title="Delete itinerary"
                       >
-                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        <Trash2 className="w-4 h-4 text-red-400 hover:text-red-500" />
                       </button>
                     </div>
                   </motion.div>
@@ -642,6 +640,28 @@ export default function ClientDashboard() {
             </motion.span>
           </h2>
           <SupportCard />
+        </motion.section>
+
+        <motion.section
+          className="mb-10 mt-8"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.65 }}
+        >
+          <div className="rounded-2xl bg-gradient-to-r from-blue-700 via-cyan-600 to-emerald-600 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-white">My Complaints</h3>
+              <p className="text-sm text-white/90">Track all previously filed and new complaints with live status updates.</p>
+            </div>
+            <div className="flex gap-3">
+              <Link href="/client/disputes">
+                <Button className="bg-white hover:bg-gray-100 text-cyan-600 font-semibold">View Complaints</Button>
+              </Link>
+              <Link href="/client/disputes/new">
+                <Button className="bg-white hover:bg-gray-100 text-cyan-600 font-semibold border-0">File New</Button>
+              </Link>
+            </div>
+          </div>
         </motion.section>
       </div>
 

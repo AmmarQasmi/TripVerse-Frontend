@@ -206,7 +206,7 @@ export default function CarsPage() {
               Find the Right Ride for Your Trip
             </h1>
             <p className="text-xl md:text-2xl text-gray-200 mb-8 leading-relaxed">
-              Rent verified cars from local drivers — fast, secure, and flexible.
+              Rent verified cars from local drivers fast, secure, and flexible.
             </p>
             
             {/* Search Form */}
@@ -216,7 +216,7 @@ export default function CarsPage() {
             />
             
             <p className="text-gray-300 mt-4 text-sm">
-              Verified drivers • Secure Stripe payments • Real-time availability
+              Verified drivers • Secure Stripe payments • Real time availability
             </p>
           </motion.div>
         </div>
@@ -306,8 +306,15 @@ export default function CarsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="mb-8 bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 border border-white/10"
+            className="relative mb-8 bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 border border-white/10 overflow-hidden"
           >
+            <div
+              className="absolute inset-0 bg-cover bg-center opacity-20 pointer-events-none"
+              style={{ backgroundImage: 'url(/images/cities/lahore/lahore-03.png)' }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/75 via-slate-900/65 to-slate-900/70 pointer-events-none" />
+
+            <div className="relative z-10">
             <p className="text-sm text-gray-400 mb-3">I need a car for:</p>
             <div className="flex flex-wrap gap-3">
               <button
@@ -366,6 +373,7 @@ export default function CarsPage() {
                 <span className="text-xs text-gray-500">Drivers currently accepting rides</span>
               </div>
             )}
+            </div>
           </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">

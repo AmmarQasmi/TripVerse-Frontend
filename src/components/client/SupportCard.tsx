@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { useState } from 'react'
 
 export function SupportCard() {
@@ -18,29 +17,23 @@ export function SupportCard() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Feedback Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        whileHover={{ 
-          scale: 1.01,
-        }}
-        className="relative group overflow-hidden rounded-2xl backdrop-blur-md bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 opacity-95 shadow-2xl hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-75 p-8"
+      <div
+        className="relative group overflow-hidden rounded-2xl backdrop-blur-md bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-800 opacity-95 shadow-2xl hover:shadow-emerald-400/25 hover:shadow-2xl transition-all duration-75 p-8"
         style={{
           border: '2px solid transparent',
           backgroundImage: `
-            linear-gradient(to right, rgb(29, 78, 216), rgb(21, 94, 117), rgb(30, 64, 175)),
-            linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)
+            linear-gradient(to right, rgb(6, 95, 70), rgb(15, 118, 110), rgb(21, 94, 117)),
+            linear-gradient(90deg, #0f766e, #10b981, #0891b2, #0f766e)
           `,
           backgroundOrigin: 'border-box',
           backgroundClip: 'padding-box, border-box'
         }}
       >
         {/* Animated Neon Border - TripVerse Theme */}
-        <motion.div
+        <div
           className="absolute inset-0 rounded-2xl"
           style={{
-            background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
+            background: 'linear-gradient(90deg, #0f766e, #10b981, #0891b2, #0f766e)',
             backgroundSize: '200% 100%',
             opacity: 0.9,
             filter: 'blur(1px)',
@@ -48,42 +41,35 @@ export function SupportCard() {
             border: '2px solid transparent',
             backgroundClip: 'border-box'
           }}
-          animate={{ 
-            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
-          }}
-          transition={{ 
-            duration: 3, 
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
         />
         
         {/* Outer Glow Effect */}
-        <motion.div 
+        <div 
           className="absolute inset-0 rounded-2xl"
           style={{
-            background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
+            background: 'linear-gradient(90deg, #0f766e, #10b981, #0891b2, #0f766e)',
             backgroundSize: '200% 100%',
             filter: 'blur(3px)',
             opacity: 0.4,
             zIndex: -2
           }}
-          animate={{ 
-            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
-          }}
-          transition={{ 
-            duration: 3, 
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
         />
         
         {/* Corner Highlights */}
-        <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-cyan-400/30 to-transparent rounded-br-full blur-sm"></div>
-        <div className="absolute bottom-0 right-0 w-16 h-16 bg-gradient-to-tl from-blue-400/30 to-transparent rounded-tl-full blur-sm"></div>
+        <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-emerald-400/30 to-transparent rounded-br-full blur-sm"></div>
+        <div className="absolute bottom-0 right-0 w-16 h-16 bg-gradient-to-tl from-teal-400/30 to-transparent rounded-tl-full blur-sm"></div>
+
+        {/* Background Image Layer */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-20"
+          style={{ backgroundImage: 'url(/images/cities/islamabad/islamabad-03.jpg)' }}
+        />
+
+        {/* Readability Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-black/35 via-black/20 to-black/30"></div>
         
         {/* Inner Glow on Hover */}
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/10 group-hover:to-blue-500/10 transition-all duration-75 rounded-2xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 to-teal-500/0 group-hover:from-emerald-500/10 group-hover:to-teal-500/10 transition-all duration-75 rounded-2xl"></div>
         <div className="relative z-10">
           <div className="flex items-center mb-4">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center mr-3 shadow-lg">
@@ -112,42 +98,34 @@ export function SupportCard() {
               rows={3}
               className="w-full px-4 py-2 rounded-lg backdrop-blur-sm bg-white/20 border border-white/30 text-white placeholder-gray-200 text-sm focus:outline-none focus:border-white/50 focus:ring-1 focus:ring-white/30 transition-colors resize-none"
             />
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <button
               type="submit"
-              className="w-full py-2 rounded-lg bg-gradient-to-r from-teal-500 via-emerald-500 to-orange-400 text-white font-semibold text-sm shadow-lg hover:from-teal-600 hover:via-emerald-600 hover:to-orange-500 transition-all"
+              className="w-full py-2 rounded-lg bg-gradient-to-r from-emerald-400 to-teal-500 text-white font-semibold text-sm shadow-lg hover:from-emerald-500 hover:to-teal-600 transition-all"
             >
               Send Feedback
-            </motion.button>
+            </button>
           </form>
         </div>
-      </motion.div>
+      </div>
 
       {/* Support Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.5 }}
-        whileHover={{ 
-          scale: 1.01,
-        }}
-        className="relative group overflow-hidden rounded-2xl backdrop-blur-md bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-800 opacity-95 shadow-2xl hover:shadow-cyan-400/25 hover:shadow-2xl transition-all duration-75 p-8"
+      <div
+        className="relative group overflow-hidden rounded-2xl backdrop-blur-md bg-gradient-to-r from-blue-800 via-blue-700 to-cyan-700 opacity-95 shadow-2xl hover:shadow-blue-400/25 hover:shadow-2xl transition-all duration-75 p-8"
         style={{
           border: '2px solid transparent',
           backgroundImage: `
-            linear-gradient(to right, rgb(29, 78, 216), rgb(21, 94, 117), rgb(30, 64, 175)),
-            linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)
+            linear-gradient(to right, rgb(30, 64, 175), rgb(29, 78, 216), rgb(8, 145, 178)),
+            linear-gradient(90deg, #1e3a8a, #2563eb, #0891b2, #1e3a8a)
           `,
           backgroundOrigin: 'border-box',
           backgroundClip: 'padding-box, border-box'
         }}
       >
         {/* Animated Neon Border - TripVerse Theme */}
-        <motion.div
+        <div
           className="absolute inset-0 rounded-2xl"
           style={{
-            background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
+            background: 'linear-gradient(90deg, #1e3a8a, #2563eb, #0891b2, #1e3a8a)',
             backgroundSize: '200% 100%',
             opacity: 0.9,
             filter: 'blur(1px)',
@@ -155,39 +133,32 @@ export function SupportCard() {
             border: '2px solid transparent',
             backgroundClip: 'border-box'
           }}
-          animate={{ 
-            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
-          }}
-          transition={{ 
-            duration: 3, 
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
         />
         
         {/* Outer Glow Effect */}
-        <motion.div 
+        <div 
           className="absolute inset-0 rounded-2xl"
           style={{
-            background: 'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
+            background: 'linear-gradient(90deg, #1e3a8a, #2563eb, #0891b2, #1e3a8a)',
             backgroundSize: '200% 100%',
             filter: 'blur(3px)',
             opacity: 0.4,
             zIndex: -2
-          }}
-          animate={{ 
-            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] 
-          }}
-          transition={{ 
-            duration: 3, 
-            repeat: Infinity,
-            ease: "easeInOut"
           }}
         />
         
         {/* Corner Highlights */}
         <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-cyan-400/30 to-transparent rounded-br-full blur-sm"></div>
         <div className="absolute bottom-0 right-0 w-16 h-16 bg-gradient-to-tl from-blue-400/30 to-transparent rounded-tl-full blur-sm"></div>
+
+        {/* Background Image Layer */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-20"
+          style={{ backgroundImage: 'url(/images/cities/karachi/karachi-03.png)' }}
+        />
+
+        {/* Readability Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-black/35 via-black/20 to-black/30"></div>
         
         {/* Inner Glow on Hover */}
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/10 group-hover:to-blue-500/10 transition-all duration-75 rounded-2xl"></div>
@@ -207,8 +178,7 @@ export function SupportCard() {
 
           <div className="space-y-3">
             {/* Live Chat */}
-            <motion.button
-              whileHover={{ scale: 1.02, x: 4 }}
+            <button
               className="w-full flex items-center justify-between p-3 rounded-lg backdrop-blur-sm bg-white/20 hover:bg-white/30 border border-white/30 hover:border-white/50 transition-all group"
             >
               <div className="flex items-center">
@@ -223,12 +193,11 @@ export function SupportCard() {
               <svg className="w-4 h-4 text-gray-300 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </motion.button>
+            </button>
 
             {/* Email Support */}
-            <motion.a
+            <a
               href="mailto:support@tripverse.com"
-              whileHover={{ scale: 1.02, x: 4 }}
               className="w-full flex items-center justify-between p-3 rounded-lg backdrop-blur-sm bg-white/20 hover:bg-white/30 border border-white/30 hover:border-white/50 transition-all group"
             >
               <div className="flex items-center">
@@ -243,11 +212,10 @@ export function SupportCard() {
               <svg className="w-4 h-4 text-gray-300 group-hover:text-cyan-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </motion.a>
+            </a>
 
             {/* Help Center */}
-            <motion.button
-              whileHover={{ scale: 1.02, x: 4 }}
+            <button
               className="w-full flex items-center justify-between p-3 rounded-lg backdrop-blur-sm bg-white/20 hover:bg-white/30 border border-white/30 hover:border-white/50 transition-all group"
             >
               <div className="flex items-center">
@@ -262,10 +230,10 @@ export function SupportCard() {
               <svg className="w-4 h-4 text-gray-300 group-hover:text-lime-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </motion.button>
+            </button>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }

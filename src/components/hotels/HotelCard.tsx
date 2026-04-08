@@ -102,6 +102,27 @@ interface HotelCardProps {
 export function HotelCard({ hotel, onBook, searchDates }: HotelCardProps) {
   const { isFavorite, toggleFavorite } = useFavoriteHotels()
   const isFavorited = isFavorite(hotel.id)
+  const localHotelImages = [
+    '/images/hotels/punjab/avari-lahore/main.jpg',
+    '/images/hotels/punjab/pearl-continental-lahore/main.jpg',
+    '/images/hotels/punjab/pc-bhurban/main.jpg',
+    '/images/hotels/punjab/serena-hotel-islamabad/main.jpg',
+    '/images/hotels/sindh/avari-towers-karachi/main.jpg',
+    '/images/hotels/sindh/movenpick-karachi/main.jpg',
+    '/images/hotels/sindh/pearl-continental-karachi/main.jpg',
+    '/images/hotels/kpk/swat-serena-hotel/main.jpg',
+    '/images/hotels/gilgit-baltistan/shangrila-resort-skardu/main.jpg',
+    '/images/hotels/balochistan/serena-hotel-quetta/main.jpg',
+  ]
+
+  const imageSeed = `${hotel.id}-${hotel.name}`
+  const hashValue = imageSeed
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  const mappedLocalImage = localHotelImages[hashValue % localHotelImages.length]
+
+  const lahoreFallbackImage = '/images/hotels/punjab/pearl-continental-lahore/main.jpg'
+  const displayImage = mappedLocalImage
 
   const renderStars = (rating: number) => {
     const fullStars = Math.floor(rating)
@@ -144,17 +165,14 @@ export function HotelCard({ hotel, onBook, searchDates }: HotelCardProps) {
     >
       {/* Image Section */}
       <div className="relative aspect-video overflow-hidden flex-shrink-0">
-        {hotel.images?.[0] ? (
-          <img
-            src={hotel.images[0]}
-            alt={hotel.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
-            <BuildingIcon className="w-12 h-12 text-gray-500" />
-          </div>
-        )}
+        <img
+          src={displayImage}
+          alt={hotel.name || 'Lahore hotel'}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            ;(e.currentTarget as HTMLImageElement).src = lahoreFallbackImage
+          }}
+        />
         
         {/* Price Badge */}
         <div className="absolute top-4 right-4">
