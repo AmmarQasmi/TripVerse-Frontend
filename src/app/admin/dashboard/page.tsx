@@ -140,7 +140,13 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container relative mx-auto overflow-hidden rounded-2xl px-4 py-8">
+        <div
+          className="pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+          style={{ backgroundImage: "url('/images/cities/world%20map.png')" }}
+        />
+        <div className="pointer-events-none absolute inset-0 bg-white/80" />
+        <div className="relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -822,6 +828,7 @@ export default function AdminDashboard() {
             </Card>
           )}
         </motion.div>
+        </div>
       </div>
 
       {/* Stats Modal */}

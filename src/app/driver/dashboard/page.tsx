@@ -238,7 +238,13 @@ export default function DriverDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container relative mx-auto overflow-hidden rounded-2xl px-4 py-8">
+        <div
+          className="pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+          style={{ backgroundImage: "url('/images/cities/world%20map.png')" }}
+        />
+        <div className="pointer-events-none absolute inset-0 bg-white/80" />
+        <div className="relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -901,6 +907,7 @@ export default function DriverDashboard() {
                 </CardContent>
               </Card>
         </motion.div>
+              </div>
       </div>
 
       {/* Driver Bookings Modal */}
