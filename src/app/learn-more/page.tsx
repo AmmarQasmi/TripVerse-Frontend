@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { FeatureCard } from '@/components/learn-more/FeatureCard'
 
@@ -131,73 +132,105 @@ const features: LearnMoreFeature[] = [
 
 export default function LearnMorePage() {
   return (
-    <main
-      className="min-h-screen"
-      style={{
-        background:
-          'linear-gradient(135deg, #2563eb 0%, #0891b2 100%)',
-      }}
-    >
-      <div className="min-h-screen bg-black/15">
-        <section
-          className="flex items-center justify-center px-4 text-center sm:px-8"
-          style={{
-            minHeight: '280px',
-            background: 'linear-gradient(135deg, #1e3a8a 0%, #0891b2 100%)',
-          }}
-        >
-          <div className="max-w-3xl">
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-4xl font-bold text-white md:text-5xl"
-            >
-              Explore What You Can Do
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="mx-auto mt-4 max-w-2xl text-base text-cyan-100 md:text-lg"
-            >
-              Discover powerful features designed to simplify your travel experience.
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mt-6"
-            >
-              <Link
-                href="/"
-                className="inline-flex rounded-full border border-cyan-200/70 bg-white/10 px-5 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-cyan-300"
-              >
-                Back to Home
-              </Link>
-            </motion.div>
-          </div>
-        </section>
-
-        <section className="px-4 pb-14 pt-10 sm:px-8 md:px-10 lg:px-16">
-          <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {features.map((feature, index) => (
-                <FeatureCard
-                  key={feature.title}
-                  title={feature.title}
-                  description={feature.description}
-                  image={feature.image}
-                  imageAlt={feature.imageAlt}
-                  ctaLabel={feature.ctaLabel}
-                  redirectLink={feature.redirectLink}
-                  index={index}
-                />
-              ))}
+    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <section className="relative flex h-[78vh] items-center justify-center overflow-hidden pt-0">
+        <div className="absolute inset-0">
+          <div className="grid h-full grid-cols-3">
+            <div className="relative h-full">
+              <Image
+                src="/images/cities/islamabad/islamabad-01.jpg"
+                alt="Islamabad view 1"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+            <div className="relative h-full">
+              <Image
+                src="/images/cities/islamabad/islamabad-02.jpg"
+                alt="Islamabad view 2"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+            <div className="relative h-full">
+              <Image
+                src="/images/cities/islamabad/islamabad-03.jpg"
+                alt="Islamabad view 3"
+                fill
+                className="object-cover"
+                priority
+              />
             </div>
           </div>
-        </section>
-      </div>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1e3a8a]/80 via-[#0f4c75]/70 to-[#0d9488]/80" />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-5xl px-4 text-center">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-5xl font-bold leading-tight text-white md:text-6xl"
+          >
+            Explore What You Can Do
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+            className="mx-auto mt-5 max-w-3xl text-xl leading-relaxed text-gray-200 md:text-2xl"
+          >
+            Discover powerful features designed to simplify your travel experience.
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="mt-8"
+          >
+            <Link
+              href="/"
+              className="inline-flex rounded-xl bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:shadow-xl"
+            >
+              Back to Home
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      <section className="px-4 py-16">
+        <div className="mx-auto max-w-7xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="mb-10 text-center"
+          >
+            <h2 className="mb-3 text-3xl font-bold text-white">Platform Features</h2>
+            <p className="mx-auto max-w-2xl text-gray-400">
+              Explore the same trusted experience across flights, hotels, cars, chat, weather, and more.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {features.map((feature, index) => (
+              <FeatureCard
+                key={feature.title}
+                title={feature.title}
+                description={feature.description}
+                image={feature.image}
+                imageAlt={feature.imageAlt}
+                ctaLabel={feature.ctaLabel}
+                redirectLink={feature.redirectLink}
+                index={index}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
     </main>
   )
 }

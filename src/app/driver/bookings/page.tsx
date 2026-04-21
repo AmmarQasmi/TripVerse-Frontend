@@ -529,21 +529,27 @@ export default function DriverBookingsPage() {
 
   return (
     <>
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            <span className="text-sm">Back to Dashboard</span>
-          </button>
-          <h1 className="text-3xl font-bold text-white">My Car Bookings</h1>
-          <p className="text-gray-400 text-sm mt-1">Manage bookings for your cars and track your earnings</p>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-r from-[#214f8c] via-[#1f5678] to-[#0f6667]">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-x-0 top-0 h-[560px] bg-[#17385e]/92" />
+      </div>
+      <div className="relative z-10 container mx-auto px-4 py-6 max-w-6xl">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="relative mb-6 overflow-hidden rounded-2xl border border-white/10">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1e3a8a]/80 via-[#0f4c75]/70 to-[#0d9488]/80" />
+          <div className="relative z-10 p-6 md:p-8">
+            <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-200 transition-colors hover:text-white mb-4">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="text-sm">Back to Dashboard</span>
+            </button>
+            <h1 className="text-3xl font-bold text-white md:text-4xl">My Car Bookings</h1>
+            <p className="text-gray-200 text-sm mt-2 md:text-base">Manage bookings for your cars and track your earnings</p>
+          </div>
         </motion.div>
 
       {sharingLocationBookingId && (
-        <div className="mb-4 rounded-lg border border-teal-500/30 bg-teal-500/10 p-3 text-sm text-teal-300">
+        <div className="mb-4 rounded-2xl border border-cyan-400/70 bg-gray-800/50 p-4 text-sm text-teal-300 backdrop-blur-sm">
           <p className="font-semibold">Live location sharing is active automatically for booking #{sharingLocationBookingId}.</p>
           {latestSharedCoords && (
             <p className="text-xs mt-1">
@@ -557,7 +563,8 @@ export default function DriverBookingsPage() {
       {/* Status Filter */}
       <div className="mb-6 space-y-4">
         {/* Booking Type Filter */}
-        <div className="flex gap-2">
+        <div className="rounded-2xl border border-cyan-400/70 bg-gray-800/50 p-4 backdrop-blur-sm">
+        <div className="flex flex-wrap gap-2 justify-center">
           {[
             { value: 'all' as const, label: 'All Bookings', icon: '📋' },
             { value: 'ride_hailing' as const, label: '🚗 Rides', color: 'teal' },
@@ -573,16 +580,18 @@ export default function DriverBookingsPage() {
                     : filter.value === 'rental'
                       ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                       : 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white shadow-lg shadow-teal-500/20'
-                  : 'bg-gray-800/60 text-gray-400 hover:text-white hover:bg-gray-700/60 border border-white/5'
+                  : 'border border-white/10 bg-gray-700/50 text-gray-300 hover:bg-gray-700/70 hover:text-white'
               }`}
             >
               {filter.label}
             </button>
           ))}
         </div>
+        </div>
 
         {/* Status Filter */}
-        <div className="flex flex-wrap gap-2">
+        <div className="rounded-2xl border border-cyan-400/70 bg-gray-800/50 p-4 backdrop-blur-sm">
+        <div className="flex flex-wrap gap-2 justify-center">
           {[
             { value: 'all', label: 'All' },
             { value: 'PENDING_DRIVER_ACCEPTANCE', label: 'Pending' },
@@ -598,22 +607,24 @@ export default function DriverBookingsPage() {
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                 statusFilter === filter.value
                   ? 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white shadow-lg shadow-teal-500/20'
-                  : 'bg-gray-800/60 text-gray-400 hover:text-white hover:bg-gray-700/60 border border-white/5'
+                  : 'border border-white/10 bg-gray-700/50 text-gray-300 hover:bg-gray-700/70 hover:text-white'
               }`}
             >
               {filter.label}
             </button>
           ))}
         </div>
+        </div>
       </div>
 
       {/* Main Content */}
+      <div className="rounded-2xl border border-white/10 bg-gray-900/60 p-4 shadow-[0_10px_30px_rgba(2,132,199,0.15)] backdrop-blur-lg lg:p-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Bookings List */}
         <div className="lg:col-span-2 space-y-4">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="animate-pulse bg-gray-800/60 border border-white/5 rounded-xl p-6">
+            <div key={i} className="animate-pulse rounded-2xl border border-cyan-500/60 bg-slate-900/30 p-6 backdrop-blur-md">
               <div className="h-4 bg-gray-700 rounded mb-2"></div>
               <div className="h-4 bg-gray-700 rounded w-3/4"></div>
             </div>
@@ -629,13 +640,13 @@ export default function DriverBookingsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               key={booking.id} 
-              className={`bg-gray-800/60 border rounded-xl overflow-hidden transition-all ${
-                isRideHailing && isPending ? 'border-teal-500/50 ring-1 ring-teal-500/20' : 'border-white/5 hover:border-white/10'
+              className={`group relative overflow-hidden rounded-2xl border-2 bg-slate-900/30 backdrop-blur-md transition-all ${
+                isRideHailing && isPending ? 'border-teal-400/70 ring-1 ring-teal-500/20' : 'border-cyan-500/60 hover:border-cyan-300/80'
               } ${
-                highlightBookingId === booking.id ? 'ring-2 ring-cyan-500 border-cyan-400' : ''
+                highlightBookingId === booking.id ? 'ring-2 ring-cyan-500 border-cyan-300/80' : ''
               }`}
             >
-              <div className="p-6">
+              <div className="p-6 relative z-10">
                 <div className="flex flex-col md:flex-row justify-between items-start gap-4">
                   <div className="flex-1 w-full">
                     <div className="flex items-center space-x-3 mb-3">
@@ -659,33 +670,33 @@ export default function DriverBookingsPage() {
                       )}
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-400 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-300 mb-4">
                       <div>
-                        <span className="font-medium text-gray-500">Customer:</span> <span className="text-white">{booking.customer?.name || 'N/A'}</span>
+                        <span className="font-medium text-gray-400">Customer:</span> <span className="text-white">{booking.customer?.name || 'N/A'}</span>
                       </div>
                       <div>
-                        <span className="font-medium text-gray-500">{isRideHailing ? 'Pickup Time:' : 'Pick-up:'}</span> <span className="text-white">{booking.start_date ? (isRideHailing ? formatRideTime(booking.start_date) : formatDate(booking.start_date)) : 'N/A'}</span>
+                        <span className="font-medium text-gray-400">{isRideHailing ? 'Pickup Time:' : 'Pick-up:'}</span> <span className="text-white">{booking.start_date ? (isRideHailing ? formatRideTime(booking.start_date) : formatDate(booking.start_date)) : 'N/A'}</span>
                       </div>
                       <div>
-                        <span className="font-medium text-gray-500">{isRideHailing ? 'Est. Distance:' : 'Return:'}</span> <span className="text-white">{isRideHailing ? `${booking.estimated_distance || 0} km` : (booking.end_date ? formatDate(booking.end_date) : 'N/A')}</span>
+                        <span className="font-medium text-gray-400">{isRideHailing ? 'Est. Distance:' : 'Return:'}</span> <span className="text-white">{isRideHailing ? `${booking.estimated_distance || 0} km` : (booking.end_date ? formatDate(booking.end_date) : 'N/A')}</span>
                       </div>
                       <div>
-                        <span className="font-medium text-gray-500">Earnings:</span> <span className={isRideHailing ? 'text-teal-400 font-bold' : 'text-green-400 font-bold'}>PKR {(booking.driver_earnings || 0).toLocaleString()}</span>
+                        <span className="font-medium text-gray-400">Earnings:</span> <span className={isRideHailing ? 'text-teal-300 font-bold' : 'text-green-300 font-bold'}>PKR {(booking.driver_earnings || 0).toLocaleString()}</span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm bg-gray-900/50 p-3 rounded-lg border border-white/5">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm rounded-xl border border-white/10 bg-gray-900/60 p-3">
                       <div>
-                        <span className="font-medium text-gray-500 block text-xs">Booking ID</span> 
-                        <span className="text-gray-300">#{booking.id}</span>
+                        <span className="font-medium text-gray-400 block text-xs">Booking ID</span> 
+                        <span className="text-gray-200">#{booking.id}</span>
                       </div>
                       <div>
-                        <span className="font-medium text-gray-500 block text-xs">Total Amount</span> 
-                        <span className="text-gray-300">PKR {(booking.total_amount || 0).toLocaleString()}</span>
+                        <span className="font-medium text-gray-400 block text-xs">Total Amount</span> 
+                        <span className="text-gray-200">PKR {(booking.total_amount || 0).toLocaleString()}</span>
                       </div>
                       <div>
-                        <span className="font-medium text-gray-500 block text-xs">Pickup</span> 
-                        <span className="text-gray-300 break-words">{booking.pickup_location || 'N/A'}</span>
+                        <span className="font-medium text-gray-400 block text-xs">Pickup</span> 
+                        <span className="text-gray-200 break-words">{booking.pickup_location || 'N/A'}</span>
                       </div>
                     </div>
                   </div>
@@ -731,7 +742,7 @@ export default function DriverBookingsPage() {
               </div>
             )
           })() : (
-            <div className="bg-gray-800/40 border border-white/5 rounded-xl p-8 text-center sticky top-6">
+            <div className="sticky top-6 rounded-2xl border border-white/10 bg-gray-900/60 p-8 text-center shadow-[0_10px_30px_rgba(2,132,199,0.15)] backdrop-blur-lg">
               <div className="text-4xl mb-4">💬</div>
               <h3 className="text-lg font-semibold text-white mb-2">
                 Select a Booking
@@ -743,44 +754,45 @@ export default function DriverBookingsPage() {
           )}
         </div>
       </div>
+      </div>
 
         {/* Summary Stats */}
         {Array.isArray(bookings) && bookings.length > 0 && (
-          <div className="mt-8 bg-gray-800/60 border border-white/5 rounded-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-white/5">
+          <div className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-gray-900/60 shadow-[0_10px_30px_rgba(2,132,199,0.15)] backdrop-blur-lg">
+            <div className="px-6 py-4 border-b border-white/10">
               <h3 className="text-lg font-semibold text-white">Booking Summary</h3>
             </div>
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-gray-900/50 border border-white/5 rounded-xl">
+                <div className="text-center p-4 bg-gray-900/50 border border-white/10 rounded-xl">
                   <div className="text-2xl font-bold text-blue-400">
                     {bookings.length}
                   </div>
-                  <div className="text-sm text-gray-500">Total Bookings</div>
+                  <div className="text-sm text-gray-300">Total Bookings</div>
                 </div>
                 
-                <div className="text-center p-4 bg-gray-900/50 border border-white/5 rounded-xl">
+                <div className="text-center p-4 bg-gray-900/50 border border-white/10 rounded-xl">
                   <div className="text-2xl font-bold text-green-400">
                     {bookings.filter((b: any) => b.status === 'COMPLETED').length}
                   </div>
-                  <div className="text-sm text-gray-500">Completed</div>
+                  <div className="text-sm text-gray-300">Completed</div>
                 </div>
                 
-                <div className="text-center p-4 bg-gray-900/50 border border-white/5 rounded-xl">
+                <div className="text-center p-4 bg-gray-900/50 border border-white/10 rounded-xl">
                   <div className="text-2xl font-bold text-yellow-400">
                     {bookings.filter((b: any) => ['PENDING_DRIVER_ACCEPTANCE', 'ACCEPTED', 'CONFIRMED', 'IN_PROGRESS'].includes(b.status)).length}
                   </div>
-                  <div className="text-sm text-gray-500">Active</div>
+                  <div className="text-sm text-gray-300">Active</div>
                 </div>
                 
-                <div className="text-center p-4 bg-gray-900/50 border border-white/5 rounded-xl">
+                <div className="text-center p-4 bg-gray-900/50 border border-white/10 rounded-xl">
                   <div className="text-2xl font-bold text-teal-400">
                     PKR {bookings
                       .filter((b: any) => ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(b.status))
                       .reduce((sum: number, b: any) => sum + (b.driver_earnings || 0), 0)
                       .toLocaleString()}
                   </div>
-                  <div className="text-sm text-gray-500">Total Earnings</div>
+                  <div className="text-sm text-gray-300">Total Earnings</div>
                 </div>
               </div>
             </div>

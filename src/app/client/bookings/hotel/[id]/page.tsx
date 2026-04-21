@@ -1,38 +1,202 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { useHotelBookingById, useHotelBooking } from '@/features/bookings/useHotelBooking'
+import { useAuth } from '@/features/auth/useAuth'
+import { NotificationBell } from '@/components/shared/NotificationBell'
+
+type ThemeMode = 'ocean-night' | 'sunset-luxe' | 'emerald-glass'
+
+const THEME_STORAGE_KEY = 'tripverse-booking-details-theme'
+
+const themeTokens: Record<ThemeMode, {
+  label: string
+  pageGradient: string
+  topTint: string
+  heroOverlay: string
+  accent: string
+  secondary: string
+  success: string
+  danger: string
+  cardBg: string
+  cardBorder: string
+  textPrimary: string
+  textMuted: string
+  shadow: string
+  patternTint: string
+}> = {
+  'ocean-night': {
+    label: 'Ocean Night',
+    pageGradient: 'linear-gradient(135deg, #0F172A 0%, #1E3A8A 48%, #0D9488 100%)',
+    topTint: 'rgba(15, 23, 42, 0.62)',
+    heroOverlay: 'linear-gradient(90deg, rgba(30,58,138,0.82) 0%, rgba(15,76,117,0.72) 52%, rgba(20,184,166,0.74) 100%)',
+    accent: '#14B8A6',
+    secondary: '#1E3A8A',
+    success: '#22C55E',
+    danger: '#EF4444',
+    cardBg: 'rgba(15, 23, 42, 0.54)',
+    cardBorder: 'rgba(148, 163, 184, 0.22)',
+    textPrimary: '#E2E8F0',
+    textMuted: '#94A3B8',
+    shadow: '0 12px 40px rgba(8, 47, 73, 0.35)',
+    patternTint: 'rgba(56, 189, 248, 0.08)',
+  },
+  'sunset-luxe': {
+    label: 'Sunset Luxe',
+    pageGradient: 'linear-gradient(135deg, #312E81 0%, #BE185D 56%, #F97316 100%)',
+    topTint: 'rgba(49, 46, 129, 0.58)',
+    heroOverlay: 'linear-gradient(90deg, rgba(79,70,229,0.78) 0%, rgba(190,24,93,0.72) 52%, rgba(251,113,133,0.7) 100%)',
+    accent: '#FB7185',
+    secondary: '#7C3AED',
+    success: '#4ADE80',
+    danger: '#F87171',
+    cardBg: 'rgba(39, 13, 47, 0.5)',
+    cardBorder: 'rgba(251, 113, 133, 0.28)',
+    textPrimary: '#F8FAFC',
+    textMuted: '#F1D5DB',
+    shadow: '0 14px 44px rgba(157, 23, 77, 0.35)',
+    patternTint: 'rgba(251, 113, 133, 0.08)',
+  },
+  'emerald-glass': {
+    label: 'Emerald Glass',
+    pageGradient: 'linear-gradient(135deg, #052E2B 0%, #0A0F0C 52%, #065F46 100%)',
+    topTint: 'rgba(3, 7, 18, 0.62)',
+    heroOverlay: 'linear-gradient(90deg, rgba(6,78,59,0.82) 0%, rgba(3,105,72,0.72) 52%, rgba(16,185,129,0.66) 100%)',
+    accent: '#10B981',
+    secondary: '#065F46',
+    success: '#22C55E',
+    danger: '#F87171',
+    cardBg: 'rgba(2, 24, 20, 0.56)',
+    cardBorder: 'rgba(16, 185, 129, 0.24)',
+    textPrimary: '#D1FAE5',
+    textMuted: '#A7F3D0',
+    shadow: '0 12px 40px rgba(6, 78, 59, 0.34)',
+    patternTint: 'rgba(16, 185, 129, 0.08)',
+  },
+}
 
 export default function HotelBookingDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const { user, logout } = useAuth()
   const bookingId = params.id as string
   const [cancelling, setCancelling] = useState(false)
   const [confirming, setConfirming] = useState(false)
+  const [theme, setTheme] = useState<ThemeMode>('ocean-night')
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [showFees, setShowFees] = useState(false)
+  const [mobileOpenSections, setMobileOpenSections] = useState<Record<string, boolean>>({
+    hotel: true,
+    dates: true,
+    summary: true,
+    actions: true,
+    requests: true,
+  })
+  const [animatedTotal, setAnimatedTotal] = useState(0)
+  const profileMenuRef = useRef<HTMLDivElement | null>(null)
+  const themeMenuRef = useRef<HTMLDivElement | null>(null)
   
   const { data: booking, isLoading, error } = useHotelBookingById(bookingId)
   const { confirmBooking, cancelBooking } = useHotelBooking()
+
+  const activeTheme = themeTokens[theme]
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY)
+    if (storedTheme === 'ocean-night' || storedTheme === 'sunset-luxe' || storedTheme === 'emerald-glass') {
+      setTheme(storedTheme)
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem(THEME_STORAGE_KEY, theme)
+  }, [theme])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node
+      if (profileMenuRef.current && !profileMenuRef.current.contains(target)) {
+        setProfileMenuOpen(false)
+      }
+      if (themeMenuRef.current && !themeMenuRef.current.contains(target)) {
+        setThemeMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  const computedBaseAmount = useMemo(() => {
+    if (!booking) return 0
+    if (booking.booking_details?.pricing?.base_price_per_night) {
+      return booking.booking_details.pricing.base_price_per_night * booking.booking_details.pricing.nights * booking.booking_details.pricing.quantity
+    }
+    const unitPrice = booking.roomType?.pricePerNight || booking.booking_details?.room_type?.price_per_night || 0
+    const nights = booking.booking_details?.dates?.nights || 1
+    return unitPrice * nights * (booking.quantity || 1)
+  }, [booking])
+
+  const computedTotalAmount = useMemo(() => {
+    if (!booking) return 0
+    return booking.booking_details?.pricing?.total_amount || booking.totalAmount || 0
+  }, [booking])
+
+  const computedTaxFee = Math.max(computedTotalAmount - computedBaseAmount, 0)
+
+  useEffect(() => {
+    const target = Number(computedTotalAmount || 0)
+    let frameId = 0
+    const start = performance.now()
+    const duration = 900
+
+    const step = (timestamp: number) => {
+      const elapsed = timestamp - start
+      const progress = Math.min(elapsed / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setAnimatedTotal(Math.floor(target * eased))
+      if (progress < 1) {
+        frameId = requestAnimationFrame(step)
+      } else {
+        setAnimatedTotal(target)
+      }
+    }
+
+    frameId = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(frameId)
+  }, [computedTotalAmount])
 
   const getStatusColor = (status: string) => {
     const normalizedStatus = status.toUpperCase()
     switch (normalizedStatus) {
       case 'CONFIRMED':
       case 'CHECKED_IN':
-        return 'bg-green-100 text-green-800'
+        return 'border border-green-400/40 bg-green-500/20 text-green-200 shadow-[0_0_20px_rgba(34,197,94,0.25)]'
       case 'PENDING_PAYMENT':
       case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'border border-yellow-300/40 bg-yellow-500/20 text-yellow-100'
       case 'CANCELLED':
-        return 'bg-red-100 text-red-800'
+        return 'border border-red-400/40 bg-red-500/20 text-red-100'
       case 'CHECKED_OUT':
       case 'COMPLETED':
-        return 'bg-blue-100 text-blue-800'
+        return 'border border-cyan-300/40 bg-cyan-500/20 text-cyan-100'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'border border-slate-300/30 bg-slate-500/20 text-slate-100'
     }
   }
   
@@ -92,6 +256,80 @@ export default function HotelBookingDetailPage() {
   const cancellationDeadline = checkInDate ? new Date(checkInDate.getTime() - 24 * 60 * 60 * 1000) : null
   const canCancelByDate = cancellationDeadline ? new Date() < cancellationDeadline : false
   const cancelDisabled = cancelling || !canCancelByDate
+
+  const toggleMobileSection = (sectionKey: string) => {
+    setMobileOpenSections(prev => ({ ...prev, [sectionKey]: !prev[sectionKey] }))
+  }
+
+  const glassCardClass = 'rounded-2xl border backdrop-blur-xl transition-all duration-300 hover:-translate-y-1'
+
+  const SectionCard = ({
+    sectionKey,
+    title,
+    children,
+    className = '',
+    rightNode,
+  }: {
+    sectionKey: string
+    title: string
+    children: React.ReactNode
+    className?: string
+    rightNode?: React.ReactNode
+  }) => {
+    const isOpen = mobileOpenSections[sectionKey]
+    return (
+      <motion.div
+        whileHover={{ y: -4 }}
+        transition={{ duration: 0.25, ease: 'easeInOut' }}
+        className={`${glassCardClass} ${className}`}
+        style={{
+          background: activeTheme.cardBg,
+          borderColor: activeTheme.cardBorder,
+          boxShadow: `${activeTheme.shadow}, 0 0 0 1px rgba(59, 130, 246, 0.32)`,
+        }}
+      >
+        <div className="flex items-center justify-between px-5 py-4 md:px-6 md:py-5">
+          <h3 className="text-lg font-semibold" style={{ color: activeTheme.textPrimary }}>{title}</h3>
+          <div className="flex items-center gap-3">
+            {rightNode}
+            <button
+              type="button"
+              className="md:hidden rounded-lg border p-1.5"
+              style={{ borderColor: activeTheme.cardBorder, color: activeTheme.textPrimary }}
+              onClick={() => toggleMobileSection(sectionKey)}
+              aria-label={`Toggle ${title}`}
+            >
+              <svg className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div className={`${isOpen ? 'block' : 'hidden'} md:block px-5 pb-5 md:px-6 md:pb-6`}>{children}</div>
+      </motion.div>
+    )
+  }
+
+  const rootStyle: React.CSSProperties = {
+    background: activeTheme.pageGradient,
+    transition: 'all 260ms ease-in-out',
+  }
+
+  const topTintStyle: React.CSSProperties = {
+    background: activeTheme.topTint,
+    transition: 'all 260ms ease-in-out',
+  }
+
+  const heroOverlayStyle: React.CSSProperties = {
+    background: activeTheme.heroOverlay,
+    transition: 'all 260ms ease-in-out',
+  }
+
+  const patternStyle: React.CSSProperties = {
+    backgroundImage:
+      `radial-gradient(circle at 20% 20%, ${activeTheme.patternTint} 0, transparent 44%), radial-gradient(circle at 78% 12%, ${activeTheme.patternTint} 0, transparent 38%), radial-gradient(circle at 50% 80%, ${activeTheme.patternTint} 0, transparent 42%)`,
+  }
   
   const handleConfirm = async () => {
     if (!confirm('Are you sure you want to confirm this booking? This will process the payment.')) {
@@ -136,10 +374,21 @@ export default function HotelBookingDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+      <div className="relative min-h-screen overflow-hidden" style={rootStyle}>
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute inset-x-0 top-0 h-[560px]" style={topTintStyle} />
+          <div className="absolute inset-0" style={patternStyle} />
+        </div>
+        <div className="relative z-10 container mx-auto max-w-6xl px-4 py-8 space-y-6">
+          <div className="animate-pulse h-16 rounded-2xl" style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.cardBorder}` }} />
+          <div className="animate-pulse h-36 rounded-2xl" style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.cardBorder}` }} />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="space-y-6 lg:col-span-2">
+              <div className="animate-pulse h-56 rounded-2xl" style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.cardBorder}` }} />
+              <div className="animate-pulse h-48 rounded-2xl" style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.cardBorder}` }} />
+            </div>
+            <div className="animate-pulse h-72 rounded-2xl" style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.cardBorder}` }} />
+          </div>
         </div>
       </div>
     )
@@ -147,191 +396,434 @@ export default function HotelBookingDetailPage() {
 
   if (error || !booking) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center py-12">
+      <div className="relative min-h-screen overflow-hidden" style={rootStyle}>
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute inset-x-0 top-0 h-[560px]" style={topTintStyle} />
+          <div className="absolute inset-0" style={patternStyle} />
+        </div>
+        <div className="relative z-10 container mx-auto max-w-6xl px-4 py-6">
+          <div className="rounded-2xl border p-12 text-center backdrop-blur-lg" style={{ background: activeTheme.cardBg, borderColor: activeTheme.cardBorder, boxShadow: `${activeTheme.shadow}, 0 0 0 1px rgba(59, 130, 246, 0.32)` }}>
           <div className="text-6xl mb-4">❌</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          <h1 className="text-2xl font-bold mb-4" style={{ color: activeTheme.textPrimary }}>
             Booking not found
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="mb-6" style={{ color: activeTheme.textMuted }}>
             The booking you're looking for doesn't exist or you don't have permission to view it.
           </p>
           <Link href="/client/bookings">
-            <Button>Back to Bookings</Button>
+            <Button className="text-white" style={{ background: `linear-gradient(90deg, ${activeTheme.secondary} 0%, ${activeTheme.accent} 100%)` }}>Back to Bookings</Button>
           </Link>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <Link href="/client/bookings" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
-          ← Back to Bookings
-        </Link>
-        <h1 className="text-3xl font-bold text-gray-900 mt-4">Booking Details</h1>
+    <div className="relative min-h-screen overflow-hidden" style={rootStyle}>
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-x-0 top-0 h-[560px]" style={topTintStyle} />
+        <div className="absolute inset-0" style={patternStyle} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Hotel Information</CardTitle>
+      <header className="sticky top-0 z-40 border-b backdrop-blur-xl" style={{ background: 'rgba(15, 23, 42, 0.55)', borderColor: activeTheme.cardBorder }}>
+        <div className="container mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl border flex items-center justify-center" style={{ borderColor: activeTheme.cardBorder, background: activeTheme.cardBg }}>
+              <svg className="h-5 w-5" style={{ color: activeTheme.accent }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M22 16.92V19a2 2 0 01-2 2 19.86 19.86 0 01-8.63-2.93 19.5 19.5 0 01-6-6A19.86 19.86 0 012 4a2 2 0 012-2h2.09a2 2 0 012 1.72c.12.89.32 1.76.6 2.59a2 2 0 01-.45 2.11L7.1 9.91a16 16 0 006 6l1.49-1.14a2 2 0 012.11-.45c.83.28 1.7.48 2.59.6A2 2 0 0122 16.92z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em]" style={{ color: activeTheme.textMuted }}>TripVerse</p>
+              <p className="text-sm font-semibold" style={{ color: activeTheme.textPrimary }}>Premium Booking</p>
+            </div>
+          </div>
+
+          <div className="hidden items-center gap-3 md:flex">
+            <div className="rounded-xl border px-3 py-1.5 text-xs" style={{ borderColor: activeTheme.cardBorder, background: activeTheme.cardBg, color: activeTheme.textPrimary }}>
+              <span className="font-semibold">Lahore</span> · 28°C Clear
+            </div>
+            <NotificationBell />
+          </div>
+
+          <div className="relative" ref={profileMenuRef}>
+            <button
+              type="button"
+              onClick={() => setProfileMenuOpen(prev => !prev)}
+              className="flex items-center gap-2 rounded-xl border px-2.5 py-1.5"
+              style={{ borderColor: activeTheme.cardBorder, background: activeTheme.cardBg, color: activeTheme.textPrimary }}
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white" style={{ background: `linear-gradient(135deg, ${activeTheme.secondary}, ${activeTheme.accent})` }}>
+                {user?.full_name ? getInitials(user.full_name) : 'TV'}
+              </div>
+              <span className="hidden text-sm md:inline">{user?.full_name || 'Traveler'}</span>
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            <AnimatePresence>
+              {profileMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                  className="absolute right-0 mt-2 w-44 rounded-xl border p-2 backdrop-blur-xl"
+                  style={{ background: activeTheme.cardBg, borderColor: activeTheme.cardBorder, boxShadow: `${activeTheme.shadow}, 0 0 0 1px rgba(59, 130, 246, 0.32)` }}
+                >
+                  <Link href="/client/profile" className="block rounded-lg px-3 py-2 text-sm hover:bg-white/10" style={{ color: activeTheme.textPrimary }}>
+                    My Profile
+                  </Link>
+                  <Link href="/client/settings" className="block rounded-lg px-3 py-2 text-sm hover:bg-white/10" style={{ color: activeTheme.textPrimary }}>
+                    Settings
+                  </Link>
+                  <button
+                    type="button"
+                    className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-white/10"
+                    style={{ color: activeTheme.danger }}
+                    onClick={() => {
+                      logout()
+                      router.push('/auth/login')
+                    }}
+                  >
+                    Logout
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </header>
+
+      <div className="relative z-10 container mx-auto max-w-6xl px-4 py-6">
+        <div className="relative mb-6 overflow-hidden rounded-2xl border" style={{ borderColor: activeTheme.cardBorder, boxShadow: activeTheme.shadow }}>
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1920&q=80')" }}
+          />
+          <div className="absolute inset-0" style={heroOverlayStyle} />
+          <div className="relative z-10 p-6 md:p-8">
+            <Link href="/client/bookings" className="mb-4 inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-sm transition-colors hover:bg-white/10" style={{ borderColor: 'rgba(255,255,255,0.25)', color: '#E2E8F0' }}>
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Bookings
+            </Link>
+            <h1 className="mt-2 text-3xl font-bold text-white md:text-4xl">Booking Details</h1>
+            <p className="mt-2 max-w-2xl text-sm text-gray-200 md:text-base">
+              View and manage your booking
+            </p>
+            <div className="mt-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs" style={{ borderColor: 'rgba(255,255,255,0.28)', background: 'rgba(15,23,42,0.35)', color: '#E2E8F0' }}>
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6M7 8h10M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
+              </svg>
+              Booking ID #{booking.id}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative z-10 container mx-auto max-w-6xl px-4 pb-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Main Content */}
+          <div className="space-y-6 lg:col-span-2">
+            <SectionCard
+              sectionKey="hotel"
+              title="Hotel Information"
+              rightNode={
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(booking.status)}`}>
                   {getStatusLabel(booking.status)}
                 </span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              }
+            >
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">{booking.hotel?.name}</h3>
-                <p className="text-gray-600">{booking.hotel?.address}</p>
-                <p className="text-gray-600">{booking.hotel?.location}</p>
+                <h3 className="text-2xl font-semibold" style={{ color: activeTheme.textPrimary }}>{booking.hotel?.name}</h3>
+                <p style={{ color: activeTheme.textMuted }}>{booking.hotel?.address}</p>
+                <p style={{ color: activeTheme.textMuted }}>{booking.hotel?.location}</p>
+                <div className="mt-2 flex items-center gap-1.5" style={{ color: '#FBBF24' }}>
+                  {Array.from({ length: 5 }).map((_, idx) => (
+                    <svg key={idx} className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                <div>
-                  <p className="text-sm text-gray-500">Room Type</p>
-                  <p className="font-medium">{booking.roomType?.name}</p>
+
+              <div className="my-4 h-px" style={{ background: activeTheme.cardBorder }} />
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border p-3" style={{ borderColor: activeTheme.cardBorder, background: 'rgba(15,23,42,0.2)' }}>
+                  <p className="flex items-center gap-2 text-sm" style={{ color: activeTheme.textMuted }}>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6M7 8h10M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                    </svg>
+                    Room Type
+                  </p>
+                  <p className="font-medium" style={{ color: activeTheme.textPrimary }}>{booking.roomType?.name}</p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-500">Capacity</p>
-                  <p className="font-medium">{booking.roomType?.capacity} guests</p>
+                <div className="rounded-xl border p-3" style={{ borderColor: activeTheme.cardBorder, background: 'rgba(15,23,42,0.2)' }}>
+                  <p className="flex items-center gap-2 text-sm" style={{ color: activeTheme.textMuted }}>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5V4H2v16h5m10 0v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2m12 0H7m10-10a2 2 0 11-4 0 2 2 0 014 0zM11 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Capacity
+                  </p>
+                  <p className="font-medium" style={{ color: activeTheme.textPrimary }}>{booking.roomType?.capacity} guests</p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-500">Quantity</p>
-                  <p className="font-medium">{booking.quantity} room(s)</p>
+                <div className="rounded-xl border p-3" style={{ borderColor: activeTheme.cardBorder, background: 'rgba(15,23,42,0.2)' }}>
+                  <p className="flex items-center gap-2 text-sm" style={{ color: activeTheme.textMuted }}>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V7a2 2 0 00-2-2H6a2 2 0 00-2 2v6m16 0v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4m16 0H4" />
+                    </svg>
+                    Quantity
+                  </p>
+                  <p className="font-medium" style={{ color: activeTheme.textPrimary }}>{booking.quantity} room(s)</p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-500">Price per Night</p>
-                  <p className="font-medium">
+                <div className="rounded-xl border p-3" style={{ borderColor: activeTheme.cardBorder, background: 'rgba(15,23,42,0.2)' }}>
+                  <p className="flex items-center gap-2 text-sm" style={{ color: activeTheme.textMuted }}>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 12v-2" />
+                    </svg>
+                    Price per Night
+                  </p>
+                  <p className="font-medium" style={{ color: activeTheme.textPrimary }}>
                     {booking.currency?.toUpperCase() || 'PKR'} {
-                      (booking.roomType?.pricePerNight || 
-                       booking.booking_details?.room_type?.price_per_night || 
-                       0).toLocaleString()
+                      (booking.roomType?.pricePerNight || booking.booking_details?.room_type?.price_per_night || 0).toLocaleString()
                     }
                   </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </SectionCard>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Booking Dates</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-500">Check-in</p>
-                  <p className="font-medium text-lg">
+            <SectionCard sectionKey="dates" title="Booking Dates">
+              <div className="relative">
+                <div className="absolute left-[9px] top-4 h-[calc(100%-42px)] w-px" style={{ background: activeTheme.cardBorder }} />
+
+                <div className="relative mb-5 pl-8">
+                  <span className="absolute left-0 top-1.5 inline-block h-[18px] w-[18px] rounded-full border-2" style={{ borderColor: activeTheme.accent, background: 'rgba(20,184,166,0.25)' }} />
+                  <p className="flex items-center gap-2 text-sm" style={{ color: activeTheme.textMuted }}>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Check-in
+                  </p>
+                  <p className="text-lg font-semibold" style={{ color: activeTheme.textPrimary }}>
                     {formatDate(booking.checkInDate || booking.booking_details?.dates?.check_in)}
                   </p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-500">Check-out</p>
-                  <p className="font-medium text-lg">
+
+                <div className="relative pl-8">
+                  <span className="absolute left-0 top-1.5 inline-block h-[18px] w-[18px] rounded-full border-2" style={{ borderColor: activeTheme.secondary, background: 'rgba(30,58,138,0.32)' }} />
+                  <p className="flex items-center gap-2 text-sm" style={{ color: activeTheme.textMuted }}>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Check-out
+                  </p>
+                  <p className="text-lg font-semibold" style={{ color: activeTheme.textPrimary }}>
                     {formatDate(booking.checkOutDate || booking.booking_details?.dates?.check_out)}
                   </p>
                 </div>
               </div>
-              {booking.booking_details?.dates?.nights && (
-                <div className="pt-4 border-t">
-                  <p className="text-sm text-gray-500">Duration</p>
-                  <p className="font-medium">{booking.booking_details.dates.nights} night(s)</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
-          {booking.booking_details?.guest_notes && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Special Requests</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700">{booking.booking_details.guest_notes}</p>
-              </CardContent>
-            </Card>
-          )}
+              <div className="my-4 h-px" style={{ background: activeTheme.cardBorder }} />
+
+              {booking.booking_details?.dates?.nights && (
+                <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold" style={{ background: 'rgba(20,184,166,0.2)', color: activeTheme.textPrimary, border: `1px solid ${activeTheme.cardBorder}` }}>
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Duration: {booking.booking_details.dates.nights} night(s)
+                </span>
+              )}
+            </SectionCard>
+
+            {booking.booking_details?.guest_notes && (
+              <SectionCard sectionKey="requests" title="Special Requests">
+                <p style={{ color: activeTheme.textPrimary }}>{booking.booking_details.guest_notes}</p>
+              </SectionCard>
+            )}
         </div>
 
         {/* Sidebar */}
-        <div className="lg:col-span-1">
-          <Card className="sticky top-8">
-            <CardHeader>
-              <CardTitle>Pricing Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {booking.booking_details?.pricing ? (
-                <>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Base Price ({booking.booking_details.pricing.nights} nights × {booking.booking_details.pricing.quantity} rooms)</span>
-                      <span className="font-medium">{booking.booking_details.pricing.currency?.toUpperCase() || 'PKR'} {booking.booking_details.pricing.base_price_per_night * booking.booking_details.pricing.nights * booking.booking_details.pricing.quantity}</span>
-                    </div>
-                    <div className="border-t pt-2 flex justify-between font-bold text-lg">
-                      <span>Total Amount</span>
-                      <span>{booking.booking_details.pricing.currency?.toUpperCase() || 'PKR'} {booking.booking_details.pricing.total_amount?.toLocaleString() || '0'}</span>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>Total Amount</span>
-                    <span>{booking.currency?.toUpperCase() || 'PKR'} {booking.totalAmount?.toLocaleString() || '0'}</span>
-                  </div>
+        <div className="space-y-6 lg:col-span-1">
+          <div className="sticky top-24 space-y-6">
+            <SectionCard sectionKey="summary" title="Pricing Summary">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm" style={{ color: activeTheme.textMuted }}>
+                  <span>Base Price</span>
+                  <span style={{ color: activeTheme.textPrimary }}>PKR {computedBaseAmount.toLocaleString()}</span>
                 </div>
-              )}
-              
-              <div className="pt-4 border-t space-y-2">
-                <p className="text-xs text-gray-500">Booking ID: {booking.id}</p>
-                <p className="text-xs text-gray-500">
+
+                <button
+                  type="button"
+                  onClick={() => setShowFees(prev => !prev)}
+                  className="inline-flex items-center gap-1.5 text-xs underline underline-offset-4"
+                  style={{ color: activeTheme.accent }}
+                >
+                  {showFees ? 'Hide taxes/fees' : 'Show taxes/fees'}
+                </button>
+
+                <AnimatePresence>
+                  {showFees && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="flex justify-between text-sm" style={{ color: activeTheme.textMuted }}>
+                        <span>Taxes/Fees</span>
+                        <span style={{ color: activeTheme.textPrimary }}>PKR {computedTaxFee.toLocaleString()}</span>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className="my-3 h-px" style={{ background: activeTheme.cardBorder }} />
+
+                <div className="flex items-end justify-between">
+                  <span className="text-sm" style={{ color: activeTheme.textMuted }}>Total Amount</span>
+                  <span className="text-3xl font-bold" style={{ color: activeTheme.textPrimary }}>
+                    PKR {animatedTotal.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-1 border-t pt-4" style={{ borderColor: activeTheme.cardBorder }}>
+                <p className="text-xs" style={{ color: activeTheme.textMuted }}>Booking ID: {booking.id}</p>
+                <p className="text-xs" style={{ color: activeTheme.textMuted }}>
                   Created: {booking.createdAt ? new Date(booking.createdAt).toLocaleString() : 'N/A'}
                 </p>
               </div>
+            </SectionCard>
 
-              {/* Action Buttons */}
-              <div className="pt-4 border-t space-y-2">
+            <SectionCard sectionKey="actions" title="Actions">
+              <div className="space-y-2">
                 {booking.status === 'PENDING_PAYMENT' && (
                   <Button
                     onClick={handleConfirm}
                     disabled={confirming}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    className="w-full text-white transition-all duration-300 hover:scale-[1.01]"
+                    style={{ background: `linear-gradient(90deg, ${activeTheme.success} 0%, ${activeTheme.accent} 100%)` }}
                   >
                     {confirming ? 'Confirming...' : 'Confirm & Pay'}
                   </Button>
                 )}
+
+                <Link href={`/client/hotels/${booking.hotelId}`}>
+                  <Button
+                    className="w-full text-white transition-all duration-300 hover:scale-[1.01]"
+                    style={{ background: `linear-gradient(90deg, ${activeTheme.secondary} 0%, ${activeTheme.accent} 100%)` }}
+                  >
+                    View Hotel
+                  </Button>
+                </Link>
+
                 {(booking.status === 'PENDING_PAYMENT' || booking.status === 'CONFIRMED') && (
-                  <div className="space-y-2">
+                  <>
                     <Button
                       onClick={handleCancel}
                       disabled={cancelDisabled}
                       variant="outline"
-                      className="w-full text-red-600 hover:text-red-700 border-red-600 disabled:opacity-60"
+                      className="w-full transition-all duration-300"
+                      style={{
+                        borderColor: activeTheme.danger,
+                        color: '#FECACA',
+                        background: 'rgba(239, 68, 68, 0.12)',
+                        opacity: cancelDisabled ? 0.6 : 1,
+                      }}
                     >
                       {cancelling ? 'Cancelling...' : 'Cancel Booking'}
                     </Button>
-                    <p className={`text-xs ${canCancelByDate ? 'text-gray-500' : 'text-red-600'}`}>
-                      {canCancelByDate
-                        ? `You can cancel this booking until ${formatDateTime(cancellationDeadline)} (one day before check-in).`
-                        : `Cancellation closed. Last cancellation date was ${formatDateTime(cancellationDeadline)} (one day before check-in).`}
+
+                    <p className="flex items-start gap-2 text-xs" style={{ color: canCancelByDate ? activeTheme.textMuted : '#FCA5A5' }}>
+                      <svg className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>
+                        {canCancelByDate
+                          ? `You can cancel this booking until ${formatDateTime(cancellationDeadline)} (one day before check-in).`
+                          : `Cancellation closed. Last cancellation date was ${formatDateTime(cancellationDeadline)} (one day before check-in).`}
+                      </span>
                     </p>
-                  </div>
+                  </>
                 )}
-                <Link href={`/client/hotels/${booking.hotelId}`}>
-                  <Button variant="outline" className="w-full">
-                    View Hotel
-                  </Button>
-                </Link>
               </div>
-            </CardContent>
-          </Card>
+            </SectionCard>
+          </div>
         </div>
+      </div>
+      </div>
+
+      <div className="fixed bottom-4 left-1/2 z-30 w-[calc(100%-24px)] max-w-md -translate-x-1/2 rounded-2xl border p-3 backdrop-blur-xl md:hidden" style={{ background: activeTheme.cardBg, borderColor: activeTheme.cardBorder, boxShadow: `${activeTheme.shadow}, 0 0 0 1px rgba(59, 130, 246, 0.32)` }}>
+        <div className="grid grid-cols-2 gap-2">
+          <Link href={`/client/hotels/${booking.hotelId}`}>
+            <Button className="w-full text-white" style={{ background: `linear-gradient(90deg, ${activeTheme.secondary} 0%, ${activeTheme.accent} 100%)` }}>
+              View Hotel
+            </Button>
+          </Link>
+          {(booking.status === 'PENDING_PAYMENT' || booking.status === 'CONFIRMED') ? (
+            <Button
+              onClick={handleCancel}
+              disabled={cancelDisabled}
+              variant="outline"
+              className="w-full"
+              style={{ borderColor: activeTheme.danger, color: '#FECACA', background: 'rgba(239,68,68,0.12)', opacity: cancelDisabled ? 0.6 : 1 }}
+            >
+              {cancelling ? 'Cancelling...' : 'Cancel'}
+            </Button>
+          ) : (
+            <Button variant="outline" disabled className="w-full" style={{ borderColor: activeTheme.cardBorder, color: activeTheme.textMuted }}>
+              Unavailable
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="fixed bottom-4 right-4 z-40" ref={themeMenuRef}>
+        <AnimatePresence>
+          {themeMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 12, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.95 }}
+              className="mb-2 w-52 rounded-2xl border p-2 backdrop-blur-xl"
+              style={{ background: activeTheme.cardBg, borderColor: activeTheme.cardBorder, boxShadow: `${activeTheme.shadow}, 0 0 0 1px rgba(59, 130, 246, 0.32)` }}
+            >
+              {(Object.keys(themeTokens) as ThemeMode[]).map(mode => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => {
+                    setTheme(mode)
+                    setThemeMenuOpen(false)
+                  }}
+                  className={`w-full rounded-xl px-3 py-2 text-left text-sm transition-colors ${theme === mode ? 'bg-white/10' : 'hover:bg-white/5'}`}
+                  style={{ color: activeTheme.textPrimary }}
+                >
+                  {themeTokens[mode].label}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <button
+          type="button"
+          className="h-12 w-12 rounded-full border text-white shadow-lg"
+          style={{
+            borderColor: activeTheme.cardBorder,
+            background: `linear-gradient(135deg, ${activeTheme.secondary} 0%, ${activeTheme.accent} 100%)`,
+          }}
+          onClick={() => setThemeMenuOpen(prev => !prev)}
+          aria-label="Change theme"
+        >
+          <svg className="mx-auto h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
       </div>
     </div>
   )

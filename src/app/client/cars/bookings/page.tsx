@@ -235,48 +235,41 @@ export default function CarBookingsPage() {
     )
   }
 
-  const statusConfig: Record<string, { color: string, bg: string, icon: JSX.Element, label: string }> = {
+  const statusConfig: Record<string, { badgeClass: string, icon: JSX.Element, label: string }> = {
     PENDING_DRIVER_ACCEPTANCE: {
-      color: 'text-yellow-400',
-      bg: 'bg-yellow-500/15 border-yellow-500/30',
-      icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
-      label: 'Waiting for Driver',
+      badgeClass: 'bg-yellow-500 border-yellow-300 text-gray-900',
+      icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+      label: 'Pending',
     },
     ACCEPTED: {
-      color: 'text-blue-400',
-      bg: 'bg-blue-500/15 border-blue-500/30',
+      badgeClass: 'bg-blue-500 border-blue-300 text-white',
       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
-      label: 'Driver Accepted',
+      label: 'Accepted',
     },
     CONFIRMED: {
-      color: 'text-green-400',
-      bg: 'bg-green-500/15 border-green-500/30',
+      badgeClass: 'bg-green-500 border-green-300 text-white',
       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>,
       label: 'Confirmed',
     },
     IN_PROGRESS: {
-      color: 'text-purple-400',
-      bg: 'bg-purple-500/15 border-purple-500/30',
+      badgeClass: 'bg-cyan-500 border-cyan-300 text-gray-900',
       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
-      label: 'Trip in Progress',
+      label: 'Active',
     },
     COMPLETED: {
-      color: 'text-emerald-400',
-      bg: 'bg-emerald-500/15 border-emerald-500/30',
-      icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+      badgeClass: 'bg-yellow-500 border-yellow-300 text-gray-900',
+      icon: <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.951-.69l1.07-3.292z" /></svg>,
       label: 'Completed',
     },
     CANCELLED: {
-      color: 'text-red-400',
-      bg: 'bg-red-500/15 border-red-500/30',
+      badgeClass: 'bg-red-500 border-red-300 text-white',
       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>,
       label: 'Cancelled',
     },
     REJECTED: {
-      color: 'text-red-400',
-      bg: 'bg-red-500/15 border-red-500/30',
-      icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>,
-      label: 'Rejected',
+      badgeClass: 'bg-red-500 border-red-300 text-white',
+      icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>,
+      label: 'Cancelled',
     },
   }
 
@@ -327,6 +320,27 @@ export default function CarBookingsPage() {
     }
   }
 
+  const formatLocationShort = (location?: string, explicitCity?: string | null) => {
+    const value = String(location || '').trim()
+    if (!value) return ''
+
+    const parts = value.split(',').map((part) => part.trim()).filter(Boolean)
+    const firstPart = parts[0] || value
+    const cityRegex = /\b(karachi|lahore|islamabad|rawalpindi|faisalabad|multan|peshawar|quetta|hyderabad|sialkot|gujranwala)\b/i
+    const parsedCityPart = [...parts].reverse().find((part) => cityRegex.test(part)) || parts[parts.length - 1]
+    const cityPart = String(explicitCity || parsedCityPart || '').trim()
+
+    if (!cityPart || firstPart.toLowerCase() === cityPart.toLowerCase()) {
+      return firstPart
+    }
+
+    if (cityRegex.test(firstPart)) {
+      return firstPart
+    }
+
+    return `${firstPart}, ${cityPart}`
+  }
+
   // Filter bookings by type
   const filteredBookings = bookings?.filter((booking: any) => {
     if (bookingTypeFilter === 'all') return true
@@ -350,8 +364,13 @@ export default function CarBookingsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        <PageLoader message="Loading bookings..." variant="skeleton" />
+      <div className="relative min-h-screen overflow-hidden bg-gradient-to-r from-[#214f8c] via-[#1f5678] to-[#0f6667]">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute inset-x-0 top-0 h-[560px] bg-[#17385e]/92" />
+        </div>
+        <div className="relative z-10">
+          <PageLoader message="Loading bookings..." variant="skeleton" />
+        </div>
       </div>
     )
   }
@@ -372,40 +391,63 @@ export default function CarBookingsPage() {
     { key: 'rental' as const, label: 'Rentals', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
   ]
 
+  const carCardBackgrounds = [
+    '/images/cars/car2.jpg',
+    '/images/cars/car%203.jpg',
+    '/images/cars/car%204.jpg',
+    '/images/cars/car%205.jpg',
+    '/images/cars/car%206.jpg',
+    '/images/cars/car%207.jpg',
+    '/images/cars/car%208.jpg',
+  ]
+
   const activeTrackingBooking = trackingBookingId
     ? bookings?.find((booking: any) => booking.id === trackingBookingId)
     : null
   const shouldShowTrackingPanel = !!activeTrackingBooking && canTrackDriver(activeTrackingBooking)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-r from-[#214f8c] via-[#1f5678] to-[#0f6667]">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-x-0 top-0 h-[560px] bg-[#17385e]/92" />
+      </div>
+      <div className="relative z-10 container mx-auto max-w-6xl px-4 py-6">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            <span className="text-sm">Back</span>
-          </button>
-          <h1 className="text-3xl font-bold text-white">My Bookings</h1>
-          <p className="text-gray-400 text-sm mt-1">Track and manage your car rental bookings</p>
-          <div className="mt-3">
-            <Link
-              href="/client/disputes"
-              className="inline-flex items-center gap-2 rounded-lg border border-orange-500/30 bg-orange-500/15 px-3 py-1.5 text-sm font-medium text-orange-300 hover:bg-orange-500/25 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              View Complaints
-            </Link>
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="relative mb-6 overflow-hidden rounded-2xl border border-white/10">
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1920&q=80')" }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1e3a8a]/80 via-[#0f4c75]/70 to-[#0d9488]/80" />
+          <div className="relative z-10 p-6 md:p-8">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-200 transition-colors hover:text-white">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="text-sm">Back</span>
+              </button>
+              <Link
+                href="/client/disputes"
+                className="inline-flex items-center gap-2 rounded-lg border border-orange-500/30 bg-orange-500/20 px-3 py-1.5 text-sm font-medium text-orange-200 transition-colors hover:bg-orange-500/30"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                View Complaints
+              </Link>
+            </div>
+
+            <h1 className="text-center text-3xl font-bold text-white md:text-4xl">My Bookings</h1>
+            <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-gray-200 md:text-base">
+              Track and manage your car rental bookings
+            </p>
           </div>
         </motion.div>
 
         {/* Booking Type Filter */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }} className="mb-4">
-          <div className="flex gap-2">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }} className="mb-4 rounded-2xl border border-cyan-400/70 bg-gray-800/50 p-4 backdrop-blur-sm">
+          <div className="flex flex-wrap justify-center gap-2">
             {bookingTypeTabs.map((tab) => (
               <button
                 key={tab.key}
@@ -417,7 +459,7 @@ export default function CarBookingsPage() {
                       : tab.key === 'rental'
                         ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                         : 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white shadow-lg shadow-teal-500/20'
-                    : 'bg-gray-800/60 text-gray-400 hover:text-white hover:bg-gray-700/60 border border-white/5'
+                    : 'border border-white/10 bg-gray-700/50 text-gray-300 hover:bg-gray-700/70 hover:text-white'
                 }`}
               >
                 {tab.icon}
@@ -428,8 +470,8 @@ export default function CarBookingsPage() {
         </motion.div>
 
         {/* Status Filter Tabs */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="mb-6 overflow-x-auto">
-          <div className="flex gap-2 min-w-max pb-2">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="mb-6 rounded-2xl border border-cyan-400/70 bg-gray-800/50 p-4 backdrop-blur-sm">
+          <div className="flex flex-wrap justify-center gap-2">
             {filterTabs.map((tab) => (
               <button
                 key={tab.key}
@@ -437,7 +479,7 @@ export default function CarBookingsPage() {
                 className={`px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
                   statusFilter === tab.key
                     ? 'bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] text-white shadow-lg shadow-teal-500/20'
-                    : 'bg-gray-800/60 text-gray-400 hover:text-white hover:bg-gray-700/60 border border-white/5'
+                    : 'border border-white/10 bg-gray-700/50 text-gray-300 hover:bg-gray-700/70 hover:text-white'
                 }`}
               >
                 {tab.label}
@@ -447,9 +489,11 @@ export default function CarBookingsPage() {
         </motion.div>
 
         {/* Main Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Bookings List */}
-          <div className="lg:col-span-2 space-y-4">
+        <div className="mx-auto max-w-7xl">
+          <div className="rounded-2xl border border-white/10 bg-gray-900/60 p-4 shadow-[0_10px_30px_rgba(2,132,199,0.15)] backdrop-blur-lg lg:p-6">
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-12 xl:gap-6">
+              {/* Bookings List */}
+              <div className="w-full space-y-4 xl:col-span-8 xl:order-2">
             {filteredBookings && filteredBookings.length > 0 ? (
               filteredBookings.map((booking: any, index: number) => {
                 const status = getStatus(booking.status)
@@ -459,6 +503,16 @@ export default function CarBookingsPage() {
                 const isRideHailing = bookingType === 'ride_hailing'
                 const showTrackDriver = canTrackDriver(booking)
                 const complaintAlreadyFiled = myDisputedBookingIds.has(booking.id)
+                const cardBackgroundImage =
+                  carCardBackgrounds[Math.abs(Number(booking.id) || index) % carCardBackgrounds.length]
+                const hasUnreadChat =
+                  Number(
+                    booking.unread_chat_count ??
+                      booking.unread_count ??
+                      booking.unread_messages ??
+                      booking.unreadMessages ??
+                      0,
+                  ) > 0 || Boolean(booking.has_unread_messages ?? booking.hasUnreadMessages)
 
                 return (
                   <motion.div
@@ -466,128 +520,110 @@ export default function CarBookingsPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className={`bg-gray-800/60 border rounded-xl overflow-hidden transition-all ${
-                      selectedBooking === booking.id ? 'border-teal-500/50 ring-1 ring-teal-500/20' : 'border-white/5 hover:border-white/10'
+                    className={`group relative overflow-hidden rounded-2xl border-2 bg-slate-900/30 backdrop-blur-md transition-all ${
+                      selectedBooking === booking.id ? 'border-cyan-300/80 shadow-[0_0_0_1px_rgba(34,211,238,0.25)]' : 'border-cyan-500/60 hover:border-cyan-300/80'
                     }`}
                   >
+                    <div className="pointer-events-none absolute inset-0">
+                      <div
+                        className="absolute inset-0 bg-cover bg-center"
+                        style={{ backgroundImage: `url('${cardBackgroundImage}')` }}
+                      />
+                      <div className="absolute inset-0 bg-black/65" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-slate-950/40 via-slate-900/20 to-slate-950/45" />
+                    </div>
+                    <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-600/5 to-blue-600/5 opacity-0 transition-opacity group-hover:opacity-100" />
                     {/* Card Header */}
-                    <div className="p-4">
-                      <div className="flex items-start gap-4">
-                        {/* Car Image */}
-                        <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-700 flex-shrink-0 relative">
-                          {booking.car?.image ? (
-                            <img src={booking.car.image} alt={`${booking.car.make} ${booking.car.model}`} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-500">
-                              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7h12l2 5h-2v2a1 1 0 01-1 1h-1a2 2 0 11-4 0H10a2 2 0 11-4 0H5a1 1 0 01-1-1v-2H2l2-5h2V5a1 1 0 011-1h2a1 1 0 011 1v2z" />
-                              </svg>
-                            </div>
-                          )}
-                          {/* Booking Type Badge */}
-                          <div className={`absolute top-1 left-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                            isRideHailing 
-                              ? 'bg-teal-500/90 text-white' 
-                              : 'bg-blue-500/90 text-white'
-                          }`}>
-                            {isRideHailing ? 'RIDE' : 'RENTAL'}
-                          </div>
-                        </div>
-
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <h3 className="text-white font-semibold text-lg leading-tight">
-                                {booking.car.make} {booking.car.model}
-                                <span className="text-gray-500 text-sm font-normal ml-1">({booking.car.year})</span>
-                              </h3>
-                              {/* Driver Info */}
-                              <div className="flex items-center gap-2 mt-1.5">
-                                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
-                                  {booking.driver?.photo ? (
-                                    <img src={booking.driver.photo} className="w-full h-full rounded-full object-cover" alt="" />
-                                  ) : (
-                                    booking.driver?.name?.charAt(0).toUpperCase()
-                                  )}
-                                </div>
-                                <span className="text-sm text-gray-400">{booking.driver?.name}</span>
-                                {booking.driver?.isVerified && (
-                                  <svg className="w-3.5 h-3.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    <div className="relative z-10 p-4">
+                      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 lg:items-center">
+                        {/* Left: Car + Driver */}
+                        <div className="lg:col-span-8">
+                          <div className="flex items-start gap-4">
+                            <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl bg-gray-700">
+                              {booking.car?.image ? (
+                                <img src={booking.car.image} alt={`${booking.car.make} ${booking.car.model}`} className="h-full w-full object-cover" />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center text-gray-500">
+                                  <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7h12l2 5h-2v2a1 1 0 01-1 1h-1a2 2 0 11-4 0H10a2 2 0 11-4 0H5a1 1 0 01-1-1v-2H2l2-5h2V5a1 1 0 011-1h2a1 1 0 011 1v2z" />
                                   </svg>
+                                </div>
+                              )}
+                              <div className={`absolute left-1 top-1 rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                                isRideHailing ? 'bg-teal-500/90 text-white' : 'bg-blue-500/90 text-white'
+                              }`}>
+                                {isRideHailing ? 'RIDE' : 'RENTAL'}
+                              </div>
+                            </div>
+
+                            <div className="min-w-0">
+                              <h3 className="text-xl font-semibold leading-tight text-white whitespace-nowrap">
+                                {booking.car.make} {booking.car.model} <span className="text-gray-400">({booking.car.year})</span>
+                              </h3>
+                              <div className="mt-1.5 space-y-1 text-sm text-gray-400">
+                                <p className="flex items-center gap-1.5 text-teal-300">
+                                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  {formatBookingDateTime(booking)}
+                                </p>
+                                {booking.estimated_distance && (
+                                  <p className="flex items-center gap-1.5">
+                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                    </svg>
+                                    {booking.estimated_distance} km
+                                  </p>
                                 )}
-                                {booking.driver?.city && (
-                                  <span className="text-xs text-gray-500">&bull; {booking.driver.city}</span>
+                                {isRideHailing && booking.is_intercity && (
+                                  <p className="flex items-center gap-1 text-purple-400">
+                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                    </svg>
+                                    Intercity
+                                  </p>
                                 )}
                               </div>
                             </div>
-                            {/* Status Badge */}
-                            <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${status.bg} ${status.color} flex-shrink-0`}>
+                          </div>
+                        </div>
+
+                        {/* Right: Status + Price */}
+                        <div className="lg:col-span-4">
+                          <div className="flex items-start justify-between gap-3 lg:flex-col lg:items-end lg:text-right">
+                            <span
+                              className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${status.badgeClass} ${booking.status === 'COMPLETED' ? 'flex-col items-center gap-0.5 leading-tight' : 'items-center gap-1.5'}`}
+                            >
                               {status.icon}
-                              {status.label}
+                              <span>{status.label}</span>
                             </span>
-                          </div>
-
-                          {/* Route */}
-                          <div className="flex items-center gap-2 mt-3 text-sm">
-                            <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                              <div className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
-                              <span className="text-gray-300 truncate">{booking.pickup_location}</span>
-                            </div>
-                            <svg className="w-4 h-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                            </svg>
-                            <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                              <div className="w-2 h-2 rounded-full bg-red-400 flex-shrink-0" />
-                              <span className="text-gray-300 truncate">{booking.dropoff_location}</span>
+                            <div>
+                              <p className="text-4xl font-bold text-white">
+                                PKR {booking.total_amount?.toLocaleString()}
+                              </p>
+                              <p className="text-xs font-semibold tracking-wide text-teal-300">
+                                {isRideHailing ? 'RIDE HAILING' : 'RENTAL'}
+                              </p>
+                              <p className="text-xs text-gray-400">booking total</p>
                             </div>
                           </div>
+                        </div>
+                      </div>
 
-                          {/* Date + Amount Row */}
-                          <div className="flex items-center justify-between mt-3">
-                            <div className="flex items-center gap-4 text-xs text-gray-400">
-                              <span className="flex items-center gap-1">
-                                {isRideHailing ? (
-                                  <svg className="w-3.5 h-3.5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                ) : (
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                  </svg>
-                                )}
-                                <span className={isRideHailing ? 'text-teal-300' : ''}>{formatBookingDateTime(booking)}</span>
-                              </span>
-                              {booking.estimated_distance && (
-                                <span className="flex items-center gap-1">
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                                  </svg>
-                                  {booking.estimated_distance} km
-                                </span>
-                              )}
-                              {/* Show cities for intercity trips */}
-                              {isRideHailing && booking.is_intercity && (
-                                <span className="flex items-center gap-1 text-purple-400">
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                  </svg>
-                                  Intercity
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400">
-                              PKR {booking.total_amount?.toLocaleString()}
-                            </p>
+                      <div className="mt-4 rounded-xl bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] px-3 py-2">
+                        <div className="flex items-center justify-center text-xs text-white">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className="truncate text-white/95">{formatLocationShort(booking.pickup_location, booking.pickup_city_name || booking.pickup_city?.name)}</span>
+                            <span className="text-white/70">→</span>
+                            <span className="truncate text-white/95">{formatLocationShort(booking.dropoff_location, booking.dropoff_city_name || booking.dropoff_city?.name)}</span>
                           </div>
                         </div>
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="flex items-center gap-2 mt-4 pt-3 border-t border-white/5">
+                      <div className="mt-4 flex flex-wrap items-center justify-center gap-2 border-t border-white/5 pt-3">
                         {booking.status === 'ACCEPTED' && !showTrackDriver && (
-                          <Link href={`/client/cars/booking/confirm?bookingId=${booking.id}`} className="flex items-center gap-1.5 px-3.5 py-1.5 bg-green-500/15 hover:bg-green-500/25 text-green-400 rounded-lg text-sm font-medium transition-colors border border-green-500/20">
+                          <Link href={`/client/cars/booking/confirm?bookingId=${booking.id}`} className="flex items-center gap-1.5 px-3.5 py-1.5 bg-green-500 hover:bg-green-400 text-white rounded-lg text-sm font-semibold transition-colors border border-green-300">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
@@ -601,7 +637,7 @@ export default function CarBookingsPage() {
                               setSelectedBooking(booking.id)
                               setSelectedBookingData(booking)
                             }}
-                            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-teal-500/15 hover:bg-teal-500/25 text-teal-300 rounded-lg text-sm font-medium transition-colors border border-teal-500/20"
+                            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-green-500 hover:bg-green-400 text-white rounded-lg text-sm font-semibold transition-colors border border-green-300"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -616,7 +652,7 @@ export default function CarBookingsPage() {
                               setReviewDriverName(booking.driver?.name || 'Driver')
                               setReviewModalOpen(true)
                             }}
-                            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-yellow-500/15 hover:bg-yellow-500/25 text-yellow-400 rounded-lg text-sm font-medium transition-colors border border-yellow-500/20"
+                            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-yellow-500 hover:bg-yellow-400 text-gray-900 rounded-lg text-sm font-semibold transition-colors border border-yellow-300"
                           >
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.951-.69l1.07-3.292z" />
@@ -634,8 +670,8 @@ export default function CarBookingsPage() {
                             disabled={complaintAlreadyFiled}
                             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors border ${
                               complaintAlreadyFiled
-                                ? 'bg-gray-700/30 text-gray-500 border-gray-600/40 cursor-not-allowed'
-                                : 'bg-orange-500/15 hover:bg-orange-500/25 text-orange-400 border-orange-500/20'
+                                ? 'bg-red-700 text-white border-red-600 cursor-not-allowed opacity-80'
+                                : 'bg-red-500 hover:bg-red-400 text-white border-red-300'
                             }`}
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -647,17 +683,19 @@ export default function CarBookingsPage() {
                         {canChat(booking.status) && (
                           <button
                             onClick={() => { setSelectedBooking(booking.id); setSelectedBookingData(booking) }}
-                            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 rounded-lg text-sm font-medium transition-colors border border-blue-500/20"
+                            className="relative flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-slate-700/30 text-slate-300 transition-colors hover:bg-slate-700/45"
+                            aria-label="Open chat"
+                            title="Open chat"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 10h.01M12 10h.01M16 10h.01M7 16h10a3 3 0 003-3V8a3 3 0 00-3-3H7a3 3 0 00-3 3v5a3 3 0 003 3zm0 0l-3 3" />
                             </svg>
-                            Chat
+                            {hasUnreadChat && <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-red-500" />}
                           </button>
                         )}
                         <button
                           onClick={() => setExpandedBooking(isExpanded ? null : booking.id)}
-                          className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gray-700/50 hover:bg-gray-700 text-gray-300 rounded-lg text-sm font-medium transition-colors"
+                          className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors border border-blue-500"
                         >
                           <svg className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -668,7 +706,7 @@ export default function CarBookingsPage() {
                           <button
                             onClick={() => handleCancelBooking(booking.id)}
                             disabled={cancellingId === booking.id}
-                            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-sm font-medium transition-colors border border-red-500/20 ml-auto disabled:opacity-50"
+                            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-red-500 hover:bg-red-400 text-white rounded-lg text-sm font-semibold transition-colors border border-red-300 disabled:opacity-50"
                           >
                             {cancellingId === booking.id ? (
                               <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -764,7 +802,7 @@ export default function CarBookingsPage() {
                 )
               })
             ) : (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-gray-800/40 border border-white/5 rounded-xl p-12 text-center">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-white/10 bg-gray-800/50 p-12 text-center backdrop-blur-sm">
                 <div className="w-16 h-16 rounded-full bg-gray-700/50 flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7h12l2 5h-2v2a1 1 0 01-1 1h-1a2 2 0 11-4 0H10a2 2 0 11-4 0H5a1 1 0 01-1-1v-2H2l2-5h2V5a1 1 0 011-1h2a1 1 0 011 1v2z" />
@@ -782,14 +820,14 @@ export default function CarBookingsPage() {
                 </Link>
               </motion.div>
             )}
-          </div>
+              </div>
 
-          {/* Right Column: Tracking + Chat */}
-          <div className="lg:col-span-1">
+              {/* Right Column: Tracking + Chat */}
+              <div className="w-full xl:col-span-4 xl:order-1">
             {shouldShowTrackingPanel ? (
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="bg-gray-800/40 border border-white/5 rounded-xl p-4 mb-4 sticky top-6">
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="sticky top-6 mb-4 rounded-2xl border border-cyan-400/35 bg-gradient-to-br from-slate-900/70 via-slate-800/55 to-cyan-950/45 p-4 shadow-[0_10px_30px_rgba(8,145,178,0.18)] backdrop-blur-md">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-white font-semibold">Track Driver</h3>
+                  <h3 className="text-white font-semibold tracking-wide">Track Driver</h3>
                   <button
                     onClick={() => {
                       if (trackingBookingId) {
@@ -801,19 +839,19 @@ export default function CarBookingsPage() {
                       setDriverLocation(null)
                       setIsTrackingConnected(false)
                     }}
-                    className="text-gray-400 hover:text-white text-xs"
+                    className="text-gray-400 hover:text-cyan-200 text-xs transition-colors"
                   >
                     Close
                   </button>
                 </div>
 
-                <div className="text-xs text-gray-400 mb-3">
+                <div className="text-xs text-cyan-100/75 mb-3">
                   {isTrackingConnected ? 'Live tracking connected' : 'Connecting to live tracking...'}
                 </div>
 
                 {driverLocation ? (
                   <>
-                    <div className="rounded-lg overflow-hidden border border-white/10 h-56 bg-gray-900">
+                    <div className="rounded-xl overflow-hidden border border-cyan-400/20 h-56 bg-slate-950/70">
                       <iframe
                         title="Driver live location"
                         className="w-full h-full"
@@ -821,7 +859,7 @@ export default function CarBookingsPage() {
                         src={`https://www.openstreetmap.org/export/embed.html?bbox=${driverLocation.longitude - 0.01}%2C${driverLocation.latitude - 0.01}%2C${driverLocation.longitude + 0.01}%2C${driverLocation.latitude + 0.01}&layer=mapnik&marker=${driverLocation.latitude}%2C${driverLocation.longitude}`}
                       />
                     </div>
-                    <div className="mt-3 text-xs text-gray-300 space-y-1">
+                    <div className="mt-3 text-xs text-gray-200/85 space-y-1">
                       <div>
                         Driver coordinates: {driverLocation.latitude.toFixed(5)}, {driverLocation.longitude.toFixed(5)}
                       </div>
@@ -831,7 +869,7 @@ export default function CarBookingsPage() {
                     </div>
                   </>
                 ) : (
-                  <div className="rounded-lg border border-dashed border-white/10 p-4 text-xs text-gray-500">
+                  <div className="rounded-xl border border-dashed border-cyan-400/25 bg-slate-900/35 p-4 text-xs text-gray-300/70">
                     Waiting for live driver location to appear.
                   </div>
                 )}
@@ -848,16 +886,18 @@ export default function CarBookingsPage() {
                 />
               </motion.div>
             ) : (
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="bg-gray-800/40 border border-white/5 rounded-xl p-6 text-center sticky top-6">
-                <div className="w-12 h-12 rounded-full bg-gray-700/50 flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="sticky top-6 rounded-2xl border border-cyan-400/30 bg-gradient-to-br from-slate-900/70 via-slate-800/55 to-cyan-950/45 p-6 text-center shadow-[0_10px_30px_rgba(8,145,178,0.16)] backdrop-blur-md">
+                <div className="w-14 h-14 rounded-full bg-cyan-500/10 border border-cyan-300/15 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-cyan-200/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                 </div>
-                <h3 className="text-white font-semibold mb-1">Chat with Driver</h3>
-                <p className="text-gray-500 text-sm">Select an accepted booking to start chatting with your driver</p>
+                <h3 className="text-white font-semibold mb-2">Chat with Driver</h3>
+                <p className="text-gray-300/70 text-sm leading-relaxed">Select an accepted booking to start chatting with your driver</p>
               </motion.div>
             )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

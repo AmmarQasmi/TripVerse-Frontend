@@ -28,43 +28,56 @@ export function FeatureCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.45, delay: index * 0.1 }}
-      whileHover={{
-        scale: 1.03,
-        boxShadow: '0 14px 28px rgba(0,0,0,0.35)',
-      }}
-      className="group relative"
+      whileHover={{ y: -5 }}
+      className="group relative h-full"
     >
-      <motion.div
-        aria-hidden="true"
-        className="pointer-events-none absolute -inset-[1px] rounded-[18px] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        style={{
-          background:
-            'linear-gradient(90deg, #1e40af, #0891b2, #0d9488, #1e40af)',
-          backgroundSize: '200% 100%',
-        }}
-        animate={{ backgroundPosition: ['0% 50%', '100% 50%'] }}
-        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-      />
-
       <div
-        className="relative h-full overflow-hidden rounded-2xl p-4 shadow-[0_8px_20px_rgba(0,0,0,0.25)]"
-        style={{
-          background: 'linear-gradient(135deg, #1d4ed8, #155e75, #115e59)',
-        }}
+        className="relative h-[370px] overflow-hidden rounded-2xl border border-white/10 bg-gray-800/50 p-4 shadow-lg backdrop-blur-sm transition-all duration-200 group-hover:shadow-xl"
       >
-        <div className="relative overflow-hidden rounded-t-xl rounded-b-lg">
+        <div
+          className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-20"
+          style={{ backgroundImage: `url(${image})` }}
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-gray-900/70 via-gray-900/60 to-slate-900/65" />
+
+        <div className="relative aspect-video overflow-hidden rounded-t-xl rounded-b-lg">
           <img
             src={image}
             alt={imageAlt}
-            className="h-36 w-full object-cover sm:h-40 md:h-44 transition-transform duration-300 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
           />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
         </div>
 
-        <div className="mt-4 flex h-[calc(100%-11rem)] flex-col text-center md:text-left">
-          <h3 className="text-lg font-semibold text-white md:text-xl">{title}</h3>
+        <div className="relative z-10 mt-4 flex h-[calc(100%-12.25rem)] flex-col text-left">
+          <div className="relative">
+            {ctaLabel && redirectLink ? (
+              <motion.div whileTap={{ scale: 0.97 }} className="absolute right-0 top-0 z-10">
+                <Link
+                  href={redirectLink}
+                  className="inline-flex rounded-xl bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] px-4 py-1.5 text-xs font-semibold text-white shadow-lg transition-all duration-200 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-cyan-300"
+                >
+                  {ctaLabel}
+                </Link>
+              </motion.div>
+            ) : null}
+
+            <h3
+              className="pr-28 text-lg font-semibold text-white md:text-xl"
+              style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                minHeight: '3.25rem',
+              }}
+            >
+              {title}
+            </h3>
+          </div>
+
           <p
-            className="mt-2 text-sm leading-[1.4] text-gray-300"
+            className="mt-1.5 text-sm leading-[1.4] text-gray-300"
             style={{
               display: '-webkit-box',
               WebkitLineClamp: 3,
@@ -74,21 +87,6 @@ export function FeatureCard({
           >
             {description}
           </p>
-
-          {ctaLabel && redirectLink ? (
-            <div className="mt-auto flex justify-center pt-4 md:justify-end">
-              <motion.div whileTap={{ scale: 0.97 }}>
-                <Link
-                  href={redirectLink}
-                  className="inline-flex rounded-full bg-[#3b82f6] px-4 py-1.5 text-xs font-semibold text-white transition-all duration-200 hover:bg-[#0891b2] hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:ring-offset-2 focus:ring-offset-transparent"
-                >
-                  {ctaLabel}
-                </Link>
-              </motion.div>
-            </div>
-          ) : (
-            <div className="mt-auto pt-4" />
-          )}
         </div>
       </div>
     </motion.article>
