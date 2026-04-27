@@ -753,5 +753,6 @@ export interface ChatResponse {
   context: Record<string, any>
   previewData?: any
   itineraryId?: number
+  pendingPreviewExpansion?: boolean
   isComplete: boolean
 }

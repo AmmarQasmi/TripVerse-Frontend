@@ -160,6 +160,7 @@ export function ChatWidget({ isOpen, onClose }: ChatWidgetProps) {
             <ItineraryPreviewCard
               previewData={msg.previewData}
               itineraryId={msg.itineraryId}
+              pendingPreviewExpansion={msg.pendingPreviewExpansion}
               onEnrich={enrichItinerary}
               isEnriching={isEnriching}
             />

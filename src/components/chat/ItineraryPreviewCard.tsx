@@ -18,6 +18,7 @@ import {
 interface ItineraryPreviewCardProps {
   previewData: any
   itineraryId?: number
+  pendingPreviewExpansion?: boolean
   onEnrich: (id: number) => Promise<any>
   isEnriching: boolean
 }
@@ -25,6 +26,7 @@ interface ItineraryPreviewCardProps {
 export function ItineraryPreviewCard({
   previewData,
   itineraryId,
+  pendingPreviewExpansion,
   onEnrich,
   isEnriching,
 }: ItineraryPreviewCardProps) {
@@ -120,7 +122,15 @@ export function ItineraryPreviewCard({
 
       {/* Action footer */}
       <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
-        {enriched && itineraryId ? (
+        {pendingPreviewExpansion && !itineraryId ? (
+          <button
+            disabled
+            className="flex items-center justify-center gap-2 w-full py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl text-sm font-semibold opacity-70 cursor-not-allowed"
+          >
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Preparing full details...
+          </button>
+        ) : enriched && itineraryId ? (
           <Link
             href={`/client/itinerary/${itineraryId}`}
             className="flex items-center justify-center gap-2 w-full py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl text-sm font-semibold hover:shadow-lg transition-all"
