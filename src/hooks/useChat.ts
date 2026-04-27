@@ -20,6 +20,8 @@ export interface LocalMessage {
   previewData?: any
   /** If this message generated an itinerary, store its id */
   itineraryId?: number
+  /** True while backend is expanding compact preview → full preview */
+  pendingPreviewExpansion?: boolean
 }
 
 export function useChat() {
@@ -74,6 +76,7 @@ export function useChat() {
         // Recover preview data: first from local state, then from session's generatedItinerary
         let previewData = localMatch?.previewData
         let itineraryId = localMatch?.itineraryId || meta.itineraryId
+        const pendingPreviewExpansion = meta.previewPhase === 'compact' && !meta.itineraryId
 
         if (!previewData && meta.hasPreview && activeSession.generatedItinerary) {
           previewData = activeSession.generatedItinerary.previewData
@@ -87,6 +90,7 @@ export function useChat() {
           createdAt: m.createdAt,
           ...(previewData ? { previewData } : {}),
           ...(itineraryId ? { itineraryId } : {}),
+          ...(pendingPreviewExpansion ? { pendingPreviewExpansion: true } : {}),
         }
       })
       setMessages(serverMessages)
@@ -133,6 +137,7 @@ export function useChat() {
             createdAt: new Date().toISOString(),
             previewData: data.previewData || undefined,
             itineraryId: data.itineraryId || undefined,
+            pendingPreviewExpansion: data.pendingPreviewExpansion || undefined,
           },
         ]
       })
@@ -140,12 +145,25 @@ export function useChat() {
         queryClient.invalidateQueries({ queryKey: ['chat-session', activeSessionId] })
       }
       queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
+
+      // Option B: backend will expand compact preview to full in background.
+      // We poll a few times so the preview card auto-fills on shaky cellular.
+      if (data.pendingPreviewExpansion && activeSessionId) {
+        const sid = activeSessionId
+        setTimeout(() => queryClient.invalidateQueries({ queryKey: ['chat-session', sid] }), 2500)
+        setTimeout(() => queryClient.invalidateQueries({ queryKey: ['chat-session', sid] }), 6500)
+        setTimeout(() => queryClient.invalidateQueries({ queryKey: ['chat-session', sid] }), 11000)
+      }
     },
     onError: (error: any) => {
       setIsTyping(false)
       const status = error?.response?.status
       const serverMsg = error?.response?.data?.message
       let errorText = 'Sorry, something went wrong. Please try again.'
+      // Network / timeout (likely unstable internet)
+      if (!status) {
+        errorText = 'Network issue (unstable connection). Please check internet and tap send again.'
+      }
       if (status === 429) {
         errorText = serverMsg || 'You\'re sending messages too quickly. Please wait a moment.'
       } else if (status === 401) {
