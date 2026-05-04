@@ -46,13 +46,13 @@ export function EmailChangeForm({ currentEmail, onEmailChange }: EmailChangeForm
 
   if (!isOpen) {
     return (
-      <Card>
+      <Card className="card-accent-line premium-card">
         <CardHeader>
           <CardTitle>Email Address</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-gray-600 mb-2">Current email: <strong>{currentEmail}</strong></p>
-          <Button onClick={() => setIsOpen(true)} variant="outline">
+          <p className="text-sm text-gray-600 mb-2">Current email: <strong className="text-gray-900">{currentEmail}</strong></p>
+          <Button onClick={() => setIsOpen(true)} className="card-button-primary">
             Change Email
           </Button>
         </CardContent>
@@ -61,7 +61,7 @@ export function EmailChangeForm({ currentEmail, onEmailChange }: EmailChangeForm
   }
 
   return (
-    <Card>
+    <Card className="card-accent-line premium-card">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Change Email</CardTitle>
