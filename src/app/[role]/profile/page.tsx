@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { motion } from 'framer-motion'
 import { ProfileForm } from '@/components/shared/ProfileForm'
 import { PasswordChangeForm } from '@/components/shared/PasswordChangeForm'
 import { EmailChangeForm } from '@/components/shared/EmailChangeForm'
@@ -44,9 +43,12 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="premium-gradient-bg">
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-gray-900 text-xl">Loading profile...</div>
+          <div className="text-center space-y-4">
+            <div className="w-12 h-12 rounded-full border-4 border-gray-200 border-t-white mx-auto"></div>
+            <div className="text-white text-lg font-medium">Loading profile...</div>
+          </div>
         </div>
       </div>
     )
@@ -54,11 +56,18 @@ export default function ProfilePage() {
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="premium-gradient-bg">
         <div className="container mx-auto px-4 py-8">
-          <Card className="bg-red-50 border-red-200">
+          <Card 
+            className="bg-red-50 border-red-200 backdrop-blur-md"
+            style={{
+              borderTop: '3px solid',
+              borderImage: 'linear-gradient(to right, #dc2626, #991b1b) 1 0 0 0',
+              backgroundColor: 'rgba(254, 242, 242, 0.9)'
+            }}
+          >
             <CardContent className="p-6">
-              <p className="text-red-600">{error || 'Profile not found'}</p>
+              <p className="text-red-600 font-medium">{error || 'Profile not found'}</p>
             </CardContent>
           </Card>
         </div>
@@ -67,17 +76,13 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="premium-gradient-bg">
       <div className="container mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-4xl mx-auto space-y-6"
-        >
+        <div className="max-w-4xl mx-auto space-y-6">
           <ProfileForm profile={profile} onUpdate={handleProfileUpdate} />
           <EmailChangeForm currentEmail={profile.email} onEmailChange={handleProfileUpdate} />
           <PasswordChangeForm />
-        </motion.div>
+        </div>
       </div>
     </div>
   )

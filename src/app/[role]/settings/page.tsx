@@ -7,6 +7,8 @@ import { motion } from 'framer-motion'
 import { Toggle } from '@/components/ui/Toggle'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { PageHeader } from '@/components/shared/PageHeader'
+import { PageLoader } from '@/components/shared/PageLoader'
 import { usersApi, UserSettings } from '@/lib/api/users.api'
 import { useAuth } from '@/features/auth/useAuth'
 
@@ -58,29 +60,45 @@ export default function SettingsPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-gray-900 text-xl">Loading settings...</div>
-        </div>
-      </div>
-    )
+    return <PageLoader message="Loading settings..." variant="skeleton" />
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="premium-gradient-bg">
+      <PageHeader
+        title="Settings"
+        subtitle="Manage your preferences and account settings"
+        backUrl={`/${role}/dashboard`}
+        backLabel="Back to Dashboard"
+        centered={true}
+      />
+
       <div className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="max-w-4xl mx-auto space-y-6"
         >
+          {/* Error Message */}
+          {error && (
+            <Card className="card-accent-line premium-card">
+              <CardContent className="p-4 text-red-700 text-sm" style={{ position: 'relative', zIndex: 1 }}>{error}</CardContent>
+            </Card>
+          )}
+
+          {/* Success Message */}
+          {success && (
+            <Card className="card-accent-line premium-card">
+              <CardContent className="p-4 text-green-700 text-sm" style={{ position: 'relative', zIndex: 1 }}>Settings saved successfully!</CardContent>
+            </Card>
+          )}
+
           {/* Notification Settings */}
-          <Card>
-            <CardHeader>
+          <Card className="card-accent-line premium-card premium-card-dark-image">
+            <CardHeader style={{ position: 'relative', zIndex: 1 }}>
               <CardTitle>Notification Preferences</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6" style={{ position: 'relative', zIndex: 1 }}>
               <Toggle
                 checked={settings.notifications_enabled}
                 onChange={(checked) => setSettings({ ...settings, notifications_enabled: checked })}
@@ -98,16 +116,16 @@ export default function SettingsPage() {
           </Card>
 
           {/* Account Settings */}
-          <Card>
-            <CardHeader>
+          <Card className="card-accent-line premium-card premium-card-dark-image">
+            <CardHeader style={{ position: 'relative', zIndex: 1 }}>
               <CardTitle>Account Settings</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
+            <CardContent className="space-y-4" style={{ position: 'relative', zIndex: 1 }}>
+              <div className="p-4 rounded-lg" style={{ background: 'linear-gradient(to right, rgba(13,148,136,0.08), rgba(8,145,178,0.08))', border: '1px solid rgba(45,212,191,0.2)' }}>
                 <h4 className="font-medium text-gray-900 mb-2">Account Information</h4>
                 <p className="text-sm text-gray-600">
                   To change your email or password, please visit your{' '}
-                  <Link href={`/${role}/profile`} className="text-cyan-600 hover:text-cyan-700 underline">
+                  <Link href={`/${role}/profile`} className="text-teal-600 hover:text-teal-700 underline font-medium">
                     profile page
                   </Link>
                   .
@@ -117,12 +135,12 @@ export default function SettingsPage() {
           </Card>
 
           {/* Privacy Settings */}
-          <Card>
-            <CardHeader>
+          <Card className="card-accent-line premium-card premium-card-dark-image">
+            <CardHeader style={{ position: 'relative', zIndex: 1 }}>
               <CardTitle>Privacy & Security</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
+            <CardContent className="space-y-4" style={{ position: 'relative', zIndex: 1 }}>
+              <div className="p-4 rounded-lg" style={{ background: 'linear-gradient(to right, rgba(13,148,136,0.08), rgba(8,145,178,0.08))', border: '1px solid rgba(45,212,191,0.2)' }}>
                 <h4 className="font-medium text-gray-900 mb-2">Data Privacy</h4>
                 <p className="text-sm text-gray-600">
                   Your data is encrypted and stored securely. We never share your personal information with third parties.
@@ -132,24 +150,8 @@ export default function SettingsPage() {
           </Card>
 
           {/* Save Button */}
-          {error && (
-            <Card className="bg-red-500/20 border-red-500">
-              <CardContent className="p-4">
-                <p className="text-sm text-red-600">{error}</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {success && (
-            <Card className="bg-green-500/20 border-green-500">
-              <CardContent className="p-4">
-                <p className="text-sm text-green-600">Settings saved successfully!</p>
-              </CardContent>
-            </Card>
-          )}
-
-          <div className="flex justify-end">
-            <Button onClick={handleSave} disabled={isSaving} size="lg">
+          <div className="flex justify-end pt-4">
+            <Button onClick={handleSave} disabled={isSaving} size="lg" className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
               {isSaving ? 'Saving...' : 'Save Settings'}
             </Button>
           </div>

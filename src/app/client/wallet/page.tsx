@@ -160,36 +160,37 @@ export default function ClientWalletPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="premium-gradient-bg">
       <PageHeader
         title="Wallet"
         subtitle="Top up balance and monitor all wallet activity"
         backUrl="/client/dashboard"
         backLabel="Back to Dashboard"
+        centered={true}
       />
 
       <div className="container mx-auto px-4 py-8">
         {message && (
-          <Card className="mb-4 border-blue-200 bg-blue-50">
-            <CardContent className="p-4 text-blue-700 text-sm">{message}</CardContent>
+          <Card className="card-accent-line premium-card mb-4">
+            <CardContent className="p-4 text-blue-700 text-sm" style={{ position: 'relative', zIndex: 1 }}>{message}</CardContent>
           </Card>
         )}
 
         {error && (
-          <Card className="mb-4 border-red-200 bg-red-50">
-            <CardContent className="p-4 text-red-700 text-sm">{error}</CardContent>
+          <Card className="card-accent-line premium-card mb-4">
+            <CardContent className="p-4 text-red-700 text-sm" style={{ position: 'relative', zIndex: 1 }}>{error}</CardContent>
           </Card>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card><CardHeader><CardTitle className="text-sm">Current Balance</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-blue-700">{formatPkr(parsePaisa(balance?.balance || '0'))}</p></CardContent></Card>
-          <Card><CardHeader><CardTitle className="text-sm">Total Credits</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-green-700">{formatPkr(totalIn)}</p></CardContent></Card>
-          <Card><CardHeader><CardTitle className="text-sm">Total Debits</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-red-700">{formatPkr(totalOut)}</p></CardContent></Card>
+          <Card className="card-accent-line premium-card premium-card-dark-image"><CardHeader style={{ position: 'relative', zIndex: 1 }}><CardTitle className="text-sm">Current Balance</CardTitle></CardHeader><CardContent style={{ position: 'relative', zIndex: 1 }}><p className="text-2xl font-bold text-blue-700">{formatPkr(parsePaisa(balance?.balance || '0'))}</p></CardContent></Card>
+          <Card className="card-accent-line premium-card premium-card-dark-image"><CardHeader style={{ position: 'relative', zIndex: 1 }}><CardTitle className="text-sm">Total Credits</CardTitle></CardHeader><CardContent style={{ position: 'relative', zIndex: 1 }}><p className="text-2xl font-bold text-green-700">{formatPkr(totalIn)}</p></CardContent></Card>
+          <Card className="card-accent-line premium-card premium-card-dark-image"><CardHeader style={{ position: 'relative', zIndex: 1 }}><CardTitle className="text-sm">Total Debits</CardTitle></CardHeader><CardContent style={{ position: 'relative', zIndex: 1 }}><p className="text-2xl font-bold text-red-700">{formatPkr(totalOut)}</p></CardContent></Card>
         </div>
 
-        <Card className="mb-6">
-          <CardHeader><CardTitle className="text-lg">Top Up Wallet</CardTitle></CardHeader>
-          <CardContent>
+        <Card className="card-accent-line premium-card premium-card-dark-image mb-6">
+          <CardHeader style={{ position: 'relative', zIndex: 1 }}><CardTitle className="text-lg">Top Up Wallet</CardTitle></CardHeader>
+          <CardContent style={{ position: 'relative', zIndex: 1 }}>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {TOPUP_OPTIONS.map((amount) => (
                 <Button
@@ -210,7 +211,12 @@ export default function ClientWalletPage() {
                 value={customTopup}
                 onChange={(e) => setCustomTopup(e.target.value)}
                 placeholder="Custom amount in PKR"
-                className="w-full md:w-72 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{
+                  background: `linear-gradient(white, white) padding-box, linear-gradient(to right, #0d9488, #0891b2) border-box`,
+                  border: '2px solid transparent',
+                  borderRadius: '0.375rem'
+                }}
+                className="w-full md:w-72 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:shadow-lg"
               />
               <Button
                 onClick={handleCustomTopup}
@@ -224,30 +230,84 @@ export default function ClientWalletPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader><CardTitle className="text-lg">Activity Log</CardTitle></CardHeader>
-          <CardContent>
+        <div style={{
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 10px 25px rgba(21,94,117,0.15)',
+          position: 'relative',
+          zIndex: 1
+        }}>
+          {/* Gradient Header Bar */}
+          <div style={{
+            background: 'linear-gradient(135deg, #1e40af, #0891b2, #0d9488)',
+            padding: '18px 24px',
+            borderTop: '2px solid rgba(45,212,191,0.6)',
+            boxShadow: 'inset 0 -1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.08)'
+          }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#FFFFFF', margin: 0, letterSpacing: '0.3px' }}>
+              Activity Log
+            </h2>
+          </div>
+
+          {/* Table Container */}
+          <div style={{
+            background: '#FFFFFF',
+            border: '1px solid rgba(45,212,191,0.2)',
+            borderTop: 'none',
+          }}>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full" style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                <colgroup>
+                  <col style={{ width: '15%' }} />
+                  <col style={{ width: '40%' }} />
+                  <col style={{ width: '25%' }} />
+                  <col style={{ width: '20%' }} />
+                </colgroup>
                 <thead>
-                  <tr className="border-b text-left">
-                    <th className="py-2">Type</th>
-                    <th className="py-2">Details</th>
-                    <th className="py-2">Amount</th>
-                    <th className="py-2">Date</th>
+                  <tr style={{
+                    background: 'linear-gradient(to right, rgba(45,212,191,0.08), rgba(8,145,178,0.08))',
+                    borderBottom: '1px solid rgba(45,212,191,0.25)'
+                  }}>
+                    <th style={{ padding: '14px 18px', textAlign: 'left', color: '#0d9488', fontSize: '12px', fontWeight: 600, letterSpacing: '0.5px', borderRight: '2px solid rgba(45,212,191,0.6)' }}>Type</th>
+                    <th style={{ padding: '14px 18px', textAlign: 'left', color: '#0d9488', fontSize: '12px', fontWeight: 600, letterSpacing: '0.5px', borderRight: '2px solid rgba(45,212,191,0.6)' }}>Details</th>
+                    <th style={{ padding: '14px 18px', textAlign: 'left', color: '#0d9488', fontSize: '12px', fontWeight: 600, letterSpacing: '0.5px', borderRight: '2px solid rgba(45,212,191,0.6)' }}>Amount</th>
+                    <th style={{ padding: '14px 18px', textAlign: 'left', color: '#0d9488', fontSize: '12px', fontWeight: 600, letterSpacing: '0.5px' }}>Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedTransactions.map((tx) => {
                     const amount = parsePaisa(tx.amount)
+                    const typeLabel = tx.type.replace(/_/g, ' ').charAt(0).toUpperCase() + tx.type.replace(/_/g, ' ').slice(1).toLowerCase()
+                    const isRefundOrTopup = tx.type === 'REFUND' || tx.type === 'TOPUP'
+                    const isDeduction = tx.type === 'DEDUCTION'
+
                     return (
-                      <tr key={tx.id} className="border-b last:border-b-0">
-                        <td className="py-2 capitalize">{tx.type.replace(/_/g, ' ')}</td>
-                        <td className="py-2 text-gray-700">{getTxDetails(tx)}</td>
-                        <td className={`py-2 font-semibold ${amount >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                          {amount >= 0 ? '+' : '-'}{formatPkr(Math.abs(amount))}
+                      <tr
+                        key={tx.id}
+                        style={{
+                          borderBottom: '1px solid rgba(45,212,191,0.12)',
+                          height: '54px'
+                        }}
+                      >
+                        <td style={{ padding: '14px 18px', textAlign: 'left', color: '#111827', fontWeight: 500, borderRight: '2px solid rgba(45,212,191,0.6)' }}>
+                          {typeLabel}
                         </td>
-                        <td className="py-2 text-gray-600">{new Date(tx.createdAt).toLocaleString()}</td>
+                        <td style={{ padding: '14px 18px', textAlign: 'left', color: '#111827', fontWeight: 500, borderRight: '2px solid rgba(45,212,191,0.6)' }}>
+                          {getTxDetails(tx)}
+                        </td>
+                        <td style={{
+                          padding: '14px 18px',
+                          textAlign: 'left',
+                          color: amount >= 0 ? '#16a34a' : '#dc2626',
+                          fontWeight: 600,
+                          fontVariantNumeric: 'tabular-nums',
+                          borderRight: '2px solid rgba(45,212,191,0.6)'
+                        }}>
+                          {amount >= 0 ? '+' : '−'}{formatPkr(Math.abs(amount))}
+                        </td>
+                        <td style={{ padding: '14px 18px', textAlign: 'left', color: '#6B7280', fontSize: '13px' }}>
+                          {new Date(tx.createdAt).toLocaleString()}
+                        </td>
                       </tr>
                     )
                   })}
@@ -255,33 +315,63 @@ export default function ClientWalletPage() {
               </table>
             </div>
 
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <p className="text-xs text-gray-500">
+            {/* Pagination Footer */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '16px 24px',
+              borderTop: '1px solid rgba(45,212,191,0.2)',
+              gap: '12px'
+            }}>
+              <p style={{ fontSize: '12px', color: '#6B7280', fontWeight: 500, margin: 0 }}>
                 Showing {(txPage - 1) * txPageSize + (paginatedTransactions.length ? 1 : 0)}-
                 {(txPage - 1) * txPageSize + paginatedTransactions.length} of {transactions?.transactions?.length || 0}
               </p>
-              <div className="flex items-center gap-2">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button
                   type="button"
                   onClick={() => setTxPage((prev) => Math.max(1, prev - 1))}
                   disabled={txPage === 1}
-                  className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    padding: '8px 12px',
+                    fontSize: '13px',
+                    borderRadius: '6px',
+                    border: `1px solid ${txPage === 1 ? '#d1d5db' : '#0d9488'}`,
+                    background: txPage === 1 ? '#F3F4F6' : 'linear-gradient(135deg, #0d9488, #0891b2)',
+                    color: txPage === 1 ? '#9CA3AF' : '#FFFFFF',
+                    cursor: txPage === 1 ? 'not-allowed' : 'pointer',
+                    opacity: txPage === 1 ? 0.5 : 1,
+                    fontWeight: 500
+                  }}
                 >
                   Previous
                 </button>
-                <span className="text-xs text-gray-600">Page {txPage} of {txTotalPages}</span>
+                <span style={{ fontSize: '12px', color: '#111827', fontWeight: 600 }}>
+                  Page {txPage} of {txTotalPages}
+                </span>
                 <button
                   type="button"
                   onClick={() => setTxPage((prev) => Math.min(txTotalPages, prev + 1))}
                   disabled={txPage >= txTotalPages}
-                  className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    padding: '8px 12px',
+                    fontSize: '13px',
+                    borderRadius: '6px',
+                    border: `1px solid ${txPage >= txTotalPages ? '#d1d5db' : '#0d9488'}`,
+                    background: txPage >= txTotalPages ? '#F3F4F6' : 'linear-gradient(135deg, #0d9488, #0891b2)',
+                    color: txPage >= txTotalPages ? '#9CA3AF' : '#FFFFFF',
+                    cursor: txPage >= txTotalPages ? 'not-allowed' : 'pointer',
+                    opacity: txPage >= txTotalPages ? 0.5 : 1,
+                    fontWeight: 500
+                  }}
                 >
                   Next
                 </button>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   )

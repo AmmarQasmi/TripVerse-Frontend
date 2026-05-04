@@ -75,12 +75,12 @@ export function ProfileForm({ profile, onUpdate }: ProfileFormProps) {
   }
 
   return (
-    <Card>
+    <Card className="card-accent-line premium-card">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Profile Information</CardTitle>
           {!isEditing && (
-            <Button onClick={handleEdit} variant="outline" size="sm">
+            <Button onClick={handleEdit} className="card-button-primary" size="sm">
               Edit Profile
             </Button>
           )}
@@ -122,10 +122,15 @@ export function ProfileForm({ profile, onUpdate }: ProfileFormProps) {
             required
           />
 
-          <div className="text-sm text-gray-500">
-            <p><strong>Role:</strong> {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}</p>
-            <p><strong>Status:</strong> {profile.status.charAt(0).toUpperCase() + profile.status.slice(1)}</p>
-            <p><strong>Member since:</strong> {new Date(profile.created_at).toLocaleDateString()}</p>
+          <div className="text-sm space-y-2 pt-4 border-t border-gray-100">
+            <p className="text-gray-700"><strong className="text-gray-900">Role:</strong> <span className="text-teal-600">{profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}</span></p>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-700"><strong className="text-gray-900">Status:</strong></span>
+              <span className="status-badge">
+                {profile.status.charAt(0).toUpperCase() + profile.status.slice(1)}
+              </span>
+            </div>
+            <p className="text-gray-600"><strong className="text-gray-900">Member since:</strong> {new Date(profile.created_at).toLocaleDateString()}</p>
           </div>
 
           {isEditing && (

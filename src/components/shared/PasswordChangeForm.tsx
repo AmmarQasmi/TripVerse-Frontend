@@ -58,13 +58,13 @@ export function PasswordChangeForm() {
 
   if (!isOpen) {
     return (
-      <Card>
+      <Card className="card-accent-line premium-card">
         <CardHeader>
           <CardTitle>Password</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-gray-600 mb-4">Change your account password</p>
-          <Button onClick={() => setIsOpen(true)} variant="outline">
+          <Button onClick={() => setIsOpen(true)} className="card-button-primary">
             Change Password
           </Button>
         </CardContent>
@@ -73,7 +73,7 @@ export function PasswordChangeForm() {
   }
 
   return (
-    <Card>
+    <Card className="card-accent-line premium-card">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Change Password</CardTitle>
@@ -90,8 +90,8 @@ export function PasswordChangeForm() {
         )}
 
         {success && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm text-green-600">Password changed successfully!</p>
+          <div className="mb-4 p-3 bg-green-50 border border-green-500 rounded-lg">
+            <p className="text-sm font-medium text-green-700">✓ Password changed successfully!</p>
           </div>
         )}
 
