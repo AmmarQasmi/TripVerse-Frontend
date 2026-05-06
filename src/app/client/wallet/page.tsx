@@ -258,20 +258,20 @@ export default function ClientWalletPage() {
             <div className="overflow-x-auto">
               <table className="w-full" style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                 <colgroup>
-                  <col style={{ width: '15%' }} />
-                  <col style={{ width: '40%' }} />
                   <col style={{ width: '25%' }} />
-                  <col style={{ width: '20%' }} />
+                  <col style={{ width: '25%' }} />
+                  <col style={{ width: '25%' }} />
+                  <col style={{ width: '25%' }} />
                 </colgroup>
                 <thead>
                   <tr style={{
                     background: 'linear-gradient(to right, rgba(45,212,191,0.08), rgba(8,145,178,0.08))',
                     borderBottom: '1px solid rgba(45,212,191,0.25)'
                   }}>
-                    <th style={{ padding: '14px 18px', textAlign: 'left', color: '#0d9488', fontSize: '12px', fontWeight: 600, letterSpacing: '0.5px', borderRight: '2px solid rgba(45,212,191,0.6)' }}>Type</th>
-                    <th style={{ padding: '14px 18px', textAlign: 'left', color: '#0d9488', fontSize: '12px', fontWeight: 600, letterSpacing: '0.5px', borderRight: '2px solid rgba(45,212,191,0.6)' }}>Details</th>
-                    <th style={{ padding: '14px 18px', textAlign: 'left', color: '#0d9488', fontSize: '12px', fontWeight: 600, letterSpacing: '0.5px', borderRight: '2px solid rgba(45,212,191,0.6)' }}>Amount</th>
-                    <th style={{ padding: '14px 18px', textAlign: 'left', color: '#0d9488', fontSize: '12px', fontWeight: 600, letterSpacing: '0.5px' }}>Date</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', color: '#0d9488', fontSize: '11px', fontWeight: 600, letterSpacing: '0.4px', borderRight: '2px solid rgba(45,212,191,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Type</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', color: '#0d9488', fontSize: '11px', fontWeight: 600, letterSpacing: '0.4px', borderRight: '2px solid rgba(45,212,191,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Details</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', color: '#0d9488', fontSize: '11px', fontWeight: 600, letterSpacing: '0.4px', borderRight: '2px solid rgba(45,212,191,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Amount</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', color: '#0d9488', fontSize: '11px', fontWeight: 600, letterSpacing: '0.4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Date</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -286,26 +286,29 @@ export default function ClientWalletPage() {
                         key={tx.id}
                         style={{
                           borderBottom: '1px solid rgba(45,212,191,0.12)',
-                          height: '54px'
+                          height: '44px'
                         }}
                       >
-                        <td style={{ padding: '14px 18px', textAlign: 'left', color: '#111827', fontWeight: 500, borderRight: '2px solid rgba(45,212,191,0.6)' }}>
+                        <td style={{ padding: '8px 12px', textAlign: 'left', color: '#111827', fontWeight: 500, borderRight: '2px solid rgba(45,212,191,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {typeLabel}
                         </td>
-                        <td style={{ padding: '14px 18px', textAlign: 'left', color: '#111827', fontWeight: 500, borderRight: '2px solid rgba(45,212,191,0.6)' }}>
+                        <td style={{ padding: '8px 12px', textAlign: 'left', color: '#111827', fontWeight: 500, borderRight: '2px solid rgba(45,212,191,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {getTxDetails(tx)}
                         </td>
                         <td style={{
-                          padding: '14px 18px',
+                          padding: '8px 12px',
                           textAlign: 'left',
                           color: amount >= 0 ? '#16a34a' : '#dc2626',
                           fontWeight: 600,
                           fontVariantNumeric: 'tabular-nums',
-                          borderRight: '2px solid rgba(45,212,191,0.6)'
+                          borderRight: '2px solid rgba(45,212,191,0.6)',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
                         }}>
                           {amount >= 0 ? '+' : '−'}{formatPkr(Math.abs(amount))}
                         </td>
-                        <td style={{ padding: '14px 18px', textAlign: 'left', color: '#6B7280', fontSize: '13px' }}>
+                        <td style={{ padding: '8px 12px', textAlign: 'left', color: '#6B7280', fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {new Date(tx.createdAt).toLocaleString()}
                         </td>
                       </tr>

@@ -334,18 +334,25 @@ export function NotificationBell() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50"
+            className="absolute right-0 mt-2 w-96 card-accent-line premium-card premium-card-full-image premium-card-dark-image rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50"
           >
-            <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-green-600">Notifications</h3>
-              {unreadCount > 0 && (
-                <button
-                  onClick={handleMarkAllAsRead}
-                  className="text-sm text-green-600 hover:text-green-700 font-medium"
-                >
-                  Mark all as read
-                </button>
-              )}
+            <div style={{
+              background: 'linear-gradient(135deg, #1e40af, #0891b2, #0d9488)',
+              padding: '12px 16px',
+              borderBottom: '1px solid rgba(45,212,191,0.12)'
+            }}>
+              <div className="flex items-center justify-between">
+                <h3 style={{ margin: 0, color: '#FFFFFF', fontSize: '16px', fontWeight: 700 }}>Notifications</h3>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={handleMarkAllAsRead}
+                    className="text-sm text-white/90 hover:text-white/100 font-medium"
+                    style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', padding: '6px 10px', borderRadius: 8 }}
+                  >
+                    Mark all as read
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="max-h-96 overflow-y-auto">
@@ -360,7 +367,7 @@ export function NotificationBell() {
                   <p>No notifications</p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-100">
+                <div className="">
                   {notifications.map((notification) => {
                     const redirectPath = getNotificationRedirectPath(notification)
                     const isClickable = redirectPath !== null
@@ -368,11 +375,7 @@ export function NotificationBell() {
                     return (
                       <div
                         key={notification.id}
-                        className={`p-4 transition-colors ${
-                          !notification.read_at ? 'bg-blue-50/50' : 'bg-white'
-                        } ${
-                          isClickable ? 'cursor-pointer hover:bg-gray-50' : ''
-                        }`}
+                        className={`notification-row p-4 transition-colors ${!notification.read_at ? 'bg-blue-50/40 unread' : 'bg-white'} ${isClickable ? 'cursor-pointer' : ''}`}
                         onClick={() => isClickable && handleNotificationClick(notification)}
                       >
                         <div className="flex items-start space-x-3">
