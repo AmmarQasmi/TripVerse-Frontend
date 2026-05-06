@@ -75,12 +75,7 @@ export function PasswordChangeForm() {
   return (
     <Card className="card-accent-line premium-card">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Change Password</CardTitle>
-          <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
-            Cancel
-          </Button>
-        </div>
+        <CardTitle>Change Password</CardTitle>
       </CardHeader>
       <CardContent>
         {error && (

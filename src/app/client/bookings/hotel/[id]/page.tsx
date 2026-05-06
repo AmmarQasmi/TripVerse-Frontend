@@ -7,12 +7,16 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { useHotelBookingById, useHotelBooking } from '@/features/bookings/useHotelBooking'
-import { useAuth } from '@/features/auth/useAuth'
-import { NotificationBell } from '@/components/shared/NotificationBell'
 
 type ThemeMode = 'ocean-night' | 'sunset-luxe' | 'emerald-glass'
 
 const THEME_STORAGE_KEY = 'tripverse-booking-details-theme'
+const PAGE_BACKGROUND_GRADIENT = 'linear-gradient(135deg, #0E5A84 0%, #0D8D96 100%)'
+const CONFIRM_BUTTON_BACKGROUND = '#16A34A'
+const CANCEL_BUTTON_BACKGROUND = 'linear-gradient(90deg, #B91C1C 0%, #DC2626 100%)'
+const WORLD_MAP_IMAGE = '/images/cities/world%20map.png'
+const PAGE_BORDER_COLOR = '#22D3EE'
+const PAGE_TEXT_COLOR = '#22D3EE'
 
 const themeTokens: Record<ThemeMode, {
   label: string
@@ -83,13 +87,11 @@ const themeTokens: Record<ThemeMode, {
 export default function HotelBookingDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const { user, logout } = useAuth()
   const bookingId = params.id as string
   const [cancelling, setCancelling] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [theme, setTheme] = useState<ThemeMode>('ocean-night')
   const [themeMenuOpen, setThemeMenuOpen] = useState(false)
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [showFees, setShowFees] = useState(false)
   const [mobileOpenSections, setMobileOpenSections] = useState<Record<string, boolean>>({
     hotel: true,
@@ -99,7 +101,6 @@ export default function HotelBookingDetailPage() {
     requests: true,
   })
   const [animatedTotal, setAnimatedTotal] = useState(0)
-  const profileMenuRef = useRef<HTMLDivElement | null>(null)
   const themeMenuRef = useRef<HTMLDivElement | null>(null)
   
   const { data: booking, isLoading, error } = useHotelBookingById(bookingId)
@@ -121,9 +122,6 @@ export default function HotelBookingDetailPage() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node
-      if (profileMenuRef.current && !profileMenuRef.current.contains(target)) {
-        setProfileMenuOpen(false)
-      }
       if (themeMenuRef.current && !themeMenuRef.current.contains(target)) {
         setThemeMenuOpen(false)
       }
@@ -132,15 +130,6 @@ export default function HotelBookingDetailPage() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
-  }
 
   const computedBaseAmount = useMemo(() => {
     if (!booking) return 0
@@ -281,21 +270,24 @@ export default function HotelBookingDetailPage() {
       <motion.div
         whileHover={{ y: -4 }}
         transition={{ duration: 0.25, ease: 'easeInOut' }}
-        className={`${glassCardClass} ${className}`}
+        className={`${glassCardClass} h-full overflow-hidden ${className}`}
         style={{
           background: activeTheme.cardBg,
-          borderColor: activeTheme.cardBorder,
+          borderColor: PAGE_BORDER_COLOR,
           boxShadow: `${activeTheme.shadow}, 0 0 0 1px rgba(59, 130, 246, 0.32)`,
         }}
       >
-        <div className="flex items-center justify-between px-5 py-4 md:px-6 md:py-5">
-          <h3 className="text-lg font-semibold" style={{ color: activeTheme.textPrimary }}>{title}</h3>
+        <div
+          className="flex items-center justify-between gap-4 border-b px-6 py-6"
+          style={{ borderColor: PAGE_BORDER_COLOR }}
+        >
+          <h3 className="text-lg font-semibold" style={{ color: PAGE_TEXT_COLOR }}>{title}</h3>
           <div className="flex items-center gap-3">
             {rightNode}
             <button
               type="button"
               className="md:hidden rounded-lg border p-1.5"
-              style={{ borderColor: activeTheme.cardBorder, color: activeTheme.textPrimary }}
+              style={{ borderColor: PAGE_BORDER_COLOR, color: PAGE_TEXT_COLOR }}
               onClick={() => toggleMobileSection(sectionKey)}
               aria-label={`Toggle ${title}`}
             >
@@ -306,18 +298,18 @@ export default function HotelBookingDetailPage() {
           </div>
         </div>
 
-        <div className={`${isOpen ? 'block' : 'hidden'} md:block px-5 pb-5 md:px-6 md:pb-6`}>{children}</div>
+        <div className={`${isOpen ? 'block' : 'hidden'} md:block px-6 pb-6`}>{children}</div>
       </motion.div>
     )
   }
 
   const rootStyle: React.CSSProperties = {
-    background: activeTheme.pageGradient,
+    background: PAGE_BACKGROUND_GRADIENT,
     transition: 'all 260ms ease-in-out',
   }
 
   const topTintStyle: React.CSSProperties = {
-    background: activeTheme.topTint,
+    background: 'transparent',
     transition: 'all 260ms ease-in-out',
   }
 
@@ -329,6 +321,15 @@ export default function HotelBookingDetailPage() {
   const patternStyle: React.CSSProperties = {
     backgroundImage:
       `radial-gradient(circle at 20% 20%, ${activeTheme.patternTint} 0, transparent 44%), radial-gradient(circle at 78% 12%, ${activeTheme.patternTint} 0, transparent 38%), radial-gradient(circle at 50% 80%, ${activeTheme.patternTint} 0, transparent 42%)`,
+  }
+
+  const worldMapStyle: React.CSSProperties = {
+    backgroundImage: `url('${WORLD_MAP_IMAGE}')`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'center',
+    backgroundSize: 'cover',
+    opacity: 0.065,
+    filter: 'contrast(1.05) saturate(1.05)',
   }
   
   const handleConfirm = async () => {
@@ -379,15 +380,15 @@ export default function HotelBookingDetailPage() {
           <div className="absolute inset-x-0 top-0 h-[560px]" style={topTintStyle} />
           <div className="absolute inset-0" style={patternStyle} />
         </div>
-        <div className="relative z-10 container mx-auto max-w-6xl px-4 py-8 space-y-6">
-          <div className="animate-pulse h-16 rounded-2xl" style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.cardBorder}` }} />
-          <div className="animate-pulse h-36 rounded-2xl" style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.cardBorder}` }} />
+        <div className="relative z-10 container mx-auto max-w-6xl px-6 py-8 space-y-6">
+          <div className="animate-pulse h-16 rounded-2xl" style={{ background: activeTheme.cardBg, border: `1px solid ${PAGE_BORDER_COLOR}` }} />
+          <div className="animate-pulse h-36 rounded-2xl" style={{ background: activeTheme.cardBg, border: `1px solid ${PAGE_BORDER_COLOR}` }} />
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="space-y-6 lg:col-span-2">
-              <div className="animate-pulse h-56 rounded-2xl" style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.cardBorder}` }} />
-              <div className="animate-pulse h-48 rounded-2xl" style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.cardBorder}` }} />
+              <div className="animate-pulse h-56 rounded-2xl" style={{ background: activeTheme.cardBg, border: `1px solid ${PAGE_BORDER_COLOR}` }} />
+              <div className="animate-pulse h-48 rounded-2xl" style={{ background: activeTheme.cardBg, border: `1px solid ${PAGE_BORDER_COLOR}` }} />
             </div>
-            <div className="animate-pulse h-72 rounded-2xl" style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.cardBorder}` }} />
+            <div className="animate-pulse h-72 rounded-2xl" style={{ background: activeTheme.cardBg, border: `1px solid ${PAGE_BORDER_COLOR}` }} />
           </div>
         </div>
       </div>
@@ -401,13 +402,13 @@ export default function HotelBookingDetailPage() {
           <div className="absolute inset-x-0 top-0 h-[560px]" style={topTintStyle} />
           <div className="absolute inset-0" style={patternStyle} />
         </div>
-        <div className="relative z-10 container mx-auto max-w-6xl px-4 py-6">
-          <div className="rounded-2xl border p-12 text-center backdrop-blur-lg" style={{ background: activeTheme.cardBg, borderColor: activeTheme.cardBorder, boxShadow: `${activeTheme.shadow}, 0 0 0 1px rgba(59, 130, 246, 0.32)` }}>
+        <div className="relative z-10 container mx-auto max-w-6xl px-6 py-6">
+          <div className="rounded-2xl border p-12 text-center backdrop-blur-lg" style={{ background: activeTheme.cardBg, borderColor: PAGE_BORDER_COLOR, boxShadow: `${activeTheme.shadow}, 0 0 0 1px rgba(59, 130, 246, 0.32)` }}>
           <div className="text-6xl mb-4">❌</div>
-          <h1 className="text-2xl font-bold mb-4" style={{ color: activeTheme.textPrimary }}>
+          <h1 className="text-2xl font-bold mb-4" style={{ color: PAGE_TEXT_COLOR }}>
             Booking not found
           </h1>
-          <p className="mb-6" style={{ color: activeTheme.textMuted }}>
+          <p className="mb-6" style={{ color: PAGE_TEXT_COLOR }}>
             The booking you're looking for doesn't exist or you don't have permission to view it.
           </p>
           <Link href="/client/bookings">
@@ -424,80 +425,13 @@ export default function HotelBookingDetailPage() {
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-x-0 top-0 h-[560px]" style={topTintStyle} />
         <div className="absolute inset-0" style={patternStyle} />
+        <div className="absolute inset-0" style={worldMapStyle} />
+        <div className="absolute inset-0" style={worldMapStyle} />
+        <div className="absolute inset-0" style={worldMapStyle} />
       </div>
 
-      <header className="sticky top-0 z-40 border-b backdrop-blur-xl" style={{ background: 'rgba(15, 23, 42, 0.55)', borderColor: activeTheme.cardBorder }}>
-        <div className="container mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl border flex items-center justify-center" style={{ borderColor: activeTheme.cardBorder, background: activeTheme.cardBg }}>
-              <svg className="h-5 w-5" style={{ color: activeTheme.accent }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M22 16.92V19a2 2 0 01-2 2 19.86 19.86 0 01-8.63-2.93 19.5 19.5 0 01-6-6A19.86 19.86 0 012 4a2 2 0 012-2h2.09a2 2 0 012 1.72c.12.89.32 1.76.6 2.59a2 2 0 01-.45 2.11L7.1 9.91a16 16 0 006 6l1.49-1.14a2 2 0 012.11-.45c.83.28 1.7.48 2.59.6A2 2 0 0122 16.92z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em]" style={{ color: activeTheme.textMuted }}>TripVerse</p>
-              <p className="text-sm font-semibold" style={{ color: activeTheme.textPrimary }}>Premium Booking</p>
-            </div>
-          </div>
-
-          <div className="hidden items-center gap-3 md:flex">
-            <div className="rounded-xl border px-3 py-1.5 text-xs" style={{ borderColor: activeTheme.cardBorder, background: activeTheme.cardBg, color: activeTheme.textPrimary }}>
-              <span className="font-semibold">Lahore</span> · 28°C Clear
-            </div>
-            <NotificationBell />
-          </div>
-
-          <div className="relative" ref={profileMenuRef}>
-            <button
-              type="button"
-              onClick={() => setProfileMenuOpen(prev => !prev)}
-              className="flex items-center gap-2 rounded-xl border px-2.5 py-1.5"
-              style={{ borderColor: activeTheme.cardBorder, background: activeTheme.cardBg, color: activeTheme.textPrimary }}
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white" style={{ background: `linear-gradient(135deg, ${activeTheme.secondary}, ${activeTheme.accent})` }}>
-                {user?.full_name ? getInitials(user.full_name) : 'TV'}
-              </div>
-              <span className="hidden text-sm md:inline">{user?.full_name || 'Traveler'}</span>
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            <AnimatePresence>
-              {profileMenuOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -8, scale: 0.96 }}
-                  className="absolute right-0 mt-2 w-44 rounded-xl border p-2 backdrop-blur-xl"
-                  style={{ background: activeTheme.cardBg, borderColor: activeTheme.cardBorder, boxShadow: `${activeTheme.shadow}, 0 0 0 1px rgba(59, 130, 246, 0.32)` }}
-                >
-                  <Link href="/client/profile" className="block rounded-lg px-3 py-2 text-sm hover:bg-white/10" style={{ color: activeTheme.textPrimary }}>
-                    My Profile
-                  </Link>
-                  <Link href="/client/settings" className="block rounded-lg px-3 py-2 text-sm hover:bg-white/10" style={{ color: activeTheme.textPrimary }}>
-                    Settings
-                  </Link>
-                  <button
-                    type="button"
-                    className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-white/10"
-                    style={{ color: activeTheme.danger }}
-                    onClick={() => {
-                      logout()
-                      router.push('/auth/login')
-                    }}
-                  >
-                    Logout
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      </header>
-
-      <div className="relative z-10 container mx-auto max-w-6xl px-4 py-6">
-        <div className="relative mb-6 overflow-hidden rounded-2xl border" style={{ borderColor: activeTheme.cardBorder, boxShadow: activeTheme.shadow }}>
+      <div className="relative z-10 container mx-auto max-w-6xl px-6 py-6">
+        <div className="relative mb-6 overflow-hidden rounded-2xl border" style={{ borderColor: PAGE_BORDER_COLOR, boxShadow: activeTheme.shadow }}>
           <div
             className="absolute inset-0 bg-cover bg-center"
             style={{ backgroundImage: "url('https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1920&q=80')" }}
@@ -510,11 +444,11 @@ export default function HotelBookingDetailPage() {
               </svg>
               Back to Bookings
             </Link>
-            <h1 className="mt-2 text-3xl font-bold text-white md:text-4xl">Booking Details</h1>
-            <p className="mt-2 max-w-2xl text-sm text-gray-200 md:text-base">
+            <h1 className="mt-2 text-3xl font-bold md:text-4xl" style={{ color: PAGE_TEXT_COLOR }}>Booking Details</h1>
+            <p className="mt-2 max-w-2xl text-sm md:text-base" style={{ color: PAGE_TEXT_COLOR }}>
               View and manage your booking
             </p>
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs" style={{ borderColor: 'rgba(255,255,255,0.28)', background: 'rgba(15,23,42,0.35)', color: '#E2E8F0' }}>
+            <div className="mt-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs" style={{ borderColor: PAGE_BORDER_COLOR, background: 'rgba(15,23,42,0.35)', color: PAGE_TEXT_COLOR }}>
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6M7 8h10M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
               </svg>
@@ -524,13 +458,14 @@ export default function HotelBookingDetailPage() {
         </div>
       </div>
 
-      <div className="relative z-10 container mx-auto max-w-6xl px-4 pb-8">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="relative z-10 container mx-auto max-w-6xl px-6 pb-8">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
           {/* Main Content */}
           <div className="space-y-6 lg:col-span-2">
             <SectionCard
               sectionKey="hotel"
               title="Hotel Information"
+              className="min-h-[360px]"
               rightNode={
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(booking.status)}`}>
                   {getStatusLabel(booking.status)}
@@ -538,9 +473,9 @@ export default function HotelBookingDetailPage() {
               }
             >
               <div>
-                <h3 className="text-2xl font-semibold" style={{ color: activeTheme.textPrimary }}>{booking.hotel?.name}</h3>
-                <p style={{ color: activeTheme.textMuted }}>{booking.hotel?.address}</p>
-                <p style={{ color: activeTheme.textMuted }}>{booking.hotel?.location}</p>
+                <h3 className="text-2xl font-semibold" style={{ color: PAGE_TEXT_COLOR }}>{booking.hotel?.name}</h3>
+                <p style={{ color: PAGE_TEXT_COLOR }}>{booking.hotel?.address}</p>
+                <p style={{ color: PAGE_TEXT_COLOR }}>{booking.hotel?.location}</p>
                 <div className="mt-2 flex items-center gap-1.5" style={{ color: '#FBBF24' }}>
                   {Array.from({ length: 5 }).map((_, idx) => (
                     <svg key={idx} className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -550,44 +485,45 @@ export default function HotelBookingDetailPage() {
                 </div>
               </div>
 
-              <div className="my-4 h-px" style={{ background: activeTheme.cardBorder }} />
+              <div className="my-4 h-px" style={{ background: PAGE_BORDER_COLOR }} />
+              <div className="my-4 h-px" style={{ background: PAGE_BORDER_COLOR }} />
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border p-3" style={{ borderColor: activeTheme.cardBorder, background: 'rgba(15,23,42,0.2)' }}>
-                  <p className="flex items-center gap-2 text-sm" style={{ color: activeTheme.textMuted }}>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="flex h-full flex-col gap-2 rounded-xl border p-3 min-h-[88px]" style={{ borderColor: PAGE_BORDER_COLOR, background: 'rgba(15,23,42,0.2)' }}>
+                  <p className="flex items-center gap-2 text-sm leading-none" style={{ color: PAGE_TEXT_COLOR }}>
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6M7 8h10M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
                     </svg>
                     Room Type
                   </p>
-                  <p className="font-medium" style={{ color: activeTheme.textPrimary }}>{booking.roomType?.name}</p>
+                  <p className="font-medium leading-snug" style={{ color: PAGE_TEXT_COLOR }}>{booking.roomType?.name}</p>
                 </div>
-                <div className="rounded-xl border p-3" style={{ borderColor: activeTheme.cardBorder, background: 'rgba(15,23,42,0.2)' }}>
-                  <p className="flex items-center gap-2 text-sm" style={{ color: activeTheme.textMuted }}>
+                <div className="flex h-full flex-col gap-2 rounded-xl border p-3 min-h-[88px]" style={{ borderColor: PAGE_BORDER_COLOR, background: 'rgba(15,23,42,0.2)' }}>
+                  <p className="flex items-center gap-2 text-sm leading-none" style={{ color: PAGE_TEXT_COLOR }}>
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5V4H2v16h5m10 0v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2m12 0H7m10-10a2 2 0 11-4 0 2 2 0 014 0zM11 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     Capacity
                   </p>
-                  <p className="font-medium" style={{ color: activeTheme.textPrimary }}>{booking.roomType?.capacity} guests</p>
+                  <p className="font-medium leading-snug" style={{ color: PAGE_TEXT_COLOR }}>{booking.roomType?.capacity} guests</p>
                 </div>
-                <div className="rounded-xl border p-3" style={{ borderColor: activeTheme.cardBorder, background: 'rgba(15,23,42,0.2)' }}>
-                  <p className="flex items-center gap-2 text-sm" style={{ color: activeTheme.textMuted }}>
+                <div className="flex h-full flex-col gap-2 rounded-xl border p-3 min-h-[88px]" style={{ borderColor: PAGE_BORDER_COLOR, background: 'rgba(15,23,42,0.2)' }}>
+                  <p className="flex items-center gap-2 text-sm leading-none" style={{ color: PAGE_TEXT_COLOR }}>
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V7a2 2 0 00-2-2H6a2 2 0 00-2 2v6m16 0v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4m16 0H4" />
                     </svg>
                     Quantity
                   </p>
-                  <p className="font-medium" style={{ color: activeTheme.textPrimary }}>{booking.quantity} room(s)</p>
+                  <p className="font-medium leading-snug" style={{ color: PAGE_TEXT_COLOR }}>{booking.quantity} room(s)</p>
                 </div>
-                <div className="rounded-xl border p-3" style={{ borderColor: activeTheme.cardBorder, background: 'rgba(15,23,42,0.2)' }}>
-                  <p className="flex items-center gap-2 text-sm" style={{ color: activeTheme.textMuted }}>
+                <div className="flex h-full flex-col gap-2 rounded-xl border p-3 min-h-[88px]" style={{ borderColor: PAGE_BORDER_COLOR, background: 'rgba(15,23,42,0.2)' }}>
+                  <p className="flex items-center gap-2 text-sm leading-none" style={{ color: PAGE_TEXT_COLOR }}>
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 12v-2" />
                     </svg>
                     Price per Night
                   </p>
-                  <p className="font-medium" style={{ color: activeTheme.textPrimary }}>
+                  <p className="font-medium leading-snug" style={{ color: PAGE_TEXT_COLOR }}>
                     {booking.currency?.toUpperCase() || 'PKR'} {
                       (booking.roomType?.pricePerNight || booking.booking_details?.room_type?.price_per_night || 0).toLocaleString()
                     }
@@ -596,41 +532,41 @@ export default function HotelBookingDetailPage() {
               </div>
             </SectionCard>
 
-            <SectionCard sectionKey="dates" title="Booking Dates">
+            <SectionCard sectionKey="dates" title="Booking Dates" className="min-h-[220px]">
               <div className="relative">
-                <div className="absolute left-[9px] top-4 h-[calc(100%-42px)] w-px" style={{ background: activeTheme.cardBorder }} />
+                <div className="absolute left-[9px] top-3 h-[calc(100%-30px)] w-px" style={{ background: PAGE_BORDER_COLOR }} />
 
-                <div className="relative mb-5 pl-8">
-                  <span className="absolute left-0 top-1.5 inline-block h-[18px] w-[18px] rounded-full border-2" style={{ borderColor: activeTheme.accent, background: 'rgba(20,184,166,0.25)' }} />
-                  <p className="flex items-center gap-2 text-sm" style={{ color: activeTheme.textMuted }}>
+                <div className="relative mb-3 pl-8">
+                  <span className="absolute left-0 top-2 inline-block h-[18px] w-[18px] rounded-full border-2" style={{ borderColor: '#10B981', background: '#10B981' }} />
+                  <p className="flex items-center gap-2 text-sm" style={{ color: PAGE_TEXT_COLOR }}>
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     Check-in
                   </p>
-                  <p className="text-lg font-semibold" style={{ color: activeTheme.textPrimary }}>
+                  <p className="text-lg font-semibold" style={{ color: PAGE_TEXT_COLOR }}>
                     {formatDate(booking.checkInDate || booking.booking_details?.dates?.check_in)}
                   </p>
                 </div>
 
                 <div className="relative pl-8">
-                  <span className="absolute left-0 top-1.5 inline-block h-[18px] w-[18px] rounded-full border-2" style={{ borderColor: activeTheme.secondary, background: 'rgba(30,58,138,0.32)' }} />
-                  <p className="flex items-center gap-2 text-sm" style={{ color: activeTheme.textMuted }}>
+                  <span className="absolute left-0 top-2 inline-block h-[18px] w-[18px] rounded-full border-2" style={{ borderColor: '#2563EB', background: '#2563EB' }} />
+                  <p className="flex items-center gap-2 text-sm" style={{ color: PAGE_TEXT_COLOR }}>
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     Check-out
                   </p>
-                  <p className="text-lg font-semibold" style={{ color: activeTheme.textPrimary }}>
+                  <p className="text-lg font-semibold" style={{ color: PAGE_TEXT_COLOR }}>
                     {formatDate(booking.checkOutDate || booking.booking_details?.dates?.check_out)}
                   </p>
                 </div>
               </div>
 
-              <div className="my-4 h-px" style={{ background: activeTheme.cardBorder }} />
+              <div className="my-3 h-px" style={{ background: PAGE_BORDER_COLOR }} />
 
               {booking.booking_details?.dates?.nights && (
-                <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold" style={{ background: 'rgba(20,184,166,0.2)', color: activeTheme.textPrimary, border: `1px solid ${activeTheme.cardBorder}` }}>
+                <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold" style={{ background: 'rgba(20,184,166,0.2)', color: PAGE_TEXT_COLOR, border: `1px solid ${PAGE_BORDER_COLOR}` }}>
                   <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -641,19 +577,19 @@ export default function HotelBookingDetailPage() {
 
             {booking.booking_details?.guest_notes && (
               <SectionCard sectionKey="requests" title="Special Requests">
-                <p style={{ color: activeTheme.textPrimary }}>{booking.booking_details.guest_notes}</p>
+                <p style={{ color: PAGE_TEXT_COLOR }}>{booking.booking_details.guest_notes}</p>
               </SectionCard>
             )}
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6 lg:col-span-1">
+        <div className="space-y-6 lg:col-span-1 lg:self-start">
           <div className="sticky top-24 space-y-6">
-            <SectionCard sectionKey="summary" title="Pricing Summary">
+            <SectionCard sectionKey="summary" title="Pricing Summary" className="min-h-[320px]">
               <div className="space-y-2">
-                <div className="flex justify-between text-sm" style={{ color: activeTheme.textMuted }}>
+                <div className="flex justify-between text-sm" style={{ color: PAGE_TEXT_COLOR }}>
                   <span>Base Price</span>
-                  <span style={{ color: activeTheme.textPrimary }}>PKR {computedBaseAmount.toLocaleString()}</span>
+                  <span style={{ color: PAGE_TEXT_COLOR }}>PKR {computedBaseAmount.toLocaleString()}</span>
                 </div>
 
                 <button
@@ -673,40 +609,40 @@ export default function HotelBookingDetailPage() {
                       exit={{ opacity: 0, height: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="flex justify-between text-sm" style={{ color: activeTheme.textMuted }}>
+                      <div className="flex justify-between text-sm" style={{ color: PAGE_TEXT_COLOR }}>
                         <span>Taxes/Fees</span>
-                        <span style={{ color: activeTheme.textPrimary }}>PKR {computedTaxFee.toLocaleString()}</span>
+                        <span style={{ color: PAGE_TEXT_COLOR }}>PKR {computedTaxFee.toLocaleString()}</span>
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                <div className="my-3 h-px" style={{ background: activeTheme.cardBorder }} />
+                <div className="my-3 h-px" style={{ background: PAGE_BORDER_COLOR }} />
 
                 <div className="flex items-end justify-between">
-                  <span className="text-sm" style={{ color: activeTheme.textMuted }}>Total Amount</span>
-                  <span className="text-3xl font-bold" style={{ color: activeTheme.textPrimary }}>
+                  <span className="text-sm" style={{ color: PAGE_TEXT_COLOR }}>Total Amount</span>
+                  <span className="text-3xl font-bold" style={{ color: PAGE_TEXT_COLOR }}>
                     PKR {animatedTotal.toLocaleString()}
                   </span>
                 </div>
               </div>
 
-              <div className="mt-4 space-y-1 border-t pt-4" style={{ borderColor: activeTheme.cardBorder }}>
-                <p className="text-xs" style={{ color: activeTheme.textMuted }}>Booking ID: {booking.id}</p>
-                <p className="text-xs" style={{ color: activeTheme.textMuted }}>
+              <div className="mt-4 space-y-1 border-t pt-4" style={{ borderColor: PAGE_BORDER_COLOR }}>
+                <p className="text-xs" style={{ color: PAGE_TEXT_COLOR }}>Booking ID: {booking.id}</p>
+                <p className="text-xs" style={{ color: PAGE_TEXT_COLOR }}>
                   Created: {booking.createdAt ? new Date(booking.createdAt).toLocaleString() : 'N/A'}
                 </p>
               </div>
             </SectionCard>
 
-            <SectionCard sectionKey="actions" title="Actions">
-              <div className="space-y-2">
+            <SectionCard sectionKey="actions" title="Actions" className="min-h-[420px]">
+              <div className="space-y-4 text-center pt-4 pb-4">
                 {booking.status === 'PENDING_PAYMENT' && (
-                  <Button
+                    <Button
                     onClick={handleConfirm}
                     disabled={confirming}
-                    className="w-full text-white transition-all duration-300 hover:scale-[1.01]"
-                    style={{ background: `linear-gradient(90deg, ${activeTheme.success} 0%, ${activeTheme.accent} 100%)` }}
+                    className="w-full h-12 text-white transition-all duration-300 hover:scale-[1.01]"
+                    style={{ background: CONFIRM_BUTTON_BACKGROUND }}
                   >
                     {confirming ? 'Confirming...' : 'Confirm & Pay'}
                   </Button>
@@ -714,7 +650,7 @@ export default function HotelBookingDetailPage() {
 
                 <Link href={`/client/hotels/${booking.hotelId}`}>
                   <Button
-                    className="w-full text-white transition-all duration-300 hover:scale-[1.01]"
+                    className="w-full h-12 text-white transition-all duration-300 hover:scale-[1.01]"
                     style={{ background: `linear-gradient(90deg, ${activeTheme.secondary} 0%, ${activeTheme.accent} 100%)` }}
                   >
                     View Hotel
@@ -726,28 +662,28 @@ export default function HotelBookingDetailPage() {
                     <Button
                       onClick={handleCancel}
                       disabled={cancelDisabled}
-                      variant="outline"
-                      className="w-full transition-all duration-300"
+                      className="w-full h-12 text-white transition-all duration-300"
                       style={{
-                        borderColor: activeTheme.danger,
-                        color: '#FECACA',
-                        background: 'rgba(239, 68, 68, 0.12)',
+                        borderColor: '#EF4444',
+                        background: CANCEL_BUTTON_BACKGROUND,
                         opacity: cancelDisabled ? 0.6 : 1,
                       }}
                     >
                       {cancelling ? 'Cancelling...' : 'Cancel Booking'}
                     </Button>
 
-                    <p className="flex items-start gap-2 text-xs" style={{ color: canCancelByDate ? activeTheme.textMuted : '#FCA5A5' }}>
-                      <svg className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>
-                        {canCancelByDate
-                          ? `You can cancel this booking until ${formatDateTime(cancellationDeadline)} (one day before check-in).`
-                          : `Cancellation closed. Last cancellation date was ${formatDateTime(cancellationDeadline)} (one day before check-in).`}
-                      </span>
-                    </p>
+                    <div className="mt-4 rounded-md p-3" style={{ borderLeft: `4px solid ${PAGE_BORDER_COLOR}` }}>
+                      <p className="flex items-start gap-2 text-left text-xs" style={{ color: canCancelByDate ? activeTheme.textMuted : '#FCA5A5' }}>
+                        <svg className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>
+                          {canCancelByDate
+                            ? `You can cancel this booking until ${formatDateTime(cancellationDeadline)} (one day before check-in).`
+                            : `Cancellation closed. Last cancellation date was ${formatDateTime(cancellationDeadline)} (one day before check-in).`}
+                        </span>
+                      </p>
+                    </div>
                   </>
                 )}
               </div>
@@ -768,14 +704,13 @@ export default function HotelBookingDetailPage() {
             <Button
               onClick={handleCancel}
               disabled={cancelDisabled}
-              variant="outline"
-              className="w-full"
-              style={{ borderColor: activeTheme.danger, color: '#FECACA', background: 'rgba(239,68,68,0.12)', opacity: cancelDisabled ? 0.6 : 1 }}
+              className="w-full text-white"
+              style={{ borderColor: '#EF4444', background: CANCEL_BUTTON_BACKGROUND, opacity: cancelDisabled ? 0.6 : 1 }}
             >
               {cancelling ? 'Cancelling...' : 'Cancel'}
             </Button>
           ) : (
-            <Button variant="outline" disabled className="w-full" style={{ borderColor: activeTheme.cardBorder, color: activeTheme.textMuted }}>
+            <Button variant="outline" disabled className="w-full" style={{ borderColor: PAGE_BORDER_COLOR, color: PAGE_TEXT_COLOR }}>
               Unavailable
             </Button>
           )}
@@ -801,7 +736,7 @@ export default function HotelBookingDetailPage() {
                     setThemeMenuOpen(false)
                   }}
                   className={`w-full rounded-xl px-3 py-2 text-left text-sm transition-colors ${theme === mode ? 'bg-white/10' : 'hover:bg-white/5'}`}
-                  style={{ color: activeTheme.textPrimary }}
+                  style={{ color: PAGE_TEXT_COLOR }}
                 >
                   {themeTokens[mode].label}
                 </button>

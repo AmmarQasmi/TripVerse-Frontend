@@ -203,7 +203,7 @@
 
   /* Darker world map background for specific cards */
   .premium-card-dark-image::after {
-    opacity: 0.15;
+    opacity: 0.08;
   }
 
   /* Remove world map background from specific cards */
@@ -258,5 +258,76 @@
     font-size: 0.875rem;
     font-weight: 600;
     box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+  }
+
+  /* Notification row world-map background to match wallet cards */
+  .notification-row {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+  }
+
+  /* remove per-row map background (we'll use card-level map instead) */
+  .notification-row::after {
+    display: none;
+  }
+
+  /* Green gradient divider between rows */
+  .notification-row::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #2DD4BF, #0891b2, #1e40af);
+    opacity: 0.95;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Full-card world map background modifier */
+  .premium-card-full-image::after {
+    height: 100%;
+    width: 100%;
+    background-image: url('/images/cities/world\ map.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: inherit;
+  }
+
+  .premium-card-full-image.premium-card-dark-image::after {
+    opacity: 0.08;
+  }
+
+  /* Slightly stronger map for unread rows */
+  .notification-row.unread::after {
+    opacity: 0.10;
+  }
+
+  .notification-row > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Activity Log border style for cards */
+  .activity-log-border {
+    border: 1px solid rgba(45, 212, 191, 0.2) !important;
+  }
+
+  .activity-log-border::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba(45, 212, 191, 0.6);
+    border-radius: 12px 12px 0 0;
+    z-index: 2;
   }
 }

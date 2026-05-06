@@ -63,12 +63,7 @@ export function EmailChangeForm({ currentEmail, onEmailChange }: EmailChangeForm
   return (
     <Card className="card-accent-line premium-card">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Change Email</CardTitle>
-          <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
-            Cancel
-          </Button>
-        </div>
+        <CardTitle>Change Email</CardTitle>
       </CardHeader>
       <CardContent>
         {error && (

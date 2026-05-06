@@ -46,38 +46,40 @@ export default function ClientDisputesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="premium-gradient-bg">
       <PageHeader
         title="My Complaints"
         subtitle="Track status, fines, and resolution updates"
         backUrl="/client/dashboard"
         backLabel="Back to Dashboard"
+        centered={true}
       />
 
-      <div className="container mx-auto px-4 py-8 max-w-5xl space-y-6">
-        <div className="flex justify-end">
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <div className="flex justify-end mb-6">
           <Link href="/client/disputes/new">
             <Button>File New Complaint</Button>
           </Link>
         </div>
 
         {error && (
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="p-4 text-red-700 text-sm">{error}</CardContent>
+          <Card className="card-accent-line premium-card activity-log-border mb-6">
+            <CardContent className="p-4 text-red-700 text-sm" style={{ position: 'relative', zIndex: 1 }}>{error}</CardContent>
           </Card>
         )}
 
         {!error && disputes.length === 0 && (
-          <Card>
-            <CardContent className="p-8 text-center text-gray-600">
+          <Card className="card-accent-line premium-card activity-log-border mb-6">
+            <CardContent className="p-8 text-center text-gray-600" style={{ position: 'relative', zIndex: 1 }}>
               You have not filed any complaints yet.
             </CardContent>
           </Card>
         )}
 
-        {disputes.map((dispute: any) => (
-          <Card key={dispute.id}>
-            <CardHeader>
+        <div className="space-y-6">
+          {disputes.map((dispute: any) => (
+            <Card key={dispute.id} className="card-accent-line premium-card premium-card-dark-image activity-log-border">
+            <CardHeader style={{ position: 'relative', zIndex: 1 }}>
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <CardTitle className="text-base">Complaint #{dispute.id}</CardTitle>
                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColor[dispute.status] || 'bg-gray-100 text-gray-700'}`}>
@@ -85,10 +87,10 @@ export default function ClientDisputesPage() {
                 </span>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
+            <CardContent className="space-y-3 text-sm" style={{ position: 'relative', zIndex: 1 }}>
               <p className="text-gray-700">{dispute.description}</p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-gray-600">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-600 pt-2">
                 <p>
                   <span className="font-medium">Booking:</span> #{dispute.booking?.id || dispute.booking_car_id || dispute.booking_hotel_id}
                 </p>
@@ -110,14 +112,15 @@ export default function ClientDisputesPage() {
               )}
 
               {dispute.resolution && (
-                <div className="p-3 rounded-lg bg-green-50 border border-green-100">
-                  <p className="text-xs font-medium text-green-700 mb-1">Resolution</p>
+                <div className="p-4 rounded-lg bg-green-50 border border-green-200 mt-3">
+                  <p className="text-xs font-medium text-green-700 mb-2">Resolution</p>
                   <p className="text-sm text-green-800">{dispute.resolution}</p>
                 </div>
               )}
             </CardContent>
           </Card>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   )
