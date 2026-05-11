@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { adminApi } from '@/lib/api/admin.api'
 import { Driver, DriverDocument, DriverRating, DocumentType } from '@/types/api'
 import { DocumentViewer } from '@/components/shared/DocumentViewer'
+import { CheckCircleIcon, ClockIcon, XCircleIcon, DocumentIcon, StarIcon, CarIcon, ExclamationIcon, AlertIcon } from '@/components/admin/AdminIcons'
 
 export default function AdminDriverReviewPage() {
   const params = useParams()
@@ -85,13 +86,13 @@ export default function AdminDriverReviewPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'approved':
-        return '✅'
+        return <CheckCircleIcon />
       case 'pending':
-        return '⏳'
+        return <ClockIcon />
       case 'rejected':
-        return '❌'
+        return <XCircleIcon />
       default:
-        return '📄'
+        return <DocumentIcon />
     }
   }
 
@@ -210,19 +211,20 @@ export default function AdminDriverReviewPage() {
                   <div>
                     <h2 className="text-2xl font-bold text-white mb-2">{driver.user.full_name}</h2>
                     <div className="text-sm text-gray-300 space-y-1">
-                      <p>📧 {driver.user.email}</p>
-                      <p>📍 {driver.user.city.name}, {driver.user.city.region}</p>
-                      <p>📅 Joined {new Date(driver.created_at).toLocaleDateString()}</p>
+                      <p>{driver.user.email}</p>
+                      <p>{driver.user.city.name}, {driver.user.city.region}</p>
+                      <p>Joined {new Date(driver.created_at).toLocaleDateString()}</p>
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className={`px-4 py-2 rounded-full text-sm font-medium ${
+                  <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
                     driver.is_verified 
                       ? 'bg-green-500/20 text-green-400 border border-green-500/30'
                       : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
                   }`}>
-                    {driver.is_verified ? '✅ Verified' : '⏳ Pending Review'}
+                    <span className="w-4 h-4">{driver.is_verified ? <CheckCircleIcon /> : <ClockIcon />}</span>
+                    <span>{driver.is_verified ? 'VERIFIED' : 'PENDING'}</span>
                   </span>
                 </div>
               </div>
@@ -264,12 +266,11 @@ export default function AdminDriverReviewPage() {
             <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <p className="text-sm text-gray-300">Status</p>
-                <p className="text-2xl font-bold text-white">
-                  {driver.is_verified ? '✅' : '⏳'}
+                <p className="text-2xl font-bold text-white inline-flex items-center gap-2">
+                  <span className="w-6 h-6">{driver.is_verified ? <CheckCircleIcon /> : <ClockIcon />}</span>
+                  <span className="text-xl">{driver.is_verified ? 'Verified' : 'Pending'}</span>
                 </p>
-                <p className="text-xs text-gray-400">
-                  {driver.is_verified ? 'Verified' : 'Pending'}
-                </p>
+                <p className="text-xs text-gray-400">&nbsp;</p>
               </CardContent>
             </Card>
           </div>
@@ -343,7 +344,7 @@ export default function AdminDriverReviewPage() {
                       >
                         {selectedDocument.document_url.endsWith('.pdf') ? (
                           <div className="text-center">
-                            <div className="text-6xl mb-2">📄</div>
+                            <div className="text-6xl mb-2"><DocumentIcon /></div>
                             <p className="text-gray-400">Click to view PDF</p>
                           </div>
                         ) : (
@@ -391,9 +392,9 @@ export default function AdminDriverReviewPage() {
               ) : (
                 <Card className="bg-white/10 backdrop-blur-md border-white/20">
                   <CardContent className="p-12 text-center">
-                    <div className="text-6xl mb-4">📄</div>
-                    <p className="text-gray-400">Select a document to review</p>
-                  </CardContent>
+                        <div className="text-6xl mb-4"><DocumentIcon /></div>
+                        <p className="text-gray-400">Select a document to review</p>
+                      </CardContent>
                 </Card>
               )}
             </div>
@@ -412,9 +413,9 @@ export default function AdminDriverReviewPage() {
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="font-semibold text-white capitalize">{rating.platform}</h4>
                         <div className="flex items-center space-x-2">
-                          <span className="text-lg font-bold text-white">⭐ {Number(rating.rating).toFixed(1)}</span>
+                          <span className="text-lg font-bold text-white inline-flex items-center gap-1"><StarIcon /> {Number(rating.rating).toFixed(1)}</span>
                           {rating.verified_at && (
-                            <span className="text-xs text-green-600">✅ Verified</span>
+                            <span className="text-xs text-green-600 inline-flex items-center gap-1"><CheckCircleIcon /> Verified</span>
                           )}
                         </div>
                       </div>
@@ -450,7 +451,7 @@ export default function AdminDriverReviewPage() {
             <Card className="bg-white/10 backdrop-blur-md border-white/20 mt-8">
               <CardHeader>
                 <CardTitle className="text-white flex items-center">
-                  <span className="text-2xl mr-2">📋</span>
+                  <span className="text-2xl mr-2"><DocumentIcon /></span>
                   Disciplinary History
                 </CardTitle>
               </CardHeader>
@@ -475,7 +476,7 @@ export default function AdminDriverReviewPage() {
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center space-x-2">
                             <span className="text-xl">
-                              {action.action_type === 'ban' ? '🚫' : action.action_type === 'suspension' ? '⏸️' : '⚠️'}
+                              {action.action_type === 'ban' ? <XCircleIcon /> : action.action_type === 'suspension' ? <ClockIcon /> : <ExclamationIcon />}
                             </span>
                             <span className="font-semibold text-white capitalize">
                               {action.action_type}
@@ -541,7 +542,7 @@ export default function AdminDriverReviewPage() {
             <Card className="bg-white/10 backdrop-blur-md border-white/20 mt-8">
               <CardHeader>
                 <CardTitle className="text-white flex items-center">
-                  <span className="text-2xl mr-2">📊</span>
+                  <span className="text-2xl mr-2"><AlertIcon /></span>
                   Current Status
                 </CardTitle>
               </CardHeader>
@@ -560,21 +561,21 @@ export default function AdminDriverReviewPage() {
                   }`}>
                     <p className="text-sm text-gray-400 mb-1">Account Status</p>
                     <p className="text-2xl font-bold text-white">
-                      {(driver as any).is_banned ? '🚫 Banned' : 
-                       (driver as any).is_suspended ? '⏸️ Suspended' : 
-                       '✅ Active'}
+                      {(driver as any).is_banned ? <span className="inline-flex items-center gap-2"><XCircleIcon /> Banned</span> : 
+                       (driver as any).is_suspended ? <span className="inline-flex items-center gap-2"><ClockIcon /> Suspended</span> : 
+                       <span className="inline-flex items-center gap-2"><CheckCircleIcon /> Active</span>}
                     </p>
                   </div>
                   {(driver as any).suspension_paused && (
                     <div className="p-4 bg-blue-500/10 border border-blue-500/40 rounded-lg">
                       <p className="text-sm text-gray-400 mb-1">Suspension Status</p>
-                      <p className="text-2xl font-bold text-white">⏸️ Paused</p>
+                      <p className="text-2xl font-bold text-white inline-flex items-center gap-2"><ClockIcon /> Paused</p>
                     </div>
                   )}
                   {(driver as any).has_active_ride && (
                     <div className="p-4 bg-yellow-500/10 border border-yellow-500/40 rounded-lg">
                       <p className="text-sm text-gray-400 mb-1">Active Ride</p>
-                      <p className="text-2xl font-bold text-white">🚗 Yes</p>
+                      <p className="text-2xl font-bold text-white inline-flex items-center gap-2"><CarIcon /> Yes</p>
                     </div>
                   )}
                 </div>
@@ -588,7 +589,7 @@ export default function AdminDriverReviewPage() {
               <Card className="bg-white/10 backdrop-blur-md border-green-500/40">
                 <CardContent className="p-6">
                   <h3 className="font-semibold text-green-400 mb-4 flex items-center">
-                    <span className="text-2xl mr-2">✅</span>
+                    <span className="text-2xl mr-2"><CheckCircleIcon /></span>
                     Approve Driver
                   </h3>
                   <p className="text-sm text-green-300 mb-4">
@@ -612,7 +613,7 @@ export default function AdminDriverReviewPage() {
               <Card className="bg-white/10 backdrop-blur-md border-red-500/40">
                 <CardContent className="p-6">
                   <h3 className="font-semibold text-red-400 mb-4 flex items-center">
-                    <span className="text-2xl mr-2">❌</span>
+                    <span className="text-2xl mr-2"><XCircleIcon /></span>
                     Reject Application
                   </h3>
                   <p className="text-sm text-red-300 mb-4">
@@ -647,7 +648,7 @@ export default function AdminDriverReviewPage() {
             <Card className="bg-white/10 backdrop-blur-md border-green-500/40 mt-8">
               <CardContent className="p-6">
                 <div className="flex items-center space-x-3">
-                  <span className="text-4xl">✅</span>
+                  <span className="text-4xl"><CheckCircleIcon /></span>
                   <div>
                     <h3 className="font-semibold text-green-400 text-lg">Driver Verified</h3>
                     <p className="text-sm text-green-300">

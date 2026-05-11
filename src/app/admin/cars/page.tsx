@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { CarIcon, ClockIcon, CheckCircleIcon, XCircleIcon } from '@/components/admin/AdminIcons'
 import { PageHeader } from '@/components/shared/PageHeader'
 
 interface CarListing {
@@ -158,7 +159,7 @@ export default function AdminCarsPage() {
                       <p className="text-sm font-medium text-gray-300">Total Cars</p>
                       <p className="text-3xl font-bold text-white">{stats.total}</p>
                     </div>
-                    <div className="text-4xl">🚗</div>
+                    <div className="text-4xl"><CarIcon /></div>
                   </div>
                 </CardContent>
               </Card>
@@ -183,7 +184,7 @@ export default function AdminCarsPage() {
                       <p className="text-sm font-medium text-gray-300">Pending Review</p>
                       <p className="text-3xl font-bold text-white">{stats.pending}</p>
                     </div>
-                    <div className="text-4xl">⏳</div>
+                    <div className="text-4xl"><ClockIcon /></div>
                   </div>
                 </CardContent>
               </Card>
@@ -208,7 +209,7 @@ export default function AdminCarsPage() {
                       <p className="text-sm font-medium text-gray-300">Approved</p>
                       <p className="text-3xl font-bold text-white">{stats.approved}</p>
                     </div>
-                    <div className="text-4xl">✅</div>
+                    <div className="text-4xl"><CheckCircleIcon /></div>
                   </div>
                 </CardContent>
               </Card>
@@ -233,7 +234,7 @@ export default function AdminCarsPage() {
                       <p className="text-sm font-medium text-gray-300">Rejected</p>
                       <p className="text-3xl font-bold text-white">{stats.rejected}</p>
                     </div>
-                    <div className="text-4xl">❌</div>
+                    <div className="text-4xl"><XCircleIcon /></div>
                   </div>
                 </CardContent>
               </Card>
@@ -288,7 +289,7 @@ export default function AdminCarsPage() {
                         </p>
 
                         <div className="flex items-center space-x-2 mb-3 text-sm text-gray-600">
-                          <span>🧭 {car.location}</span>
+                          <span>{car.location}</span>
                         </div>
 
                         <div className="flex items-center justify-between mb-3">
@@ -318,14 +319,14 @@ export default function AdminCarsPage() {
                               onClick={() => handleApprove(car.id)}
                               className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm py-2"
                             >
-                              ✅ Approve
+                              Approve
                             </Button>
                             <Button
                               onClick={() => handleReject(car.id)}
                               variant="outline"
                               className="flex-1 border-red-500 text-red-600 hover:bg-red-50 text-sm py-2"
                             >
-                              ❌ Reject
+                              Reject
                             </Button>
                           </div>
                         )}
@@ -333,7 +334,7 @@ export default function AdminCarsPage() {
                         {car.status === 'APPROVED' && (
                           <Link href={`/client/cars/${car.id}`}>
                             <Button variant="outline" className="w-full text-sm py-2">
-                              👁️ View Listing
+                              View Listing
                             </Button>
                           </Link>
                         )}
@@ -344,7 +345,7 @@ export default function AdminCarsPage() {
 
                 {filteredCars.length === 0 && (
                   <div className="col-span-full text-center py-12">
-                    <div className="text-6xl mb-4">🚗</div>
+                    <div className="text-6xl mb-4"><CarIcon /></div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">
                       No cars found
                     </h3>

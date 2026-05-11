@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageLoader } from '@/components/shared/PageLoader'
 import { adminApi } from '@/lib/api/admin.api'
+import { CheckCircleIcon, ClockIcon, XCircleIcon, UserGroupIcon, BuildingIcon } from '@/components/admin/AdminIcons'
 
 interface HotelManager {
   id: number
@@ -93,11 +94,11 @@ export default function AdminHotelManagersPage() {
     return 'PENDING'
   }
 
-  const getStatusIcon = (isVerified: boolean, hasNotes: boolean, hasPendingDocs: boolean) => {
-    if (isVerified) return '✅'
-    if (hasPendingDocs) return '⏳' // Pending takes priority over rejected
-    if (hasNotes) return '❌'
-    return '⏳'
+  const getStatusIconComponent = (isVerified: boolean, hasNotes: boolean, hasPendingDocs: boolean) => {
+    if (isVerified) return <CheckCircleIcon />
+    if (hasPendingDocs) return <ClockIcon />
+    if (hasNotes) return <XCircleIcon />
+    return <ClockIcon />
   }
 
   if (isLoading) {
@@ -106,7 +107,7 @@ export default function AdminHotelManagersPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <PageHeader 
           title="Hotel Manager Management"
           subtitle="Review and manage hotel manager verifications"
@@ -128,7 +129,7 @@ export default function AdminHotelManagersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <PageHeader 
         title="Hotel Manager Management"
         subtitle="Review and manage hotel manager verifications"
@@ -141,27 +142,27 @@ export default function AdminHotelManagersPage() {
           animate={{ opacity: 1, y: 0 }}
         >
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
               <Card 
-                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-75 ${
+                className={`p-6 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 text-white overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg ${
                   filter === 'all' 
-                    ? 'ring-4 ring-blue-400' 
+                    ? 'ring-2 ring-offset-2 ring-blue-300' 
                     : ''
-                }`}
+                } border-0`}
                 onClick={() => setFilter('all')}
               >
                 <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-emerald-100/90">Total Managers</p>
+                      <p className="text-sm font-medium text-white/80">Total Managers</p>
                       <p className="text-3xl font-bold text-white">{stats.total}</p>
                     </div>
-                    <div className="text-4xl">👥</div>
+                    <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-white"><UserGroupIcon /></div>
                   </div>
                 </CardContent>
               </Card>
@@ -173,20 +174,20 @@ export default function AdminHotelManagersPage() {
               transition={{ delay: 0.2 }}
             >
               <Card 
-                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-75 ${
+                className={`p-6 rounded-xl bg-gradient-to-br from-amber-600 to-amber-700 text-white overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg ${
                   filter === 'pending' 
-                    ? 'ring-4 ring-yellow-400' 
+                    ? 'ring-2 ring-offset-2 ring-amber-300' 
                     : ''
-                }`}
+                } border-0`}
                 onClick={() => setFilter('pending')}
               >
                 <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-emerald-100/90">Pending</p>
+                      <p className="text-sm font-medium text-white/80">Pending</p>
                       <p className="text-3xl font-bold text-white">{stats.pending}</p>
                     </div>
-                    <div className="text-4xl">⏳</div>
+                    <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-amber-100"><ClockIcon /></div>
                   </div>
                 </CardContent>
               </Card>
@@ -198,20 +199,20 @@ export default function AdminHotelManagersPage() {
               transition={{ delay: 0.3 }}
             >
               <Card 
-                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-75 ${
+                className={`p-6 rounded-xl bg-gradient-to-br from-green-600 to-green-700 text-white overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg ${
                   filter === 'verified' 
-                    ? 'ring-4 ring-green-400' 
+                    ? 'ring-2 ring-offset-2 ring-green-300' 
                     : ''
-                }`}
+                } border-0`}
                 onClick={() => setFilter('verified')}
               >
                 <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-emerald-100/90">Verified</p>
+                      <p className="text-sm font-medium text-white/80">Verified</p>
                       <p className="text-3xl font-bold text-white">{stats.verified}</p>
                     </div>
-                    <div className="text-4xl">✅</div>
+                    <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-emerald-100"><CheckCircleIcon /></div>
                   </div>
                 </CardContent>
               </Card>
@@ -223,20 +224,20 @@ export default function AdminHotelManagersPage() {
               transition={{ delay: 0.4 }}
             >
               <Card 
-                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-75 ${
+                className={`p-6 rounded-xl bg-gradient-to-br from-red-600 to-red-700 text-white overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg ${
                   filter === 'rejected' 
-                    ? 'ring-4 ring-red-400' 
+                    ? 'ring-2 ring-offset-2 ring-red-300' 
                     : ''
-                }`}
+                } border-0`}
                 onClick={() => setFilter('rejected')}
               >
                 <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-emerald-100/90">Rejected</p>
+                      <p className="text-sm font-medium text-white/80">Rejected</p>
                       <p className="text-3xl font-bold text-white">{stats.rejected}</p>
                     </div>
-                    <div className="text-4xl">❌</div>
+                    <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-pink-100"><XCircleIcon /></div>
                   </div>
                 </CardContent>
               </Card>
@@ -258,17 +259,18 @@ export default function AdminHotelManagersPage() {
           </div>
 
           {/* Hotel Managers List */}
-          <div className="rounded-2xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg">
-            <Card className="shadow-lg bg-white rounded-2xl">
+          <Card className="border-2 border-white/20 shadow-md rounded-xl bg-white/5">
               <CardHeader>
-                <CardTitle className="text-gray-900">Hotel Managers</CardTitle>
+                <CardTitle className="text-white">Hotel Managers</CardTitle>
               </CardHeader>
               <CardContent>
                 {filteredManagers.length === 0 ? (
                   <div className="p-12 text-center">
-                    <div className="text-6xl mb-4">🏨</div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No Hotel Managers Found</h3>
-                    <p className="text-gray-600">
+                  <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                    <h3 className="text-xl font-semibold text-white mb-2">No Hotel Managers Found</h3>
+                    <p className="text-gray-300">
                       {filter === 'all' 
                         ? 'No hotel managers registered yet.' 
                         : `No hotel managers with status "${filter}"`}
@@ -282,17 +284,16 @@ export default function AdminHotelManagersPage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                       >
-                        <div className="rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500">
-                          <div className="p-6 bg-white rounded-xl hover:bg-gray-50 transition-colors">
+                      <div className="p-6 bg-white/5 border-2 border-white/10 rounded-lg hover:border-white/20 transition-colors text-white">
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
                                 <div className="flex items-center space-x-3 mb-2">
-                                  <h3 className="text-xl font-semibold text-gray-900">{manager.user.full_name}</h3>
-                                  <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(manager.is_verified, !!manager.verification_notes, manager.has_pending_documents)}`}>
-                                    {getStatusIcon(manager.is_verified, !!manager.verification_notes, manager.has_pending_documents)} {getStatusText(manager.is_verified, !!manager.verification_notes, manager.has_pending_documents)}
+                                  <h3 className="text-xl font-semibold text-white">{manager.user.full_name}</h3>
+                              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(manager.is_verified, !!manager.verification_notes, manager.has_pending_documents)}`}>
+                                <span className="w-4 h-4">{getStatusIconComponent(manager.is_verified, !!manager.verification_notes, manager.has_pending_documents)}</span> {getStatusText(manager.is_verified, !!manager.verification_notes, manager.has_pending_documents)}
                                   </span>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300 mb-4">
                                   <div>
                                     <span className="font-semibold">Email:</span> {manager.user.email}
                                   </div>
@@ -325,15 +326,13 @@ export default function AdminHotelManagersPage() {
                                 </Link>
                               </div>
                             </div>
-                          </div>
-                        </div>
+                      </div>
                       </motion.div>
                     ))}
                   </div>
                 )}
               </CardContent>
-            </Card>
-          </div>
+          </Card>
         </motion.div>
       </div>
     </div>

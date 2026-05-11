@@ -8,8 +8,20 @@ import { DoughnutChart } from '@/components/client/DoughnutChart'
 import { SimpleChart } from '@/components/shared/SimpleChart'
 import { StatsModal } from '@/components/client/StatsModal'
 import { PageLoader } from '@/components/shared/PageLoader'
+import { AlertCard } from '@/components/admin/AlertCard'
+import { QuickActionCard } from '@/components/admin/QuickActionCard'
 import Link from 'next/link'
 import { adminApi, AdminDashboardStats } from '@/lib/api/admin.api'
+import {
+  UserGroupIcon,
+  BuildingIcon,
+  AlertIcon,
+  PricingIcon,
+  ServiceIcon,
+  RashDrivingIcon,
+  CheckCircleIcon,
+  FlagIcon,
+} from '@/components/admin/AdminIcons'
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminDashboardStats | null>(null)
@@ -140,12 +152,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container relative mx-auto overflow-hidden rounded-2xl px-4 py-8">
-        <div
-          className="pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
-          style={{ backgroundImage: "url('/images/cities/world%20map.png')" }}
-        />
-        <div className="pointer-events-none absolute inset-0 bg-white/80" />
+      <div className="container relative mx-auto px-4 py-8">
         <div className="relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -157,11 +164,9 @@ export default function AdminDashboard() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center">
-              <span className="animated-gradient-text">
-                Dashboard Overview
-              </span>
-            </h2>
+            <h1 className="text-4xl font-bold mb-8 text-center text-gray-900">
+              Dashboard Overview
+            </h1>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
             <DoughnutChart
               label="Total Drivers"
@@ -200,286 +205,142 @@ export default function AdminDashboard() {
           </div>
 
           {/* Alert Cards - Styled similar to homepage feature cards (no animations, unified gradient) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             {/* Driver Verifications */}
-            <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
-              <CardContent className="p-0">
-                <div className="flex flex-col space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="text-3xl text-white">
-                        {/* Car SVG icon */} 
-                        <svg
-                          className="w-8 h-8"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M3 13h18l-1.2-3.6a2 2 0 0 0-1.9-1.4H6.1a2 2 0 0 0-1.9 1.4L3 13z" />
-                          <path d="M5 13v4a1.5 1.5 0 0 0 1.5 1.5H7" />
-                          <path d="M19 13v4a1.5 1.5 0 0 1-1.5 1.5H17" />
-                          <circle cx="7.5" cy="17.5" r="1.4" fill="currentColor" />
-                          <circle cx="16.5" cy="17.5" r="1.4" fill="currentColor" />
-                          <path d="M7 9.5l1-3h8l1 3" />
-                        </svg>
-                      </div>
-                      <h3 className="font-semibold text-white text-lg">Driver Verifications</h3>
-                    </div>
-                    <div className="text-3xl font-bold text-white">
-                      {stats.drivers.pending}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-emerald-100/90">
-                      Pending review
-                    </p>
-                    <Link href="/admin/drivers">
-                      <Button size="sm" className="bg-white/90 text-emerald-700 hover:bg-white">
-                        Review
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AlertCard
+              icon={<UserGroupIcon />}
+              title="Driver Verifications"
+              value={stats.drivers.pending}
+              description="Pending review"
+              actionLabel="Review"
+              actionHref="/admin/drivers"
+              bgColor="bg-gradient-to-br from-blue-600 to-blue-700"
+            />
 
             {/* Hotel Manager Requests */}
-            <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
-              <CardContent className="p-0">
-                <div className="flex flex-col space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="text-3xl text-white">
-                        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <rect x="4" y="3" width="16" height="18" rx="2" />
-                          <path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2" />
-                          <path d="M10 21v-3h4v3" />
-                        </svg>
-                      </div>
-                      <h3 className="font-semibold text-white text-lg">Hotel Manager Requests</h3>
-                    </div>
-                    <div className="text-3xl font-bold text-white">
-                      {stats.hotel_managers?.pending || 0}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-emerald-100/90">
-                      Pending review
-                    </p>
-                    <Link href="/admin/hotel-managers">
-                      <Button size="sm" className="bg-white/90 text-emerald-700 hover:bg-white">
-                        Review
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AlertCard
+              icon={<BuildingIcon />}
+              title="Hotel Manager Requests"
+              value={stats.hotel_managers?.pending || 0}
+              description="Pending review"
+              actionLabel="Review"
+              actionHref="/admin/hotel-managers"
+              bgColor="bg-gradient-to-br from-purple-600 to-purple-700"
+            />
 
             {/* Bookings Today */}
-            <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
-              <CardContent className="p-0">
-                <div className="flex flex-col space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="text-3xl text-white">
-                        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <path d="M4 19V5" />
-                          <rect x="6" y="10" width="3" height="9" rx="0.5" />
-                          <rect x="11" y="7" width="3" height="12" rx="0.5" />
-                          <rect x="16" y="4" width="3" height="15" rx="0.5" />
-                        </svg>
-                      </div>
-                      <h3 className="font-semibold text-white text-lg">Bookings Today</h3>
-                    </div>
-                    <div className="text-3xl font-bold text-white">
-                      {stats.bookings.today}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-emerald-100/90">
-                      New bookings today
-                    </p>
-                    <Link href="/admin/payments">
-                      <Button size="sm" className="bg-white/90 text-emerald-700 hover:bg-white">
-                        View
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AlertCard
+              icon={<ServiceIcon />}
+              title="Bookings Today"
+              value={stats.bookings.today}
+              description="New bookings today"
+              actionLabel="View"
+              actionHref="/admin/payments"
+              bgColor="bg-gradient-to-br from-amber-600 to-amber-700"
+            />
 
             {/* Active Disputes */}
-            <Card className="relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden">
-              <CardContent className="p-0">
-                <div className="flex flex-col space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="text-3xl text-white">
-                        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <path d="M12 3L2 21h20L12 3z" />
-                          <path d="M12 9v5" />
-                          <circle cx="12" cy="17" r="1" fill="currentColor" />
-                        </svg>
-                      </div>
-                      <h3 className="font-semibold text-white text-lg">Active Disputes</h3>
-                    </div>
-                    <div className="text-3xl font-bold text-white">
-                      {stats.disputes.pending}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-emerald-100/90">
-                      Require attention
-                    </p>
-                    <Link href="/admin/disputes">
-                      <Button size="sm" className="bg-white/90 text-emerald-700 hover:bg-white">
-                        Resolve
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AlertCard
+              icon={<AlertIcon />}
+              title="Active Disputes"
+              value={stats.disputes.pending}
+              description="Require attention"
+              actionLabel="Resolve"
+              actionHref="/admin/disputes"
+              bgColor="bg-gradient-to-br from-red-600 to-red-700"
+            />
           </div>
 
           {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8 }}
-              className="h-full flex flex-col"
             >
-              <div className="h-full flex flex-col rounded-2xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg">
-                <Card className="rounded-2xl bg-white h-full flex flex-col">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-gray-900 text-base leading-tight">
-                      <motion.span
-                        className="animated-gradient-text inline-block"
-                        initial={{ backgroundPosition: '0% 50%' }}
-                        animate={{ backgroundPosition: '100% 50%' }}
-                        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                      >
-                        Bookings Trend (Last 7 Days)
-                      </motion.span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex-1 pb-6">
-                    <SimpleChart
-                      data={[
-                        { label: 'Mon', value: Math.floor(stats.bookings.this_week * 0.15) },
-                        { label: 'Tue', value: Math.floor(stats.bookings.this_week * 0.20) },
-                        { label: 'Wed', value: Math.floor(stats.bookings.this_week * 0.18) },
-                        { label: 'Thu', value: Math.floor(stats.bookings.this_week * 0.22) },
-                        { label: 'Fri', value: Math.floor(stats.bookings.this_week * 0.15) },
-                        { label: 'Sat', value: Math.floor(stats.bookings.this_week * 0.08) },
-                        { label: 'Sun', value: Math.floor(stats.bookings.this_week * 0.02) },
-                      ]}
-                      type="area"
-                      height={250}
-                    />
-                  </CardContent>
-                </Card>
-              </div>
+              <Card className="border-2 border-blue-200 h-full">
+                <CardHeader>
+                  <CardTitle className="text-gray-900 text-lg">Bookings Trend</CardTitle>
+                  <p className="text-xs text-gray-500 mt-1">(Last 7 Days)</p>
+                </CardHeader>
+                <CardContent className="flex-1">
+                  <SimpleChart
+                    data={[
+                      { label: 'Mon', value: Math.floor(stats.bookings.this_week * 0.15) },
+                      { label: 'Tue', value: Math.floor(stats.bookings.this_week * 0.20) },
+                      { label: 'Wed', value: Math.floor(stats.bookings.this_week * 0.18) },
+                      { label: 'Thu', value: Math.floor(stats.bookings.this_week * 0.22) },
+                      { label: 'Fri', value: Math.floor(stats.bookings.this_week * 0.15) },
+                      { label: 'Sat', value: Math.floor(stats.bookings.this_week * 0.08) },
+                      { label: 'Sun', value: Math.floor(stats.bookings.this_week * 0.02) },
+                    ]}
+                    type="area"
+                    height={250}
+                  />
+                </CardContent>
+              </Card>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9 }}
-              className="h-full flex flex-col"
             >
-              <div className="h-full flex flex-col rounded-2xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg">
-                <Card className="rounded-2xl bg-white h-full flex flex-col">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-gray-900 text-base leading-tight">
-                      <motion.span
-                        className="animated-gradient-text inline-block"
-                        initial={{ backgroundPosition: '0% 50%' }}
-                        animate={{ backgroundPosition: '100% 50%' }}
-                        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                      >
-                        Driver Status Distribution
-                      </motion.span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex-1 pb-6">
-                    <SimpleChart
-                      data={[
-                        { label: 'Verified', value: stats.drivers.verified, color: 'rgba(16, 185, 129, 0.8)' },
-                        { label: 'Pending', value: stats.drivers.pending, color: 'rgba(245, 158, 11, 0.8)' },
-                        { label: 'Suspended', value: stats.drivers.total - stats.drivers.verified - stats.drivers.pending, color: 'rgba(239, 68, 68, 0.8)' },
-                      ]}
-                      type="bar"
-                      height={250}
-                    />
-                  </CardContent>
-                </Card>
-              </div>
+              <Card className="border-2 border-blue-200 h-full">
+                <CardHeader>
+                  <CardTitle className="text-gray-900 text-lg">Driver Status</CardTitle>
+                  <p className="text-xs text-gray-500 mt-1">Verification breakdown</p>
+                </CardHeader>
+                <CardContent className="flex-1">
+                  <SimpleChart
+                    data={[
+                      { label: 'Verified', value: stats.drivers.verified, color: 'rgba(16, 185, 129, 0.8)' },
+                      { label: 'Pending', value: stats.drivers.pending, color: 'rgba(245, 158, 11, 0.8)' },
+                      { label: 'Suspended', value: stats.drivers.total - stats.drivers.verified - stats.drivers.pending, color: 'rgba(239, 68, 68, 0.8)' },
+                    ]}
+                    type="bar"
+                    height={250}
+                  />
+                </CardContent>
+              </Card>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.0 }}
-              className="h-full flex flex-col"
             >
-              <div className="h-full flex flex-col rounded-2xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg">
-                <Card className="rounded-2xl bg-white h-full flex flex-col">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-gray-900 text-base leading-tight">
-                      <motion.span
-                        className="animated-gradient-text inline-block"
-                        initial={{ backgroundPosition: '0% 50%' }}
-                        animate={{ backgroundPosition: '100% 50%' }}
-                        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                      >
-                        Hotel Manager Status Distribution
-                      </motion.span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex-1 pb-6">
-                    <SimpleChart
-                      data={[
-                        { label: 'Verified', value: stats.hotel_managers.verified, color: 'rgba(16, 185, 129, 0.8)' },
-                        { label: 'Pending', value: stats.hotel_managers.pending, color: 'rgba(245, 158, 11, 0.8)' },
-                        { label: 'Rejected', value: stats.hotel_managers.total - stats.hotel_managers.verified - stats.hotel_managers.pending, color: 'rgba(239, 68, 68, 0.8)' },
-                      ]}
-                      type="bar"
-                      height={250}
-                    />
-                  </CardContent>
-                </Card>
-              </div>
+              <Card className="border-2 border-purple-200 h-full">
+                <CardHeader>
+                  <CardTitle className="text-gray-900 text-lg">Hotel Manager Status</CardTitle>
+                  <p className="text-xs text-gray-500 mt-1">Verification breakdown</p>
+                </CardHeader>
+                <CardContent>
+                  <SimpleChart
+                    data={[
+                      { label: 'Verified', value: stats.hotel_managers.verified, color: 'rgba(16, 185, 129, 0.8)' },
+                      { label: 'Pending', value: stats.hotel_managers.pending, color: 'rgba(245, 158, 11, 0.8)' },
+                      { label: 'Rejected', value: stats.hotel_managers.total - stats.hotel_managers.verified - stats.hotel_managers.pending, color: 'rgba(239, 68, 68, 0.8)' },
+                    ]}
+                    type="bar"
+                    height={250}
+                  />
+                </CardContent>
+              </Card>
             </motion.div>
           </div>
 
           {/* Revenue Breakdown */}
-           <motion.div
-             initial={{ opacity: 0, y: 20 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ delay: 1.0 }}
-             className="mb-8"
-           >
-             <div className="rounded-2xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg">
-               <Card className="rounded-2xl bg-white">
-                 <CardHeader>
-                   <CardTitle className="text-gray-900">
-                     <motion.span
-                       className="animated-gradient-text inline-block"
-                       initial={{ backgroundPosition: '0% 50%' }}
-                       animate={{ backgroundPosition: '100% 50%' }}
-                       transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                     >
-                       Revenue Breakdown
-                     </motion.span>
-                   </CardTitle>
-                 </CardHeader>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.0 }}
+            className="mb-12"
+          >
+            <Card className="border-2 border-green-200">
+              <CardHeader>
+                <CardTitle className="text-gray-900 text-xl">Revenue Breakdown</CardTitle>
+              </CardHeader>
                  <CardContent>
                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                      <div className="p-4 rounded-xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white shadow-md flex flex-col space-y-1">
@@ -510,22 +371,22 @@ export default function AdminDashboard() {
                          <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 flex justify-between items-center">
                            <div>
                              <p className="text-sm text-blue-600 font-medium flex items-center gap-2">
-                               <span className="text-lg">📅</span> Rentals
+                               <span className="w-5 h-5"><ServiceIcon /></span> Rentals
                              </p>
                              <p className="text-xl font-bold text-blue-800">{formatCurrency(stats.revenue.by_type.rental.total)}</p>
                              <p className="text-xs text-blue-500">Platform Fees: {formatCurrency(stats.revenue.by_type.rental.platform_fees)}</p>
                            </div>
-                           <div className="text-3xl">🚗</div>
+                           <div className="w-8 h-8 text-blue-700"><RashDrivingIcon /></div>
                          </div>
                          <div className="p-4 rounded-xl bg-teal-50 border border-teal-200 flex justify-between items-center">
                            <div>
                              <p className="text-sm text-teal-600 font-medium flex items-center gap-2">
-                               <span className="text-lg">🚕</span> Ride-Hailing
+                               <span className="w-5 h-5"><RashDrivingIcon /></span> Ride-Hailing
                              </p>
                              <p className="text-xl font-bold text-teal-800">{formatCurrency(stats.revenue.by_type.ride_hailing.total)}</p>
                              <p className="text-xs text-teal-500">Platform Fees: {formatCurrency(stats.revenue.by_type.ride_hailing.platform_fees)}</p>
                            </div>
-                           <div className="text-3xl">⚡</div>
+                           <div className="w-8 h-8 text-teal-700"><FlagIcon /></div>
                          </div>
                        </div>
                      </div>
@@ -543,10 +404,9 @@ export default function AdminDashboard() {
                      type="bar"
                      height={200}
                    />
-                 </CardContent>
-               </Card>
-             </div>
-           </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
            
            {/* Booking Type Analytics */}
            {stats.bookings.by_type && (
@@ -554,30 +414,20 @@ export default function AdminDashboard() {
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
                transition={{ delay: 1.1 }}
-               className="mb-8"
+               className="mb-12"
              >
-               <div className="rounded-2xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg">
-                 <Card className="rounded-2xl bg-white">
-                   <CardHeader>
-                     <CardTitle className="text-gray-900">
-                       <motion.span
-                         className="animated-gradient-text inline-block"
-                         initial={{ backgroundPosition: '0% 50%' }}
-                         animate={{ backgroundPosition: '100% 50%' }}
-                         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                       >
-                         Booking Type Analytics
-                       </motion.span>
-                     </CardTitle>
-                   </CardHeader>
-                   <CardContent>
+               <Card className="border-2 border-cyan-200">
+                 <CardHeader>
+                   <CardTitle className="text-gray-900 text-xl">Booking Type Analytics</CardTitle>
+                 </CardHeader>
+                 <CardContent>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                        {/* Rentals Card */}
                        <div className="p-6 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-lg">
                          <div className="flex items-center justify-between mb-4">
                            <div className="flex items-center gap-3">
                              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-                               <span className="text-2xl">📅</span>
+                               <span className="w-6 h-6"><ServiceIcon /></span>
                              </div>
                              <div>
                                <h4 className="font-semibold text-lg">Car Rentals</h4>
@@ -606,7 +456,7 @@ export default function AdminDashboard() {
                          <div className="flex items-center justify-between mb-4">
                            <div className="flex items-center gap-3">
                              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-                               <span className="text-2xl">🚕</span>
+                               <span className="w-6 h-6"><RashDrivingIcon /></span>
                              </div>
                              <div>
                                <h4 className="font-semibold text-lg">Ride-Hailing</h4>
@@ -645,9 +495,8 @@ export default function AdminDashboard() {
                      </div>
                    </CardContent>
                  </Card>
-               </div>
-             </motion.div>
-           )}
+               </motion.div>
+             )}
           </motion.section>
 
          {/* Quick Actions */}
@@ -657,167 +506,81 @@ export default function AdminDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <div className="mb-6">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">
-                <motion.span
-                  className="animated-gradient-text"
-                  initial={{ backgroundPosition: '0% 50%' }}
-                  animate={{ backgroundPosition: '100% 50%' }}
-                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  style={{
-                    background: 'linear-gradient(90deg, #000 40%, #0891b2 50%, #000 60%)',
-                    backgroundSize: '200% auto',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                  }}
-                >
-                  Quick Actions
-                </motion.span>
-              </h2>
-            </div>
+            <h2 className="text-3xl font-bold mb-8 text-center text-gray-900">
+              Quick Actions
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8 items-stretch">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-              className="h-full"
-            >
-              <Link href="/admin/drivers">
-                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-75">
-                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-75 cursor-pointer flex flex-col">
-                    <CardContent className="p-6 text-center flex flex-col justify-between h-full">
-                      <div className="flex justify-center mb-3">
-                        <svg className="w-12 h-12 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                      </div>
-                      <h3 className="font-semibold text-gray-900 text-lg">Manage Drivers</h3>
-                      <p className="text-sm text-gray-600">Verify and manage driver accounts</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </Link>
-            </motion.div>
+            <QuickActionCard
+              icon={<UserGroupIcon />}
+              title="Manage Drivers"
+              description="Verify and manage accounts"
+              href="/admin/drivers"
+              delay={0.8}
+            />
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.85 }}
-              className="h-full"
-            >
-              <Link href="/admin/hotel-managers">
-                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-75">
-                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-75 cursor-pointer flex flex-col">
-                    <CardContent className="p-6 text-center flex flex-col justify-between h-full">
-                      <div className="flex justify-center mb-3">
-                        <svg className="w-12 h-12 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                      </div>
-                      <h3 className="font-semibold text-gray-900 text-lg">Hotel Managers</h3>
-                      <p className="text-sm text-gray-600">Verify and manage hotel managers</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </Link>
-            </motion.div>
+            <QuickActionCard
+              icon={<BuildingIcon />}
+              title="Hotel Managers"
+              description="Verify and manage accounts"
+              href="/admin/hotel-managers"
+              delay={0.85}
+            />
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9 }}
-              className="h-full"
-            >
-              <Link href="/admin/payments">
-                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-75">
-                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-75 cursor-pointer flex flex-col">
-                    <CardContent className="p-6 text-center flex flex-col justify-between h-full">
-                      <div className="flex justify-center mb-3">
-                        <svg className="w-12 h-12 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                        </svg>
-                      </div>
-                      <h3 className="font-semibold text-gray-900 text-lg">Payments</h3>
-                      <p className="text-sm text-gray-600">Monitor transactions</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </Link>
-            </motion.div>
+            <QuickActionCard
+              icon={<PricingIcon />}
+              title="Payments"
+              description="Monitor transactions"
+              href="/admin/payments"
+              delay={0.9}
+            />
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.0 }}
-              className="h-full"
-            >
-              <Link href="/admin/disputes">
-                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-75">
-                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-75 cursor-pointer flex flex-col">
-                    <CardContent className="p-6 text-center flex flex-col justify-between h-full">
-                      <div className="flex justify-center mb-3">
-                        <svg className="w-12 h-12 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                      </div>
-                      <h3 className="font-semibold text-gray-900 text-lg">Disputes</h3>
-                      <p className="text-sm text-gray-600">Resolve customer disputes</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </Link>
-            </motion.div>
+            <QuickActionCard
+              icon={<AlertIcon />}
+              title="Disputes"
+              description="Resolve customer issues"
+              href="/admin/disputes"
+              delay={1.0}
+            />
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.1 }}
-              className="h-full"
-            >
-              <Link href="/admin/reports">
-                <div className="h-full rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:shadow-xl transition-all duration-75">
-                  <Card className="h-full bg-white rounded-xl hover:shadow-lg transition-all duration-75 cursor-pointer flex flex-col">
-                    <CardContent className="p-6 text-center flex flex-col justify-between h-full">
-                      <div className="flex justify-center mb-3">
-                        <svg className="w-12 h-12 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                      </div>
-                      <h3 className="font-semibold text-gray-900 text-lg">Analytics</h3>
-                      <p className="text-sm text-gray-600">View detailed reports</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </Link>
-            </motion.div>
+            <QuickActionCard
+              icon={<CheckCircleIcon />}
+              title="Analytics"
+              description="View detailed reports"
+              href="/admin/reports"
+              delay={1.1}
+            />
           </div>
           </motion.section>
 
           {/* Recent Pending Drivers */}
           {stats.recent_pending_drivers && stats.recent_pending_drivers.length > 0 && (
-            <Card className="shadow-lg">
+            <Card className="border-2 border-blue-200">
               <CardHeader>
-                <CardTitle>Recent Pending Driver Verifications</CardTitle>
+                <CardTitle className="text-gray-900 text-xl">Recent Pending Driver Verifications</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {stats.recent_pending_drivers.map((driver) => (
                     <div
                       key={driver.id}
-                      className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                      className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
+                      role="article"
+                      aria-label={`Driver ${driver.user.full_name} pending verification`}
                     >
-                      <div className="text-xl">👤</div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">
-                          {driver.user.full_name} ({driver.user.email})
+                      <div className="w-6 h-6" aria-hidden="true"><UserGroupIcon /></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {driver.user.full_name}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-600 truncate">
+                          {driver.user.email}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
                           Joined {new Date(driver.user.created_at).toLocaleDateString()}
                         </p>
                       </div>
-                      <Link href={`/admin/drivers/${driver.id}`}>
-                        <Button size="sm" variant="outline">
+                      <Link href={`/admin/drivers/${driver.id}`} className="flex-shrink-0">
+                        <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
                           Review
                         </Button>
                       </Link>
