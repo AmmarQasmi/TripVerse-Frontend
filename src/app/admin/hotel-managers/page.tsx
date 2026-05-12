@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageLoader } from '@/components/shared/PageLoader'
-import { adminApi } from '@/lib/api/admin.api'
+import { ListRowsSkeletonGrid, StatCardsSkeletonGrid } from '@/components/admin/SkeletonLoaders'
+import { useAdminHotelManagers } from '@/features/admin/useAdminQueries'
 import { CheckCircleIcon, ClockIcon, XCircleIcon, UserGroupIcon, BuildingIcon } from '@/components/admin/AdminIcons'
 
 interface HotelManager {
@@ -41,29 +42,17 @@ interface HotelManager {
 
 export default function AdminHotelManagersPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'verified' | 'rejected'>('all')
-  const [hotelManagers, setHotelManagers] = useState<HotelManager[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { data: hotelManagers, isLoading, error, refetch } = useAdminHotelManagers()
 
-  useEffect(() => {
-    const fetchHotelManagers = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        const response: any = await adminApi.getAllHotelManagers()
-        setHotelManagers((response?.data || []) as HotelManager[])
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to load hotel managers')
-        console.error('Error fetching hotel managers:', err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  // Handle both flat and nested data structures from API
+  const hotelManagersList = Array.isArray(hotelManagers)
+    ? hotelManagers.map((m: any) => ({
+        ...m,
+        user: m.user || { full_name: m.full_name, email: m.email, city: m.city },
+      } as HotelManager))
+    : ([] as HotelManager[])
 
-    fetchHotelManagers()
-  }, [])
-
-  const filteredManagers = hotelManagers.filter(manager => {
+  const filteredManagers = hotelManagersList.filter(manager => {
     if (filter === 'all') return true
     if (filter === 'verified') return manager.is_verified
     // Rejected: has verification_notes but no pending documents (truly rejected, not re-submitted)
@@ -74,10 +63,10 @@ export default function AdminHotelManagersPage() {
   })
 
   const stats = {
-    total: hotelManagers.length,
-    pending: hotelManagers.filter(m => !m.is_verified && (m.has_pending_documents || !m.verification_notes)).length,
-    verified: hotelManagers.filter(m => m.is_verified).length,
-    rejected: hotelManagers.filter(m => !m.is_verified && m.verification_notes && !m.has_pending_documents).length,
+    total: hotelManagersList.length,
+    pending: hotelManagersList.filter(m => !m.is_verified && (m.has_pending_documents || !m.verification_notes)).length,
+    verified: hotelManagersList.filter(m => m.is_verified).length,
+    rejected: hotelManagersList.filter(m => !m.is_verified && m.verification_notes && !m.has_pending_documents).length,
   }
 
   const getStatusColor = (isVerified: boolean, hasNotes: boolean, hasPendingDocs: boolean) => {
@@ -107,7 +96,7 @@ export default function AdminHotelManagersPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-white">
         <PageHeader 
           title="Hotel Manager Management"
           subtitle="Review and manage hotel manager verifications"
@@ -117,8 +106,8 @@ export default function AdminHotelManagersPage() {
         <div className="container mx-auto px-4 py-8">
           <Card className="bg-red-50 border-red-300">
             <CardContent className="p-6">
-              <p className="text-red-800">{error}</p>
-              <Button onClick={() => window.location.reload()} variant="outline" className="mt-4">
+              <p className="text-red-800">{error instanceof Error ? error.message : String(error)}</p>
+              <Button onClick={() => refetch()} variant="outline" className="mt-4">
                 Retry
               </Button>
             </CardContent>
@@ -129,7 +118,7 @@ export default function AdminHotelManagersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <PageHeader 
         title="Hotel Manager Management"
         subtitle="Review and manage hotel manager verifications"
@@ -148,21 +137,17 @@ export default function AdminHotelManagersPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <Card 
-                className={`p-6 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 text-white overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                  filter === 'all' 
-                    ? 'ring-2 ring-offset-2 ring-blue-300' 
-                    : ''
-                } border-0`}
+              <Card
+                className={`p-6 rounded-2xl bg-white text-gray-900 border border-gray-200 shadow-sm cursor-pointer transition-all duration-150 ${filter === 'all' ? 'ring-2 ring-offset-2 ring-teal-200' : ''}`}
                 onClick={() => setFilter('all')}
               >
                 <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-white/80">Total Managers</p>
-                      <p className="text-3xl font-bold text-white">{stats.total}</p>
+                      <p className="text-sm font-medium text-gray-600">Total Managers</p>
+                      <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
                     </div>
-                    <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-white"><UserGroupIcon /></div>
+                    <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center text-white"><UserGroupIcon /></div>
                   </div>
                 </CardContent>
               </Card>
@@ -173,21 +158,17 @@ export default function AdminHotelManagersPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <Card 
-                className={`p-6 rounded-xl bg-gradient-to-br from-amber-600 to-amber-700 text-white overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                  filter === 'pending' 
-                    ? 'ring-2 ring-offset-2 ring-amber-300' 
-                    : ''
-                } border-0`}
+              <Card
+                className={`p-6 rounded-2xl bg-white text-gray-900 border border-gray-200 shadow-sm cursor-pointer transition-all duration-150 ${filter === 'pending' ? 'ring-2 ring-offset-2 ring-teal-200' : ''}`}
                 onClick={() => setFilter('pending')}
               >
                 <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-white/80">Pending</p>
-                      <p className="text-3xl font-bold text-white">{stats.pending}</p>
+                      <p className="text-sm font-medium text-gray-600">Pending</p>
+                      <p className="text-3xl font-bold text-gray-900">{stats.pending}</p>
                     </div>
-                    <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-amber-100"><ClockIcon /></div>
+                    <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white"><ClockIcon /></div>
                   </div>
                 </CardContent>
               </Card>
@@ -198,21 +179,17 @@ export default function AdminHotelManagersPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <Card 
-                className={`p-6 rounded-xl bg-gradient-to-br from-green-600 to-green-700 text-white overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                  filter === 'verified' 
-                    ? 'ring-2 ring-offset-2 ring-green-300' 
-                    : ''
-                } border-0`}
+              <Card
+                className={`p-6 rounded-2xl bg-white text-gray-900 border border-gray-200 shadow-sm cursor-pointer transition-all duration-150 ${filter === 'verified' ? 'ring-2 ring-offset-2 ring-teal-200' : ''}`}
                 onClick={() => setFilter('verified')}
               >
                 <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-white/80">Verified</p>
-                      <p className="text-3xl font-bold text-white">{stats.verified}</p>
+                      <p className="text-sm font-medium text-gray-600">Verified</p>
+                      <p className="text-3xl font-bold text-gray-900">{stats.verified}</p>
                     </div>
-                    <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-emerald-100"><CheckCircleIcon /></div>
+                    <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white"><CheckCircleIcon /></div>
                   </div>
                 </CardContent>
               </Card>
@@ -223,21 +200,17 @@ export default function AdminHotelManagersPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <Card 
-                className={`p-6 rounded-xl bg-gradient-to-br from-red-600 to-red-700 text-white overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                  filter === 'rejected' 
-                    ? 'ring-2 ring-offset-2 ring-red-300' 
-                    : ''
-                } border-0`}
+              <Card
+                className={`p-6 rounded-2xl bg-white text-gray-900 border border-gray-200 shadow-sm cursor-pointer transition-all duration-150 ${filter === 'rejected' ? 'ring-2 ring-offset-2 ring-teal-200' : ''}`}
                 onClick={() => setFilter('rejected')}
               >
                 <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-white/80">Rejected</p>
-                      <p className="text-3xl font-bold text-white">{stats.rejected}</p>
+                      <p className="text-sm font-medium text-gray-600">Rejected</p>
+                      <p className="text-3xl font-bold text-gray-900">{stats.rejected}</p>
                     </div>
-                    <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-pink-100"><XCircleIcon /></div>
+                    <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center text-white"><XCircleIcon /></div>
                   </div>
                 </CardContent>
               </Card>
@@ -259,9 +232,9 @@ export default function AdminHotelManagersPage() {
           </div>
 
           {/* Hotel Managers List */}
-          <Card className="border-2 border-white/20 shadow-md rounded-xl bg-white/5">
+          <Card className="border border-gray-200 shadow-sm rounded-xl bg-white text-gray-700">
               <CardHeader>
-                <CardTitle className="text-white">Hotel Managers</CardTitle>
+                <CardTitle className="text-gray-900">Hotel Managers</CardTitle>
               </CardHeader>
               <CardContent>
                 {filteredManagers.length === 0 ? (
@@ -269,8 +242,8 @@ export default function AdminHotelManagersPage() {
                   <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
-                    <h3 className="text-xl font-semibold text-white mb-2">No Hotel Managers Found</h3>
-                    <p className="text-gray-300">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No Hotel Managers Found</h3>
+                    <p className="text-gray-700">
                       {filter === 'all' 
                         ? 'No hotel managers registered yet.' 
                         : `No hotel managers with status "${filter}"`}
@@ -284,16 +257,16 @@ export default function AdminHotelManagersPage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                       >
-                      <div className="p-6 bg-white/5 border-2 border-white/10 rounded-lg hover:border-white/20 transition-colors text-white">
+                      <div className="p-6 bg-white border-b border-gray-200 transition-colors text-gray-700">
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
                                 <div className="flex items-center space-x-3 mb-2">
-                                  <h3 className="text-xl font-semibold text-white">{manager.user.full_name}</h3>
+                                  <h3 className="text-xl font-semibold text-gray-900">{manager.user.full_name}</h3>
                               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(manager.is_verified, !!manager.verification_notes, manager.has_pending_documents)}`}>
                                 <span className="w-4 h-4">{getStatusIconComponent(manager.is_verified, !!manager.verification_notes, manager.has_pending_documents)}</span> {getStatusText(manager.is_verified, !!manager.verification_notes, manager.has_pending_documents)}
                                   </span>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300 mb-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700 mb-4">
                                   <div>
                                     <span className="font-semibold">Email:</span> {manager.user.email}
                                   </div>
