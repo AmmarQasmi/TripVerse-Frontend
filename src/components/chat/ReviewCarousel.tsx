@@ -82,14 +82,18 @@ export function ReviewCarousel({ reviews }: ReviewCarouselProps) {
         {reviews.map((review, idx) => (
           <div
             key={idx}
-            className="flex-shrink-0 w-[260px] bg-gradient-to-br from-gray-50 to-white rounded-xl p-3.5 border border-gray-100 snap-start hover:border-gray-200 transition-colors"
+            className="flex-shrink-0 w-[260px] rounded-xl p-3.5 snap-start hover:shadow-lg transition-all"
+            style={{
+              background: 'linear-gradient(135deg, #0f2d44 0%, #0d2b3e 100%)',
+              border: '1px solid rgba(45,212,191,0.3)',
+            }}
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-xs font-bold">
                   {(review.author || review.author_name || 'A').charAt(0).toUpperCase()}
                 </div>
-                <span className="text-xs font-semibold text-gray-800 truncate max-w-[120px]">
+                <span className="text-xs font-semibold truncate max-w-[120px]" style={{ color: '#ffffff' }}>
                   {review.author || review.author_name || 'Anonymous'}
                 </span>
               </div>
@@ -101,18 +105,18 @@ export function ReviewCarousel({ reviews }: ReviewCarouselProps) {
                       className={`w-3 h-3 ${
                         i < review.rating!
                           ? 'text-amber-400 fill-amber-400'
-                          : 'text-gray-200'
+                          : 'text-gray-400'
                       }`}
                     />
                   ))}
                 </div>
               )}
             </div>
-            <p className="text-xs text-gray-600 line-clamp-4 leading-relaxed">
+            <p className="text-xs line-clamp-4 leading-relaxed" style={{ color: 'rgba(255,255,255,0.85)' }}>
               {review.text || 'No review text.'}
             </p>
             {(review.timeDescription || review.relative_time_description) && (
-              <p className="text-[10px] text-gray-400 mt-2">
+              <p className="text-[10px] mt-2" style={{ color: 'rgba(45,212,191,0.7)' }}>
                 {review.timeDescription || review.relative_time_description}
               </p>
             )}

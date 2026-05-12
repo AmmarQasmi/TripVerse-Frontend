@@ -43,26 +43,26 @@ export function SimpleChart({ data, type = 'bar', height = 200, showValues = tru
                   />
                   {showValues && item.value > 0 && (
                     <span
-                      className="absolute text-xs font-semibold text-white whitespace-nowrap"
+                      className="absolute text-sm font-bold text-white whitespace-nowrap"
                       style={{
                         bottom: `${barHeight}%`,
                         transform: 'translateY(-100%)',
-                        marginBottom: '4px',
+                        marginBottom: '6px',
                       }}
                     >
-                      {item.value}
+                      {item.value.toLocaleString()}
                     </span>
                   )}
                 </div>
                 <motion.span
-                  className="text-xs text-gray-300 mt-2 text-center w-full animated-gradient-text inline-block break-words"
+                  className="text-sm font-medium text-blue-900 mt-3 text-center w-full animated-gradient-text inline-block break-words"
                   title={item.label}
                   initial={{ backgroundPosition: '0% 50%' }}
                   animate={{ backgroundPosition: '100% 50%' }}
                   transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                  style={{ minHeight: '1.5rem' }}
+                  style={{ minHeight: '1.5rem', color: '#0f2d44' }}
                 >
-                  {item.label}
+                  {item.label.replace(/_/g, ' ')}
                 </motion.span>
               </div>
             )
@@ -117,18 +117,18 @@ export function SimpleChart({ data, type = 'bar', height = 200, showValues = tru
             )
           })}
         </svg>
-        <div className="flex justify-between mt-2 gap-1">
+        <div className="flex justify-between mt-3 gap-1">
           {data.map((item, index) => (
             <motion.span
               key={index}
-              className="text-xs text-gray-300 animated-gradient-text inline-block break-words flex-1 text-center"
+              className="text-sm font-medium text-blue-900 animated-gradient-text inline-block break-words flex-1 text-center"
               title={item.label}
               initial={{ backgroundPosition: '0% 50%' }}
               animate={{ backgroundPosition: '100% 50%' }}
               transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-              style={{ minHeight: '1.5rem' }}
+              style={{ minHeight: '1.5rem', color: '#0f2d44' }}
             >
-              {item.label}
+              {item.label.replace(/_/g, ' ')}
             </motion.span>
           ))}
         </div>

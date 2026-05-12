@@ -443,9 +443,33 @@ export default function DriverCarsPage() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white border border-gray-200 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl"
+              className="bg-white border border-gray-200 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl relative"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Wave Decoration */}
+              <svg
+                className="absolute top-0 left-0 right-0 w-full h-32 text-transparent pointer-events-none"
+                viewBox="0 0 1200 300"
+                preserveAspectRatio="none"
+                style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
+              >
+                <defs>
+                  <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#0f2d44" />
+                    <stop offset="100%" stopColor="#2dd4bf" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M 0,80 Q 150,40 300,60 T 600,80 T 900,60 T 1200,80 L 1200,0 L 0,0 Z"
+                  fill="url(#waveGradient)"
+                  opacity="0.9"
+                />
+                <path
+                  d="M 0,100 Q 200,60 400,80 T 800,100 T 1200,90 L 1200,0 L 0,0 Z"
+                  fill="url(#waveGradient)"
+                  opacity="0.5"
+                />
+              </svg>
               <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl z-10">
                 <div className="flex justify-between items-center">
                   <div>

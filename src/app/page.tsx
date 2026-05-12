@@ -129,12 +129,12 @@ export default function Home() {
 
               {/* Background Image Layer */}
               <div
-                className="absolute inset-0 bg-cover bg-center opacity-20"
+                className="absolute inset-0 bg-cover bg-center opacity-40"
                 style={{ backgroundImage: 'url(/images/hotels/punjab/serena-hotel-islamabad/main.jpg)' }}
               />
 
               {/* Readability Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-black/35 via-black/20 to-black/30"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-black/45 via-black/30 to-black/40"></div>
               
               {/* Inner Glow on Hover */}
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/10 group-hover:to-blue-500/10 transition-all duration-300 rounded-2xl"></div>
@@ -222,12 +222,12 @@ export default function Home() {
 
               {/* Background Image Layer */}
               <div
-                className="absolute inset-0 bg-cover bg-center opacity-20"
+                className="absolute inset-0 bg-cover bg-center opacity-40"
                 style={{ backgroundImage: 'url(/images/cities/karachi/karachi-03.png)' }}
               />
 
               {/* Readability Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-black/35 via-black/20 to-black/30"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-black/45 via-black/30 to-black/40"></div>
               
               {/* Inner Glow on Hover */}
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/10 group-hover:to-blue-500/10 transition-all duration-300 rounded-2xl"></div>
@@ -315,12 +315,12 @@ export default function Home() {
 
               {/* Background Image Layer */}
               <div
-                className="absolute inset-0 bg-cover bg-center opacity-20"
+                className="absolute inset-0 bg-cover bg-center opacity-40"
                 style={{ backgroundImage: 'url(/images/cities/islamabad/islamabad-01.jpg)' }}
               />
 
               {/* Readability Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-black/35 via-black/20 to-black/30"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-black/45 via-black/30 to-black/40"></div>
               
               {/* Inner Glow on Hover */}
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/10 group-hover:to-blue-500/10 transition-all duration-300 rounded-2xl"></div>
