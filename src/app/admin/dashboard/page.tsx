@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { DoughnutChart } from '@/components/client/DoughnutChart'
@@ -11,6 +12,11 @@ import { PageLoader } from '@/components/shared/PageLoader'
 import { AlertCard } from '@/components/admin/AlertCard'
 import { QuickActionCard } from '@/components/admin/QuickActionCard'
 import Link from 'next/link'
+import { StatCardsSkeletonGrid, ListRowsSkeletonGrid } from '@/components/admin/SkeletonLoaders'
+import {
+  useDashboardStats,
+  prefetchDashboardData,
+} from '@/features/admin/useAdminQueries'
 import { adminApi, AdminDashboardStats } from '@/lib/api/admin.api'
 import {
   UserGroupIcon,
@@ -24,34 +30,15 @@ import {
 } from '@/components/admin/AdminIcons'
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<AdminDashboardStats | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [pendingSuspensions, setPendingSuspensions] = useState<any>(null)
+  const queryClient = useQueryClient()
+  const { data: stats, isLoading, error } = useDashboardStats()
   const [modalType, setModalType] = useState<string | null>(null)
   const [modalData, setModalData] = useState<any[]>([])
 
+  // Prefetch related data on mount for instant navigation
   useEffect(() => {
-    const fetchDashboardStats = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        const [data, suspensions] = await Promise.all([
-          adminApi.getDashboardStats(),
-          adminApi.getDriversWithPendingSuspensions().catch(() => ({ pending: [], paused: [] })),
-        ])
-        setStats(data)
-        setPendingSuspensions(suspensions)
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to load dashboard stats')
-        console.error('Error fetching dashboard stats:', err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchDashboardStats()
-  }, [])
+    prefetchDashboardData(queryClient)
+  }, [queryClient])
 
   const formatCurrency = (amount: number) => {
     return `PKR ${amount.toLocaleString()}`
@@ -74,7 +61,6 @@ export default function AdminDashboard() {
           }))
           break
         case 'Hotel Managers':
-          // Note: This endpoint may need to be added to adminApi
           const managersResponse = await adminApi.getAllUsers({ role: 'hotel_manager', limit: 100 }) as any
           data = (managersResponse?.data || []).map((manager: any) => ({
             id: manager.id,
@@ -86,7 +72,6 @@ export default function AdminDashboard() {
           }))
           break
         case 'Total Bookings':
-          // Note: This endpoint may need to be added
           const bookingsResponse = await adminApi.getAllPayments({ limit: 100 }) as any
           data = (bookingsResponse?.data || []).map((payment: any) => ({
             id: payment.id,
@@ -124,7 +109,14 @@ export default function AdminDashboard() {
   }
 
   if (isLoading) {
-    return <PageLoader message="Loading dashboard..." />
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="container mx-auto px-4 py-8">
+          <StatCardsSkeletonGrid />
+          <ListRowsSkeletonGrid count={3} />
+        </div>
+      </div>
+    )
   }
 
   if (error) {
@@ -132,7 +124,7 @@ export default function AdminDashboard() {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <Card className="bg-red-500/20 border-red-500">
           <CardContent className="p-6">
-            <p className="text-gray-900">{error}</p>
+            <p className="text-gray-900">{error instanceof Error ? error.message : 'Failed to load dashboard stats'}</p>
             <Button
               onClick={() => window.location.reload()}
               variant="outline"
