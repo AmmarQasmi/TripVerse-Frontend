@@ -249,16 +249,17 @@ export default function HotelManagerEarningsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="premium-gradient-bg">
         <PageHeader
           title="Earnings & Analytics"
           subtitle="View your earnings and performance analytics"
           backUrl="/hotel-manager/dashboard"
           backLabel="Back to Dashboard"
+          centered={true}
         />
         <div className="container mx-auto px-4 py-8">
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="p-6 text-red-700">{error}</CardContent>
+          <Card className="card-accent-line premium-card">
+            <CardContent className="p-4 text-red-700 text-sm" style={{ position: 'relative', zIndex: 1 }}>{error}</CardContent>
           </Card>
         </div>
       </div>
@@ -276,39 +277,39 @@ export default function HotelManagerEarningsPage() {
   const debtItems = summary?.debts?.items || []
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="premium-gradient-bg">
       <PageHeader
         title="Earnings & Analytics"
         subtitle="View your earnings and performance analytics"
         backUrl="/hotel-manager/dashboard"
         backLabel="Back to Dashboard"
+        centered={true}
       />
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <Card><CardHeader><CardTitle className="text-sm">Current Wallet</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-blue-700">{formatPkr(current)}</p></CardContent></Card>
-          <Card><CardHeader><CardTitle className="text-sm">Available</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-emerald-700">{formatPkr(available)}</p></CardContent></Card>
-          <Card><CardHeader><CardTitle className="text-sm">Pending Debt</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-red-700">{formatPkr(debtPending)}</p></CardContent></Card>
-          <Card><CardHeader><CardTitle className="text-sm">Total Earnings</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-purple-700">{formatPkr(total)}</p></CardContent></Card>
-          <Card><CardHeader><CardTitle className="text-sm">Topups Added</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-indigo-700">{formatPkr(totalTopups)}</p></CardContent></Card>
-        </div>
-
         {message && (
-          <Card className="border-green-200 bg-green-50 mb-4">
-            <CardContent className="p-4 text-green-700 text-sm">{message}</CardContent>
+          <Card className="card-accent-line premium-card mb-4">
+            <CardContent className="p-4 text-blue-700 text-sm" style={{ position: 'relative', zIndex: 1 }}>{message}</CardContent>
           </Card>
         )}
 
-        <Card className="mb-6">
-          <CardHeader><CardTitle className="text-lg">Top Up Wallet</CardTitle></CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card className="card-accent-line premium-card premium-card-dark-image"><CardHeader style={{ position: 'relative', zIndex: 1 }}><CardTitle className="text-sm">Current Wallet</CardTitle></CardHeader><CardContent style={{ position: 'relative', zIndex: 1 }}><p className="text-2xl font-bold text-blue-700">{formatPkr(current)}</p></CardContent></Card>
+          <Card className="card-accent-line premium-card premium-card-dark-image"><CardHeader style={{ position: 'relative', zIndex: 1 }}><CardTitle className="text-sm">Available</CardTitle></CardHeader><CardContent style={{ position: 'relative', zIndex: 1 }}><p className="text-2xl font-bold text-green-700">{formatPkr(available)}</p></CardContent></Card>
+          <Card className="card-accent-line premium-card premium-card-dark-image"><CardHeader style={{ position: 'relative', zIndex: 1 }}><CardTitle className="text-sm">Pending Debt</CardTitle></CardHeader><CardContent style={{ position: 'relative', zIndex: 1 }}><p className="text-2xl font-bold text-red-700">{formatPkr(debtPending)}</p></CardContent></Card>
+        </div>
+
+        <Card className="card-accent-line premium-card premium-card-dark-image mb-6">
+          <CardHeader style={{ position: 'relative', zIndex: 1 }}><CardTitle className="text-lg">Top Up Wallet</CardTitle></CardHeader>
+          <CardContent style={{ position: 'relative', zIndex: 1 }}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {TOPUP_OPTIONS.map((amount) => (
                 <Button
                   key={amount}
                   onClick={() => handleTopup(amount)}
                   disabled={topupLoading}
+                  className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
                 >
-                  {topupLoading ? 'Processing...' : `Add PKR ${(amount / 100).toLocaleString()}`}
+                  {formatPkr(amount / 100)}
                 </Button>
               ))}
             </div>
@@ -320,33 +321,55 @@ export default function HotelManagerEarningsPage() {
                 value={customTopup}
                 onChange={(e) => setCustomTopup(e.target.value)}
                 placeholder="Custom amount in PKR"
-                className="w-full md:w-72 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{
+                  background: `linear-gradient(white, white) padding-box, linear-gradient(to right, #0d9488, #0891b2) border-box`,
+                  border: '2px solid transparent',
+                  borderRadius: '0.375rem'
+                }}
+                className="w-full md:w-72 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:shadow-lg"
               />
-              <Button onClick={handleCustomTopup} disabled={topupLoading}>
-                {topupLoading ? 'Processing...' : 'Add Custom Amount'}
+              <Button
+                onClick={handleCustomTopup}
+                disabled={topupLoading}
+                className="bg-gradient-to-r from-blue-700 to-cyan-700 text-white"
+              >
+                Add Custom Amount
               </Button>
             </div>
-            <p className="text-xs text-gray-500 mt-3">
-              Use wallet topups for account dues, renewals, or other balance needs.
-            </p>
+            <p className="text-xs text-gray-500 mt-3">Secure checkout is handled by Stripe test mode.</p>
           </CardContent>
         </Card>
 
-        <Card className="mb-6">
-          <CardHeader><CardTitle className="text-lg">Withdraw to Bank</CardTitle></CardHeader>
-          <CardContent>
+        <Card className="card-accent-line premium-card premium-card-dark-image mb-6">
+          <CardHeader style={{ position: 'relative', zIndex: 1 }}><CardTitle className="text-lg">Withdraw to Bank</CardTitle></CardHeader>
+          <CardContent style={{ position: 'relative', zIndex: 1 }}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3 text-sm">
-              <div className="rounded-md border p-3">
-                <p className="text-gray-500">Withdrawable</p>
-                <p className="font-semibold text-emerald-700">{formatPkr(eligibleWithdrawal)}</p>
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(45,212,191,0.08), rgba(8,145,178,0.08))',
+                borderRadius: '0.375rem',
+                border: '1px solid rgba(45,212,191,0.25)',
+                padding: '12px'
+              }}>
+                <p style={{ color: '#0d9488', fontSize: '12px', margin: '0 0 4px 0' }}>Withdrawable</p>
+                <p style={{ fontWeight: 600, color: '#059669', margin: 0 }}>{formatPkr(eligibleWithdrawal)}</p>
               </div>
-              <div className="rounded-md border p-3">
-                <p className="text-gray-500">Minimum</p>
-                <p className="font-semibold">{formatPkr(minimumWithdrawal)}</p>
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(45,212,191,0.08), rgba(8,145,178,0.08))',
+                borderRadius: '0.375rem',
+                border: '1px solid rgba(45,212,191,0.25)',
+                padding: '12px'
+              }}>
+                <p style={{ color: '#0d9488', fontSize: '12px', margin: '0 0 4px 0' }}>Minimum</p>
+                <p style={{ fontWeight: 600, color: '#111827', margin: 0 }}>{formatPkr(minimumWithdrawal)}</p>
               </div>
-              <div className="rounded-md border p-3">
-                <p className="text-gray-500">Status</p>
-                <p className={`font-semibold ${canWithdraw ? 'text-emerald-700' : 'text-red-700'}`}>
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(45,212,191,0.08), rgba(8,145,178,0.08))',
+                borderRadius: '0.375rem',
+                border: '1px solid rgba(45,212,191,0.25)',
+                padding: '12px'
+              }}>
+                <p style={{ color: '#0d9488', fontSize: '12px', margin: '0 0 4px 0' }}>Status</p>
+                <p style={{ fontWeight: 600, color: canWithdraw ? '#059669' : '#dc2626', margin: 0 }}>
                   {canWithdraw ? 'Eligible' : 'Not eligible'}
                 </p>
               </div>
@@ -360,12 +383,22 @@ export default function HotelManagerEarningsPage() {
                 value={withdrawalAmount}
                 onChange={(e) => setWithdrawalAmount(e.target.value)}
                 placeholder="Withdrawal amount in PKR"
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{
+                  background: `linear-gradient(white, white) padding-box, linear-gradient(to right, #0d9488, #0891b2) border-box`,
+                  border: '2px solid transparent',
+                  borderRadius: '0.375rem'
+                }}
+                className="px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:shadow-lg"
               />
               <select
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value as 'stripe_payout' | 'manual_transfer')}
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{
+                  background: `linear-gradient(white, white) padding-box, linear-gradient(to right, #0d9488, #0891b2) border-box`,
+                  border: '2px solid transparent',
+                  borderRadius: '0.375rem'
+                }}
+                className="px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:shadow-lg"
               >
                 <option value="manual_transfer">Manual transfer</option>
                 <option value="stripe_payout">Stripe payout</option>
@@ -375,25 +408,44 @@ export default function HotelManagerEarningsPage() {
                 value={bankHolderName}
                 onChange={(e) => setBankHolderName(e.target.value)}
                 placeholder="Bank account holder name"
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{
+                  background: `linear-gradient(white, white) padding-box, linear-gradient(to right, #0d9488, #0891b2) border-box`,
+                  border: '2px solid transparent',
+                  borderRadius: '0.375rem'
+                }}
+                className="px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:shadow-lg"
               />
               <input
                 type="text"
                 value={bankAccountNumber}
                 onChange={(e) => setBankAccountNumber(e.target.value)}
                 placeholder="Bank account number"
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{
+                  background: `linear-gradient(white, white) padding-box, linear-gradient(to right, #0d9488, #0891b2) border-box`,
+                  border: '2px solid transparent',
+                  borderRadius: '0.375rem'
+                }}
+                className="px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:shadow-lg"
               />
               <input
                 type="text"
                 value={bankRoutingNumber}
                 onChange={(e) => setBankRoutingNumber(e.target.value)}
                 placeholder="Bank routing number"
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{
+                  background: `linear-gradient(white, white) padding-box, linear-gradient(to right, #0d9488, #0891b2) border-box`,
+                  border: '2px solid transparent',
+                  borderRadius: '0.375rem'
+                }}
+                className="px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:shadow-lg"
               />
             </div>
 
-            <Button onClick={handleInitiateWithdrawal} disabled={withdrawing || !canWithdraw}>
+            <Button 
+              onClick={handleInitiateWithdrawal} 
+              disabled={withdrawing || !canWithdraw}
+              className="bg-gradient-to-r from-blue-700 to-cyan-700 text-white"
+            >
               {withdrawing ? 'Submitting...' : 'Initiate Withdrawal'}
             </Button>
 
@@ -405,117 +457,187 @@ export default function HotelManagerEarningsPage() {
 
         {debtPending > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <Card className="border-amber-300 bg-amber-50 mb-6">
-              <CardContent className="p-4 text-amber-800 text-sm">
+            <Card className="card-accent-line premium-card mb-6">
+              <CardContent className="p-4 text-amber-800 text-sm" style={{ position: 'relative', zIndex: 1 }}>
                 You have pending debt. Withdrawals are capped to available amount after debt obligations.
               </CardContent>
             </Card>
           </motion.div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <Card>
-            <CardHeader><CardTitle className="text-lg">Earnings Trend</CardTitle></CardHeader>
-            <CardContent>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <Card className="card-accent-line premium-card premium-card-dark-image">
+            <CardHeader style={{ position: 'relative', zIndex: 1 }}><CardTitle className="text-lg">Earnings Trend</CardTitle></CardHeader>
+            <CardContent style={{ position: 'relative', zIndex: 1 }}>
               <SimpleChart data={monthlyTrend.length ? monthlyTrend : [{ label: 'No Data', value: 0 }]} type="line" height={220} />
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader><CardTitle className="text-lg">Transaction Type Breakdown</CardTitle></CardHeader>
-            <CardContent>
+          <Card className="card-accent-line premium-card premium-card-dark-image">
+            <CardHeader style={{ position: 'relative', zIndex: 1 }}><CardTitle className="text-lg">Transaction Type Breakdown</CardTitle></CardHeader>
+            <CardContent style={{ position: 'relative', zIndex: 1 }}>
               <SimpleChart data={typeBreakdown.length ? typeBreakdown : [{ label: 'No Data', value: 0 }]} type="bar" height={220} />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle className="text-lg">Recent Activity</CardTitle></CardHeader>
-            <CardContent>
-              <div className="space-y-3 max-h-56 overflow-y-auto">
-                {(transactions?.transactions || []).slice(0, 10).map((tx) => (
-                  <div key={tx.id} className="flex items-center justify-between border-b pb-2 last:border-b-0">
-                    <div>
-                      <p className="text-sm capitalize">{tx.type.replace(/_/g, ' ')}</p>
-                      <p className="text-xs text-gray-600">{getTxDetails(tx)}</p>
-                    </div>
-                    <p className="text-sm font-semibold">{formatPkr(Math.abs(parsePaisa(tx.amount)))}</p>
-                  </div>
-                ))}
-              </div>
             </CardContent>
           </Card>
         </div>
 
-        <Card>
-          <CardHeader>
+        <div style={{
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 10px 25px rgba(21,94,117,0.15)',
+          position: 'relative',
+          zIndex: 1
+        }}>
+          {/* Gradient Header Bar */}
+          <div style={{
+            background: 'linear-gradient(135deg, #1e40af, #0891b2, #0d9488)',
+            padding: '18px 24px',
+            borderTop: '2px solid rgba(45,212,191,0.6)',
+            boxShadow: 'inset 0 -1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.08)'
+          }}>
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <CardTitle className="text-lg">Records</CardTitle>
+              <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#FFFFFF', margin: 0, letterSpacing: '0.3px' }}>
+                Records
+              </h2>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setActiveSection('transactions')}
-                  className={`px-3 py-1.5 text-sm rounded border ${activeSection === 'transactions' ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-300 text-gray-700'}`}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '14px',
+                    borderRadius: '4px',
+                    border: activeSection === 'transactions' ? '1px solid #0d9488' : '1px solid rgba(255,255,255,0.5)',
+                    background: activeSection === 'transactions' ? 'rgba(13,148,136,0.2)' : 'transparent',
+                    color: '#FFFFFF',
+                    cursor: 'pointer'
+                  }}
                 >
                   Transactions
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveSection('debts')}
-                  className={`px-3 py-1.5 text-sm rounded border ${activeSection === 'debts' ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-300 text-gray-700'}`}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '14px',
+                    borderRadius: '4px',
+                    border: activeSection === 'debts' ? '1px solid #0d9488' : '1px solid rgba(255,255,255,0.5)',
+                    background: activeSection === 'debts' ? 'rgba(13,148,136,0.2)' : 'transparent',
+                    color: '#FFFFFF',
+                    cursor: 'pointer'
+                  }}
                 >
                   Debts
                 </button>
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+
+          {/* Table Container */}
+          <div style={{
+            background: '#FFFFFF',
+            border: '1px solid rgba(45,212,191,0.2)',
+            borderTop: 'none',
+          }}>
             {activeSection === 'debts' ? (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full" style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                  <colgroup>
+                    <col style={{ width: '25%' }} />
+                    <col style={{ width: '25%' }} />
+                    <col style={{ width: '25%' }} />
+                    <col style={{ width: '25%' }} />
+                  </colgroup>
                   <thead>
-                    <tr className="border-b text-left">
-                      <th className="py-2">Booking ID</th>
-                      <th className="py-2">Due Date</th>
-                      <th className="py-2">Amount</th>
-                      <th className="py-2">Status</th>
+                    <tr style={{
+                      background: 'linear-gradient(to right, rgba(45,212,191,0.08), rgba(8,145,178,0.08))',
+                      borderBottom: '1px solid rgba(45,212,191,0.25)'
+                    }}>
+                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#0d9488', fontSize: '11px', fontWeight: 600, letterSpacing: '0.4px', borderRight: '2px solid rgba(45,212,191,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Booking ID</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#0d9488', fontSize: '11px', fontWeight: 600, letterSpacing: '0.4px', borderRight: '2px solid rgba(45,212,191,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Due Date</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#0d9488', fontSize: '11px', fontWeight: 600, letterSpacing: '0.4px', borderRight: '2px solid rgba(45,212,191,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Amount</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#0d9488', fontSize: '11px', fontWeight: 600, letterSpacing: '0.4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {debtItems.map((row) => (
-                      <tr key={row.id} className="border-b last:border-b-0">
-                        <td className="py-2 text-gray-700">{row.bookingId ? `#${row.bookingId}` : 'N/A'}</td>
-                        <td className="py-2 text-gray-700">{row.dueDate ? new Date(row.dueDate).toLocaleDateString() : 'N/A'}</td>
-                        <td className="py-2 font-medium">{formatPkr(parsePaisa(row.amount))}</td>
-                        <td className="py-2 capitalize text-gray-600">{(row.status || 'pending').replace(/_/g, ' ')}</td>
+                      <tr key={row.id} style={{ borderBottom: '1px solid rgba(45,212,191,0.12)', height: '44px' }}>
+                        <td style={{ padding: '8px 12px', textAlign: 'left', color: '#111827', fontWeight: 500, borderRight: '2px solid rgba(45,212,191,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {row.bookingId ? `#${row.bookingId}` : 'N/A'}
+                        </td>
+                        <td style={{ padding: '8px 12px', textAlign: 'left', color: '#111827', fontWeight: 500, borderRight: '2px solid rgba(45,212,191,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {row.dueDate ? new Date(row.dueDate).toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td style={{ padding: '8px 12px', textAlign: 'left', color: '#dc2626', fontWeight: 600, borderRight: '2px solid rgba(45,212,191,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {formatPkr(parsePaisa(row.amount))}
+                        </td>
+                        <td style={{ padding: '8px 12px', textAlign: 'left', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {(row.status || 'pending').replace(/_/g, ' ')}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
                 {!debtItems.length && (
-                  <p className="text-sm text-gray-500 py-3">No pending debts.</p>
+                  <div style={{ padding: '12px', textAlign: 'center', color: '#6b7280', fontSize: '14px' }}>
+                    No pending debts.
+                  </div>
                 )}
               </div>
             ) : (
               <>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full" style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                    <colgroup>
+                      <col style={{ width: '25%' }} />
+                      <col style={{ width: '25%' }} />
+                      <col style={{ width: '25%' }} />
+                      <col style={{ width: '25%' }} />
+                    </colgroup>
                     <thead>
-                      <tr className="border-b text-left">
-                        <th className="py-2">Type</th>
-                        <th className="py-2">Details</th>
-                        <th className="py-2">Amount</th>
-                        <th className="py-2">Date</th>
+                      <tr style={{
+                        background: 'linear-gradient(to right, rgba(45,212,191,0.08), rgba(8,145,178,0.08))',
+                        borderBottom: '1px solid rgba(45,212,191,0.25)'
+                      }}>
+                        <th style={{ padding: '8px 12px', textAlign: 'left', color: '#0d9488', fontSize: '11px', fontWeight: 600, letterSpacing: '0.4px', borderRight: '2px solid rgba(45,212,191,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Type</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'left', color: '#0d9488', fontSize: '11px', fontWeight: 600, letterSpacing: '0.4px', borderRight: '2px solid rgba(45,212,191,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Details</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'left', color: '#0d9488', fontSize: '11px', fontWeight: 600, letterSpacing: '0.4px', borderRight: '2px solid rgba(45,212,191,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Amount</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'left', color: '#0d9488', fontSize: '11px', fontWeight: 600, letterSpacing: '0.4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Date</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {paginatedTransactions.map((tx) => (
-                        <tr key={tx.id} className="border-b last:border-b-0">
-                          <td className="py-2 capitalize">{tx.type.replace(/_/g, ' ')}</td>
-                          <td className="py-2 text-gray-700">{getTxDetails(tx)}</td>
-                          <td className="py-2 font-medium">{formatPkr(Math.abs(parsePaisa(tx.amount)))}</td>
-                          <td className="py-2 text-gray-600">{new Date(tx.createdAt).toLocaleString()}</td>
-                        </tr>
-                      ))}
+                      {paginatedTransactions.map((tx) => {
+                        const amount = parsePaisa(tx.amount)
+                        const typeLabel = tx.type.replace(/_/g, ' ').charAt(0).toUpperCase() + tx.type.replace(/_/g, ' ').slice(1).toLowerCase()
+                        const isPositive = amount >= 0
+
+                        return (
+                          <tr key={tx.id} style={{ borderBottom: '1px solid rgba(45,212,191,0.12)', height: '44px' }}>
+                            <td style={{ padding: '8px 12px', textAlign: 'left', color: '#111827', fontWeight: 500, borderRight: '2px solid rgba(45,212,191,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {typeLabel}
+                            </td>
+                            <td style={{ padding: '8px 12px', textAlign: 'left', color: '#111827', fontWeight: 500, borderRight: '2px solid rgba(45,212,191,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {getTxDetails(tx)}
+                            </td>
+                            <td style={{
+                              padding: '8px 12px',
+                              textAlign: 'left',
+                              color: isPositive ? '#16a34a' : '#dc2626',
+                              fontWeight: 600,
+                              borderRight: '2px solid rgba(45,212,191,0.6)',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}>
+                              {isPositive ? '+' : '-'}{formatPkr(Math.abs(amount))}
+                            </td>
+                            <td style={{ padding: '8px 12px', textAlign: 'left', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {new Date(tx.createdAt).toLocaleString()}
+                            </td>
+                          </tr>
+                        )
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -547,8 +669,8 @@ export default function HotelManagerEarningsPage() {
                 </div>
               </>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   )

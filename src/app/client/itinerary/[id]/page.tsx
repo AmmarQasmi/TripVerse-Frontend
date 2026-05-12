@@ -84,20 +84,20 @@ function ItineraryPageContent() {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-cyan-50">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0f2d44' }}>
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center gap-4"
         >
           <div className="relative">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center shadow-lg shadow-cyan-200">
-              <Compass className="w-8 h-8 text-white animate-pulse" />
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg" style={{ background: '#2dd4bf' }}>
+              <Compass className="w-8 h-8 text-[#0f2d44] animate-pulse" />
             </div>
           </div>
           <div className="text-center">
-            <p className="text-gray-700 font-medium">Loading your adventure</p>
-            <p className="text-gray-400 text-sm mt-1">Preparing your itinerary...</p>
+            <p className="font-medium" style={{ color: '#fff' }}>Loading your adventure</p>
+            <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.55)' }}>Preparing your itinerary...</p>
           </div>
         </motion.div>
       </div>
@@ -106,7 +106,7 @@ function ItineraryPageContent() {
 
   if (error || !itinerary) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-cyan-50">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#f8fafc' }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -119,7 +119,8 @@ function ItineraryPageContent() {
           <p className="text-sm text-gray-500 mb-5">This itinerary may have been deleted or you don't have access.</p>
           <button
             onClick={() => router.push('/client/dashboard')}
-            className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl text-sm font-semibold shadow-md shadow-cyan-200 hover:shadow-lg transition-all"
+            className="px-5 py-2.5 text-white rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition-all"
+            style={{ background: '#2dd4bf' }}
           >
             Back to Dashboard
           </button>
@@ -144,40 +145,24 @@ function ItineraryPageContent() {
   const statusLabel = isEnriched ? 'Enriched' : itinerary.status === 'enriching' ? 'Enriching...' : itinerary.status === 'preview' ? 'AI Preview' : itinerary.status === 'failed' ? 'Failed' : 'Preview'
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
-      {/* Hero with destination image */}
-      <div className="relative overflow-hidden">
-        {/* Background image with overlay */}
-        <div className="absolute inset-0">
-          <img
-            src={getHeroImage(destination)}
-            alt={destination}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/80" />
-        </div>
-
-        <div className="relative container mx-auto px-4 pt-6 pb-10">
+    <div style={{ background: '#0a1a2e', minHeight: '100vh' }}>
+      {/* Hero section */}
+      <div style={{ background: 'linear-gradient(135deg, #0a1a2e 0%, #0d2b3e 100%)', padding: '22px', overflowX: 'hidden' }}>
+        <div style={{ maxWidth: '100%' }}>
           {/* Top bar */}
-          <div className="flex items-center justify-between mb-8">
-            <button
-              onClick={() => router.push('/client/dashboard')}
-              className="flex items-center gap-2 text-white/80 hover:text-white transition-colors text-sm bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg backdrop-blur-sm"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Dashboard
-            </button>
-            <div className="flex items-center gap-2">
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm ${
-                isEnriched
-                  ? 'bg-emerald-500/30 text-emerald-200 border border-emerald-400/30'
-                  : itinerary.status === 'failed'
-                  ? 'bg-red-500/30 text-red-200 border border-red-400/30'
-                  : 'bg-white/20 text-white/90 border border-white/20'
-              }`}>
-                {isEnriched && <CheckCircle2 className="w-3 h-3 inline mr-1" />}
-                {statusLabel}
-              </span>
+          <div className="flex items-center justify-center mb-10">
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={() => router.push('/client/dashboard')}
+                className="flex items-center gap-2 text-sm px-3.5 py-1.5 rounded-lg transition-colors"
+                style={{ color: '#fff', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                Dashboard
+              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#2dd4bf', background: 'rgba(45,212,191,0.12)', border: '1px solid rgba(45,212,191,0.4)', padding: '5px 12px', borderRadius: '20px' }}>
+                <CheckCircle2 className="w-3 h-3" /> {statusLabel}
+              </div>
             </div>
           </div>
 
@@ -186,84 +171,91 @@ function ItineraryPageContent() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="max-w-3xl"
+            style={{ textAlign: 'center' }}
           >
-            <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3 leading-tight drop-shadow-lg">
+            <h1 style={{ color: '#fff', fontSize: '30px', fontWeight: 800, lineHeight: 1.15, letterSpacing: '-0.5px', marginBottom: '10px' }}>
               {title}
             </h1>
-            <p className="text-white/70 text-base mb-6 max-w-lg">
+            <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '13px', marginBottom: '20px' }}>
               Your personalized travel plan — {days.length} days of curated experiences in {destination}.
             </p>
 
-            {/* Stat pills */}
-            <div className="flex flex-wrap gap-3 mb-6">
-              <div className="flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-md rounded-xl border border-white/20">
-                <MapPin className="w-4 h-4 text-cyan-300" />
-                <span className="text-sm text-white font-medium">{destination}</span>
+            {/* Stat chips */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '0px', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)', color: 'rgba(255,255,255,0.88)', fontSize: '12px', padding: '6px 13px', borderRadius: '20px' }}>
+                <span style={{ color: '#2dd4bf' }}><MapPin className="w-3 h-3" /></span>
+                {destination}
               </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-md rounded-xl border border-white/20">
-                <Calendar className="w-4 h-4 text-amber-300" />
-                <span className="text-sm text-white font-medium">{itinerary.durationDays} Days</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)', color: 'rgba(255,255,255,0.88)', fontSize: '12px', padding: '6px 13px', borderRadius: '20px' }}>
+                <span style={{ color: '#2dd4bf' }}><Calendar className="w-3 h-3" /></span>
+                {itinerary.durationDays} Days
               </div>
               {totalPlaces > 0 && (
-                <div className="flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-md rounded-xl border border-white/20">
-                  <Compass className="w-4 h-4 text-emerald-300" />
-                  <span className="text-sm text-white font-medium">{totalPlaces} Places</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)', color: 'rgba(255,255,255,0.88)', fontSize: '12px', padding: '6px 13px', borderRadius: '20px' }}>
+                  <span style={{ color: '#2dd4bf' }}><Compass className="w-3 h-3" /></span>
+                  {totalPlaces} Places
                 </div>
               )}
               {itinerary.travelStyle && (
-                <div className="flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-md rounded-xl border border-white/20">
-                  <Luggage className="w-4 h-4 text-violet-300" />
-                  <span className="text-sm text-white font-medium capitalize">{itinerary.travelStyle}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)', color: 'rgba(255,255,255,0.88)', fontSize: '12px', padding: '6px 13px', borderRadius: '20px' }}>
+                  <span style={{ color: '#2dd4bf' }}><Luggage className="w-3 h-3" /></span>
+                  {itinerary.travelStyle.charAt(0).toUpperCase() + itinerary.travelStyle.slice(1)}
                 </div>
               )}
               {itinerary.budget && (
-                <div className="flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-md rounded-xl border border-white/20">
-                  <DollarSign className="w-4 h-4 text-green-300" />
-                  <span className="text-sm text-white font-medium">{itinerary.budget}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)', color: 'rgba(255,255,255,0.88)', fontSize: '12px', padding: '6px 13px', borderRadius: '20px' }}>
+                  <span style={{ color: '#2dd4bf' }}><DollarSign className="w-3 h-3" /></span>
+                  {itinerary.budget}
                 </div>
               )}
             </div>
 
             {/* Enrich CTA */}
             {itinerary.status === 'preview' && (
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => enrichMutation.mutate()}
-                disabled={enrichMutation.isPending}
-                className="flex items-center gap-2.5 px-6 py-3 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-500/40 transition-all disabled:opacity-50"
-              >
-                {enrichMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Enriching with real data...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4" />
-                    Enrich with Photos, Maps & Reviews
-                  </>
-                )}
-              </motion.button>
+              <div style={{ marginTop: '16px', padding: '16px', background: '#0d2b3e', borderRadius: '12px', border: '1px solid rgba(45,212,191,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                <div>
+                  <p style={{ color: '#fff', fontWeight: 600, fontSize: '14px' }}>Enhance Your Itinerary</p>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginTop: '4px' }}>Add real photos, maps, reviews & live data</p>
+                </div>
+                <button
+                  onClick={() => enrichMutation.mutate()}
+                  disabled={enrichMutation.isPending}
+                  style={{ background: '#2dd4bf', color: '#0d2b3e', fontWeight: 700, fontSize: '12px', padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
+                  className="hover:opacity-90 transition-opacity"
+                >
+                  {enrichMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-3 h-3 inline mr-1 animate-spin" />
+                      Enriching...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3 h-3 inline mr-1" />
+                      Enrich Now
+                    </>
+                  )}
+                </button>
+              </div>
             )}
 
             {itinerary.status === 'enriching' && (
-              <div className="flex items-center gap-2 text-cyan-200 text-sm bg-cyan-500/20 px-4 py-2.5 rounded-xl border border-cyan-400/30 backdrop-blur-sm w-fit">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Enrichment in progress — photos, maps & reviews loading...
+              <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(45,212,191,0.1)', borderRadius: '12px', border: '1px solid rgba(45,212,191,0.3)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Loader2 className="w-4 h-4 animate-spin" style={{ color: '#2dd4bf' }} />
+                <p style={{ color: '#0d2b3e', fontSize: '14px', fontWeight: 500 }}>Enriching your itinerary…</p>
               </div>
             )}
 
             {itinerary.status === 'failed' && (
-              <button
-                onClick={() => enrichMutation.mutate()}
-                disabled={enrichMutation.isPending}
-                className="flex items-center gap-2 px-5 py-2.5 bg-red-500/30 hover:bg-red-500/40 text-white rounded-xl text-sm font-semibold backdrop-blur-sm transition-all border border-red-400/30"
-              >
-                <AlertCircle className="w-4 h-4" />
-                Enrichment failed — Retry
-              </button>
+              <div style={{ marginTop: '16px', padding: '12px', background: '#fee2e2', borderRadius: '12px', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <p style={{ color: '#b91c1c', fontSize: '14px' }}>Enrichment failed. Please try again.</p>
+                <button
+                  onClick={() => enrichMutation.mutate()}
+                  style={{ fontSize: '12px', fontWeight: 600, color: '#dc2626', border: '1px solid #fca5a5', padding: '6px 12px', borderRadius: '8px', background: 'transparent', cursor: 'pointer' }}
+                  className="hover:bg-red-50 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
             )}
           </motion.div>
         </div>
@@ -274,44 +266,62 @@ function ItineraryPageContent() {
         <WeatherBar data={weatherData} destination={destination} />
       )}
 
-      {/* Content */}
-      <div className="container mx-auto px-4 py-10">
-        {/* Section header */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3 mb-8"
-        >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center shadow-sm">
-            <Clock className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Day-by-Day Itinerary</h2>
-            <p className="text-sm text-gray-500">{days.length} days planned with {totalPlaces} places to visit</p>
-          </div>
-        </motion.div>
+      {/* Section Header Strip */}
+      <div style={{ background: '#0d1f2e', padding: '18px 22px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#0a4a4a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Calendar style={{ width: '18px', height: '18px', color: '#2dd4bf' }} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff' }}>Day-by-Day Itinerary</p>
+          <p style={{ fontSize: '12px', color: '#a0aec0', marginTop: '2px' }}>{days.length} days planned with {totalPlaces} places to visit</p>
+        </div>
+      </div>
 
+      {/* Content */}
+      <div style={{ background: '#0a1a2e', paddingLeft: '22px', paddingRight: '22px', paddingTop: '20px', paddingBottom: '20px' }}>
         {days.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-2xl border border-gray-100 shadow-sm">
-            <Compass className="w-10 h-10 mx-auto text-gray-300 mb-3" />
-            <p className="text-gray-500 font-medium">No day data available</p>
-            <p className="text-gray-400 text-sm mt-1">This itinerary doesn't have detailed day plans yet.</p>
+          <div style={{ textAlign: 'center', paddingTop: '64px', paddingBottom: '64px', background: '#0d2b3e', borderRadius: '16px', border: '1px solid rgba(45,212,191,0.2)', boxShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
+            <Compass style={{ width: '40px', height: '40px', margin: '0 auto 12px', color: '#2dd4bf' }} />
+            <p style={{ color: '#cbd5e1', fontWeight: 500 }}>No day data available</p>
+            <p style={{ color: '#94a3b8', fontSize: '14px', marginTop: '4px' }}>This itinerary doesn't have detailed day plans yet.</p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {days.map((day: any, idx: number) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.08, duration: 0.4 }}
-              >
-                <DayTimeline
-                  day={day}
-                  dayNumber={day.day || idx + 1}
-                  isEnriched={isEnriched}
-                />
-              </motion.div>
+              <div key={idx}>
+                {idx >= 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: idx * 0.08 }}
+                    style={{
+                      textAlign: 'center',
+                      padding: '16px',
+                      marginBottom: '12px',
+                      margin: '0 auto 12px auto',
+                      maxWidth: '400px',
+                      background: 'linear-gradient(135deg, #0f2d44 0%, #0d2b3e 100%)',
+                      borderRadius: '12px',
+                      border: '2px solid rgba(45,212,191,0.3)',
+                    }}
+                  >
+                    <p style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff', margin: 0 }}>
+                      Day {idx + 1}
+                    </p>
+                  </motion.div>
+                )}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.08, duration: 0.4 }}
+                >
+                  <DayTimeline
+                    day={day}
+                    dayNumber={day.day || idx + 1}
+                    isEnriched={isEnriched}
+                  />
+                </motion.div>
+              </div>
             ))}
           </div>
         )}
@@ -324,11 +334,12 @@ function ItineraryPageContent() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="mt-10 flex items-center justify-center gap-4"
+          style={{ marginTop: '40px', display: 'flex', gap: '10px', paddingBottom: '20px' }}
         >
           <button
             onClick={() => window.print()}
-            className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', paddingTop: '10px', paddingBottom: '10px', borderRadius: '12px', background: '#0d2b3e', border: '1px solid rgba(45,212,191,0.3)', color: '#2dd4bf', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+            className="hover:opacity-80 transition-opacity"
           >
             <Download className="w-4 h-4" />
             Export / Print
@@ -338,7 +349,8 @@ function ItineraryPageContent() {
               navigator.clipboard.writeText(window.location.href)
               showToast('Link copied to clipboard!', 'success')
             }}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl text-sm font-medium hover:shadow-lg hover:shadow-cyan-200 transition-all shadow-sm"
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', paddingTop: '10px', paddingBottom: '10px', borderRadius: '12px', background: 'linear-gradient(135deg, #0a4a4a, #0d2b3e)', color: 'white', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+            className="hover:opacity-90 transition-opacity"
           >
             <Share2 className="w-4 h-4" />
             Share Itinerary

@@ -11,15 +11,15 @@ interface DayTimelineProps {
   isEnriched: boolean
 }
 
-// Color palette for day badges
-const DAY_COLORS = [
-  'from-cyan-500 to-blue-600',
-  'from-violet-500 to-purple-600',
-  'from-rose-500 to-pink-600',
-  'from-amber-500 to-orange-600',
-  'from-emerald-500 to-teal-600',
-  'from-sky-500 to-indigo-600',
-  'from-fuchsia-500 to-pink-600',
+// Color palette for day badges - new gradients
+const DAY_GRADIENTS = [
+  'linear-gradient(135deg, #0a4a4a, #0d2b3e)',  // 1 brand teal
+  'linear-gradient(135deg, #7c3aed, #5b21b6)',  // 2 purple
+  'linear-gradient(135deg, #e11d48, #be185d)',  // 3 rose
+  'linear-gradient(135deg, #d97706, #b45309)',  // 4 amber
+  'linear-gradient(135deg, #16a34a, #15803d)',  // 5 green
+  'linear-gradient(135deg, #0284c7, #0369a1)',  // 6 blue
+  'linear-gradient(135deg, #9333ea, #7e22ce)',  // 7 violet
 ]
 
 // Time-of-day section config
@@ -31,12 +31,13 @@ const TIME_SECTIONS = [
 
 function TravelTimeIndicator({ time }: { time: string }) {
   return (
-    <div className="flex items-center gap-2 px-4 py-1.5">
-      <div className="flex flex-col items-center">
-        <div className="w-px h-3 bg-gray-200" />
-        <ArrowDown className="w-3 h-3 text-gray-300" />
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', paddingTop: '12px', paddingBottom: '12px', marginBottom: '8px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', lineHeight: '1' }}>
+        <div style={{ fontSize: '18px', color: '#0f2d44', fontWeight: 'bold' }}>|</div>
+        <div style={{ fontSize: '18px', color: '#0f2d44', fontWeight: 'bold' }}>|</div>
       </div>
-      <span className="text-xs text-gray-400 flex items-center gap-1">
+      <ArrowDown className="w-5 h-5" style={{ color: '#0f2d44' }} />
+      <span style={{ fontSize: '11px', color: '#0f2d44', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
         <Clock className="w-3 h-3" />
         {time}
       </span>
@@ -49,7 +50,7 @@ export function DayTimeline({ day, dayNumber, isEnriched }: DayTimelineProps) {
 
   const theme = day.theme || day.title || `Day ${dayNumber}`
   const places = day.places || []
-  const colorClass = DAY_COLORS[(dayNumber - 1) % DAY_COLORS.length]
+  const dayGradient = DAY_GRADIENTS[(dayNumber - 1) % DAY_GRADIENTS.length]
 
   // Hotel recommendations from the day data
   const hotelRecs = day.hotel_recommendations || day.hotelRecommendations || []
@@ -73,47 +74,34 @@ export function DayTimeline({ day, dayNumber, isEnriched }: DayTimelineProps) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: dayNumber * 0.04 }}
-      className={`rounded-2xl border overflow-hidden transition-all duration-300 ${
-        isExpanded
-          ? 'bg-white border-gray-200 shadow-md'
-          : 'bg-white border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200'
-      }`}
+      style={{ background: 'white', border: '2px solid #0f2d44', borderRadius: '16px', overflow: 'hidden', transition: 'all 0.3s ease' }}
     >
       {/* Day Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between px-5 sm:px-6 py-4 hover:bg-gray-50/50 transition-colors text-left"
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: '16px', paddingRight: '16px', paddingTop: '14px', paddingBottom: '14px', transition: 'colors 0.3s', textAlign: 'left' }}
+        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc' }}
+        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
       >
-        <div className="flex items-center gap-4">
-          <span className={`w-11 h-11 rounded-xl bg-gradient-to-br ${colorClass} text-white text-sm font-bold flex items-center justify-center shadow-md`}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div
+            style={{ width: '36px', height: '36px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '13px', flexShrink: 0, background: '#0f2d44' }}
+          >
             {dayNumber}
-          </span>
-          <div>
-            <h3 className="text-base sm:text-lg font-bold text-gray-900">{theme}</h3>
-            <div className="flex items-center gap-3 mt-0.5">
-              {places.length > 0 && (
-                <span className="flex items-center gap-1 text-xs text-gray-500">
-                  <MapPin className="w-3 h-3" />
-                  {places.length} {places.length === 1 ? 'place' : 'places'}
-                </span>
-              )}
-              {activeSections.length > 0 && (
-                <div className="flex items-center gap-1">
-                  {activeSections.map(s => {
-                    const Icon = s.icon
-                    return <Icon key={s.slot} className={`w-3.5 h-3.5 ${s.color}`} />
-                  })}
-                </div>
-              )}
+          </div>
+          <div style={{ flex: 1, minWidth: '0px' }}>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{theme}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', fontSize: '11px', color: '#94a3b8' }}>
+              <MapPin className="w-3 h-3" /> {places.length} {places.length === 1 ? 'place' : 'places'}
+              <span style={{ marginLeft: '4px' }}>{activeSections.map((s, i) => {
+                const Icon = s.icon
+                return <Icon key={i} className="w-3 h-3" style={{ display: 'inline', marginRight: '2px' }} />
+              })}</span>
             </div>
           </div>
         </div>
-        <div className={`p-1.5 rounded-lg transition-colors ${isExpanded ? 'bg-gray-100' : ''}`}>
-          {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
-          )}
+        <div style={{ padding: '8px', borderRadius: '50%', transition: 'colors 0.3s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)', transitionProperty: 'transform', transitionDuration: '0.2s', background: '#0f2d44', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <ChevronDown className="w-4 h-4" style={{ color: '#ffffff' }} />
         </div>
       </button>
 
@@ -124,12 +112,9 @@ export function DayTimeline({ day, dayNumber, isEnriched }: DayTimelineProps) {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="overflow-hidden"
+            style={{ overflow: 'hidden' }}
           >
-            <div className="px-5 sm:px-6 pb-6">
-              {/* Divider line */}
-              <div className={`h-0.5 rounded-full bg-gradient-to-r ${colorClass} opacity-20 mb-5`} />
-
+            <div style={{ borderTop: '1px solid rgba(45,212,191,0.15)', paddingLeft: '16px', paddingRight: '16px', paddingBottom: '16px' }}>
               {/* Time-of-day sections */}
               {activeSections.map((section, sIdx) => {
                 const Icon = section.icon
@@ -137,20 +122,16 @@ export function DayTimeline({ day, dayNumber, isEnriched }: DayTimelineProps) {
                 if (sectionPlaces.length === 0) return null
 
                 return (
-                  <div key={section.slot} className={sIdx > 0 ? 'mt-6' : ''}>
+                  <div key={section.slot} style={{ marginBottom: sIdx < activeSections.length - 1 ? '20px' : '0px' }}>
                     {/* Section banner */}
-                    <div className={`flex items-center gap-3 mb-4 px-3 py-2.5 rounded-xl ${section.bg} border ${section.border}`}>
-                      <div className={`w-8 h-8 rounded-lg ${section.badge} flex items-center justify-center`}>
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-gray-800">{section.slot}</h4>
-                        <p className="text-[11px] text-gray-500">{section.timeRange} • {sectionPlaces.length} {sectionPlaces.length === 1 ? 'place' : 'places'}</p>
-                      </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#0d2b3e', border: '1px solid rgba(45,212,191,0.25)', borderRadius: '8px', paddingLeft: '10px', paddingRight: '10px', paddingTop: '10px', paddingBottom: '10px', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '12px' }}>{section.icon === Sun ? '☀️' : section.icon === Sunset ? '🌅' : '🌙'}</span>
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#ffffff' }}>{section.slot}</span>
+                      <span style={{ fontSize: '11px', color: '#a0aec0', fontWeight: 400 }}>{section.timeRange} • {sectionPlaces.length} {sectionPlaces.length === 1 ? 'place' : 'places'}</span>
                     </div>
 
                     {/* Places in this section */}
-                    <div className="space-y-1">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       {sectionPlaces.map((place: any, idx: number) => (
                         <div key={idx}>
                           {/* Travel time indicator between places */}
@@ -171,7 +152,7 @@ export function DayTimeline({ day, dayNumber, isEnriched }: DayTimelineProps) {
 
               {/* Fallback: if no grouped places but there are flat places (old format) */}
               {activeSections.length === 0 && places.length > 0 && (
-                <div className="space-y-4">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {places.map((place: any, idx: number) => (
                     <PlaceCard key={idx} place={place} />
                   ))}
@@ -180,40 +161,40 @@ export function DayTimeline({ day, dayNumber, isEnriched }: DayTimelineProps) {
 
               {/* Preview mode — text-based schedule */}
               {!isEnriched && places.length === 0 && (day.morning || day.afternoon || day.evening) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
                   {day.morning && (
-                    <div className="flex items-start gap-3 bg-amber-50/50 rounded-xl p-3 border border-amber-100/50">
-                      <Sun className="w-4 h-4 mt-0.5 text-amber-500 flex-shrink-0" />
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', background: '#f8fafc', borderRadius: '8px', padding: '12px', border: '1px solid #e2e8f0' }}>
+                      <Sun className="w-4 h-4" style={{ marginTop: '2px', color: '#2dd4bf', flexShrink: 0 }} />
                       <div>
-                        <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Morning</span>
-                        <p className="text-sm text-gray-700 mt-0.5">{day.morning}</p>
+                        <span style={{ fontSize: '10px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Morning</span>
+                        <p style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>{day.morning}</p>
                       </div>
                     </div>
                   )}
                   {day.afternoon && (
-                    <div className="flex items-start gap-3 bg-sky-50/50 rounded-xl p-3 border border-sky-100/50">
-                      <Sunset className="w-4 h-4 mt-0.5 text-sky-500 flex-shrink-0" />
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', background: '#f8fafc', borderRadius: '8px', padding: '12px', border: '1px solid #e2e8f0' }}>
+                      <Sunset className="w-4 h-4" style={{ marginTop: '2px', color: '#2dd4bf', flexShrink: 0 }} />
                       <div>
-                        <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider">Afternoon</span>
-                        <p className="text-sm text-gray-700 mt-0.5">{day.afternoon}</p>
+                        <span style={{ fontSize: '10px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Afternoon</span>
+                        <p style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>{day.afternoon}</p>
                       </div>
                     </div>
                   )}
                   {day.evening && (
-                    <div className="flex items-start gap-3 bg-indigo-50/50 rounded-xl p-3 border border-indigo-100/50">
-                      <Moon className="w-4 h-4 mt-0.5 text-indigo-500 flex-shrink-0" />
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', background: '#f8fafc', borderRadius: '8px', padding: '12px', border: '1px solid #e2e8f0' }}>
+                      <Moon className="w-4 h-4" style={{ marginTop: '2px', color: '#2dd4bf', flexShrink: 0 }} />
                       <div>
-                        <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Evening</span>
-                        <p className="text-sm text-gray-700 mt-0.5">{day.evening}</p>
+                        <span style={{ fontSize: '10px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Evening</span>
+                        <p style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>{day.evening}</p>
                       </div>
                     </div>
                   )}
                   {day.food && (
-                    <div className="flex items-start gap-3 bg-orange-50/50 rounded-xl p-3 border border-orange-100/50">
-                      <Utensils className="w-4 h-4 mt-0.5 text-orange-500 flex-shrink-0" />
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', background: '#f8fafc', borderRadius: '8px', padding: '12px', border: '1px solid #e2e8f0' }}>
+                      <Utensils className="w-4 h-4" style={{ marginTop: '2px', color: '#2dd4bf', flexShrink: 0 }} />
                       <div>
-                        <span className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">Food</span>
-                        <p className="text-sm text-gray-700 mt-0.5">{day.food}</p>
+                        <span style={{ fontSize: '10px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Food</span>
+                        <p style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>{day.food}</p>
                       </div>
                     </div>
                   )}
@@ -222,29 +203,22 @@ export function DayTimeline({ day, dayNumber, isEnriched }: DayTimelineProps) {
 
               {/* Hotel Recommendations */}
               {hotelRecs.length > 0 && (
-                <div className="mt-6 p-4 bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl border border-violet-100">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Hotel className="w-4 h-4 text-violet-500" />
-                    <h4 className="text-sm font-bold text-gray-800">Where to Stay</h4>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div style={{ marginTop: '16px', borderRadius: '12px', padding: '14px', background: 'linear-gradient(135deg, rgba(13,43,62,0.04), rgba(10,74,74,0.06))', border: '1px solid rgba(45,212,191,0.2)' }}>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#0d2b3e', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                    <Hotel className="w-4 h-4" style={{ color: '#2dd4bf' }} /> Where to Stay
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                     {hotelRecs.map((hotel: any, idx: number) => {
-                      const typeColors: Record<string, string> = {
-                        budget: 'bg-green-100 text-green-700 border-green-200',
-                        'mid-range': 'bg-blue-100 text-blue-700 border-blue-200',
-                        luxury: 'bg-amber-100 text-amber-700 border-amber-200',
-                      }
-                      const typeClass = typeColors[hotel.type] || 'bg-gray-100 text-gray-700 border-gray-200'
-                      const priceRange = hotel.price_range || hotel.priceRange || ''
+                      const borderClass = hotel.type === 'mid-range' ? '#2dd4bf' : '#e2e8f0'
                       return (
-                        <div key={idx} className="bg-white rounded-lg p-3 border border-violet-100/50 shadow-sm">
-                          <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border mb-1.5 ${typeClass}`}>
+                        <div key={idx} style={{ background: 'white', borderRadius: '8px', padding: '10px', border: `1px solid ${borderClass}`, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                          <span style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', paddingLeft: '6px', paddingRight: '6px', paddingTop: '2px', paddingBottom: '2px', borderRadius: '4px', display: 'inline-block', marginBottom: '6px', background: hotel.type === 'budget' ? '#ecfdf5' : hotel.type === 'mid-range' ? '#eff6ff' : '#fef3c7', color: hotel.type === 'budget' ? '#065f46' : hotel.type === 'mid-range' ? '#0c4a6e' : '#92400e', border: `1px solid ${hotel.type === 'budget' ? '#a7f3d0' : hotel.type === 'mid-range' ? '#bfdbfe' : '#fce7f3'}` }}>
                             {hotel.type}
                           </span>
-                          <p className="text-sm font-semibold text-gray-900 leading-tight">{hotel.name}</p>
-                          {priceRange && (
-                            <p className="text-xs text-gray-500 mt-1">{priceRange}</p>
-                          )}
+                          <p style={{ fontSize: '12px', fontWeight: 600, color: '#1e293b', lineHeight: '1.3' }}>{hotel.name}</p>
+                          {hotel.price_range || hotel.priceRange ? (
+                            <p style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>{hotel.price_range || hotel.priceRange}/night</p>
+                          ) : null}
                         </div>
                       )
                     })}

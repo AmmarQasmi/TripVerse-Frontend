@@ -58,54 +58,54 @@ export function PackingSection({ data }: PackingSectionProps) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mt-8 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+      style={{ marginTop: '24px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', overflow: 'hidden' }}
     >
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-6 py-4 bg-gradient-to-r from-teal-50 to-cyan-50 border-b border-gray-100 flex items-center justify-between hover:from-teal-50/80 transition-colors"
+        style={{ width: '100%', paddingLeft: '16px', paddingRight: '16px', paddingTop: '12px', paddingBottom: '12px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.3s' }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9' }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = '#f8fafc' }}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-sm">
-            <Shirt className="w-5 h-5 text-white" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#0d2b3e', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+            <Shirt className="w-5 h-5" style={{ color: '#2dd4bf' }} />
           </div>
-          <div className="text-left">
-            <h3 className="text-base font-bold text-gray-900">Packing Recommendations</h3>
-            <p className="text-xs text-gray-500 mt-0.5">
+          <div style={{ textAlign: 'left' }}>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: '#0f2d44' }}>Packing Recommendations</p>
+            <p style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
               {checkedCount > 0
                 ? `${checkedCount}/${totalItems} packed`
                 : `${totalItems} items • Based on weather & activities`}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {checkedCount > 0 && (
-            <div className="h-1.5 w-20 bg-gray-200 rounded-full overflow-hidden">
+            <div style={{ height: '6px', width: '96px', background: '#e5e7eb', borderRadius: '9999px', overflow: 'hidden' }}>
               <div
-                className="h-full bg-gradient-to-r from-teal-400 to-emerald-500 rounded-full transition-all duration-500"
-                style={{ width: `${(checkedCount / totalItems) * 100}%` }}
+                style={{ height: '100%', background: '#2dd4bf', borderRadius: '9999px', transition: 'width 0.5s ease', width: `${(checkedCount / totalItems) * 100}%` }}
               />
             </div>
           )}
           {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
+            <ChevronUp className="w-5 h-5" style={{ color: '#94a3b8' }} />
           ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
+            <ChevronDown className="w-5 h-5" style={{ color: '#94a3b8' }} />
           )}
         </div>
       </button>
 
       {isExpanded && (
-        <div className="p-5 sm:p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div style={{ padding: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             {categories.map((cat, catIdx) => {
-              const colorClass = categoryColors[catIdx % categoryColors.length]
               return (
                 <div key={catIdx}>
-                  <div className="flex items-center gap-2 mb-2.5">
-                    <div className={`w-1.5 h-5 rounded-full bg-gradient-to-b ${colorClass}`} />
-                    <h4 className="text-xs font-bold text-gray-600 uppercase tracking-wider">{cat.name}</h4>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                    <div style={{ width: '4px', height: '20px', borderRadius: '2px', background: '#2dd4bf' }} />
+                    <h4 style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{cat.name}</h4>
                   </div>
-                  <div className="space-y-1">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     {cat.items.map((item, itemIdx) => {
                       const idx = globalIdx++
                       const isChecked = checkedItems.has(idx)
@@ -113,18 +113,10 @@ export function PackingSection({ data }: PackingSectionProps) {
                         <button
                           key={itemIdx}
                           onClick={() => toggleItem(idx)}
-                          className={`w-full flex items-center gap-2.5 text-sm py-1.5 px-2 rounded-lg transition-all text-left ${
-                            isChecked
-                              ? 'text-gray-400 line-through bg-gray-50'
-                              : 'text-gray-700 hover:bg-gray-50'
-                          }`}
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', paddingLeft: '10px', paddingRight: '10px', paddingTop: '6px', paddingBottom: '6px', borderRadius: '8px', transition: 'all 0.2s', textAlign: 'left', background: isChecked ? '#10b981' : '#e2e8f0', color: isChecked ? 'white' : '#475569', border: 'none', cursor: 'pointer', textDecoration: isChecked ? 'line-through' : 'none' }}
                         >
-                          <span className={`w-4 h-4 rounded flex-shrink-0 border-2 flex items-center justify-center transition-all ${
-                            isChecked
-                              ? 'bg-teal-500 border-teal-500'
-                              : 'border-gray-300'
-                          }`}>
-                            {isChecked && <Check className="w-3 h-3 text-white" />}
+                          <span style={{ width: '16px', height: '16px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isChecked ? 'rgba(255,255,255,0.3)' : 'transparent', flexShrink: 0 }}>
+                            {isChecked && <Check className="w-3 h-3" style={{ color: 'white' }} />}
                           </span>
                           {item}
                         </button>
