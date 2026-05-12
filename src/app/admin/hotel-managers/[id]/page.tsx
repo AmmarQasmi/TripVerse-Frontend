@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { adminApi } from '@/lib/api/admin.api'
 import { DocumentViewer } from '@/components/shared/DocumentViewer'
+import { CheckCircleIcon, ClockIcon, XCircleIcon, DocumentIcon, ExclamationIcon, AlertIcon } from '@/components/admin/AdminIcons'
 
 interface HotelManagerDetail {
   id: number
@@ -126,13 +127,13 @@ export default function AdminHotelManagerReviewPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'approved':
-        return '✅'
+        return <CheckCircleIcon />
       case 'pending':
-        return '⏳'
+        return <ClockIcon />
       case 'rejected':
-        return '❌'
+        return <XCircleIcon />
       default:
-        return '📄'
+        return <DocumentIcon />
     }
   }
 
@@ -395,13 +396,15 @@ export default function AdminHotelManagerReviewPage() {
                           </span>
                         </div>
                         {!hotel.is_active && (
-                          <p className="text-yellow-300 text-xs mt-2">
-                            ⚠️ This hotel is inactive and not visible to customers. Click "Activate" to make it visible.
+                          <p className="text-yellow-300 text-xs mt-2 inline-flex items-start gap-2">
+                            <span className="w-4 h-4"><ExclamationIcon /></span>
+                            <span>This hotel is inactive and not visible to customers. Click "Activate" to make it visible.</span>
                           </p>
                         )}
                         {hotel.is_active && !hotel.is_listed && (
-                          <p className="text-yellow-300 text-xs mt-2">
-                            ⚠️ This hotel is active but unlisted. Hotel manager needs to list it.
+                          <p className="text-yellow-300 text-xs mt-2 inline-flex items-start gap-2">
+                            <span className="w-4 h-4"><ExclamationIcon /></span>
+                            <span>This hotel is active but unlisted. Hotel manager needs to list it.</span>
                           </p>
                         )}
                       </div>
@@ -451,23 +454,26 @@ export default function AdminHotelManagerReviewPage() {
                     </>
                   )}
                   {manager.is_verified && (
-                    <div className="p-4 bg-green-500/20 border border-green-500/50 rounded-lg">
+                    <div className="p-4 bg-green-500/20 border border-green-500/50 rounded-lg inline-flex items-center gap-3">
+                      <span className="w-5 h-5"><CheckCircleIcon /></span>
                       <p className="text-green-200">
-                        ✅ This hotel manager has been verified on {new Date(manager.verified_at!).toLocaleString()}
+                        This hotel manager has been verified on {new Date(manager.verified_at!).toLocaleString()}
                       </p>
                     </div>
                   )}
                 </div>
                 {!canVerify && !manager.is_verified && (
-                  <p className="text-yellow-300 text-sm">
-                    ⚠️ {hasRejectedRequired 
+                  <p className="text-yellow-300 text-sm inline-flex items-start gap-2">
+                    <span className="w-4 h-4"><ExclamationIcon /></span>
+                    <span>{hasRejectedRequired 
                       ? 'All required documents must be approved (no rejected documents) before verification'
-                      : 'Please ensure all required documents are uploaded before verification'}
+                      : 'Please ensure all required documents are uploaded before verification'}</span>
                   </p>
                 )}
                 {canVerify && !allRequiredApproved && !manager.is_verified && (
-                  <p className="text-blue-300 text-sm">
-                    ℹ️ Pending documents will be automatically approved when you verify this manager
+                  <p className="text-blue-300 text-sm inline-flex items-start gap-2">
+                    <span className="w-4 h-4"><AlertIcon /></span>
+                    <span>Pending documents will be automatically approved when you verify this manager</span>
                   </p>
                 )}
               </div>

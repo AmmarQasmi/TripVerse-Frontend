@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { PageLoader } from '@/components/shared/PageLoader'
 import { SimpleChart } from '@/components/shared/SimpleChart'
 import { adminApi } from '@/lib/api/admin.api'
+import { CarIcon, ClockIcon } from '@/components/admin/AdminIcons'
 
 export default function AdminReportsPage() {
   const [activeTab, setActiveTab] = useState<'bookings' | 'revenue' | 'drivers'>('bookings')
@@ -231,7 +232,7 @@ export default function AdminReportsPage() {
                       <CardHeader>
                         <CardTitle className="text-gray-900">
                           <span className="flex items-center gap-2">
-                            <span>🚗</span> Car Bookings Breakdown
+                            <span className="text-2xl"><CarIcon /></span> Car Bookings Breakdown
                           </span>
                         </CardTitle>
                       </CardHeader>
@@ -240,7 +241,7 @@ export default function AdminReportsPage() {
                           {/* Rentals */}
                           <div className="p-6 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white">
                             <div className="flex items-center gap-3 mb-4">
-                              <span className="text-2xl">📅</span>
+                              <span className="text-2xl"><ClockIcon /></span>
                               <div>
                                 <h4 className="font-semibold text-lg">Car Rentals</h4>
                                 <p className="text-sm text-blue-200">Multi-day bookings</p>
@@ -269,7 +270,7 @@ export default function AdminReportsPage() {
                           {/* Ride-Hailing */}
                           <div className="p-6 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 text-white">
                             <div className="flex items-center gap-3 mb-4">
-                              <span className="text-2xl">🚕</span>
+                              <span className="text-2xl"><CarIcon /></span>
                               <div>
                                 <h4 className="font-semibold text-lg">Ride-Hailing</h4>
                                 <p className="text-sm text-teal-200">On-demand rides</p>

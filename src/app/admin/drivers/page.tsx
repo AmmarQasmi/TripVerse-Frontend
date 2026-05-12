@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { adminApi } from '@/lib/api/admin.api'
 import { Driver } from '@/types/api'
+import { CheckCircleIcon, ClockIcon, XCircleIcon, ExclamationIcon, UserGroupIcon, DocumentIcon } from '@/components/admin/AdminIcons'
 
 export default function AdminDriversPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'verified' | 'rejected'>('all')
@@ -51,10 +52,10 @@ export default function AdminDriversPage() {
       return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800 border border-orange-300">SUSPENDED</span>
     }
     if (driver.dispute_count >= 3) {
-      return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300">⚠️ {driver.dispute_count} Disputes</span>
+      return <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300"><ExclamationIcon /> {driver.dispute_count} Disputes</span>
     }
     if (driver.dispute_count > 0) {
-      return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 border border-gray-300">{driver.dispute_count} Dispute{driver.dispute_count !== 1 ? 's' : ''}</span>
+      return <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 border border-gray-300">{driver.dispute_count} Dispute{driver.dispute_count !== 1 ? 's' : ''}</span>
     }
     return null
   }
@@ -151,20 +152,20 @@ export default function AdminDriversPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'VERIFIED':
-        return '✅'
+        return <CheckCircleIcon />
       case 'PENDING':
-        return '⏳'
+        return <ClockIcon />
       case 'REJECTED':
-        return '❌'
+        return <XCircleIcon />
       case 'INCOMPLETE':
-        return '📄'
+        return <DocumentIcon />
       default:
-        return '📄'
+        return <DocumentIcon />
     }
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <PageHeader 
         title="Driver Management"
         subtitle="Review and manage driver verifications"
@@ -176,29 +177,19 @@ export default function AdminDriversPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                  Driver Management
-                </h1>
-                <p className="text-lg text-gray-600">
-                  Review and manage driver verifications
-                </p>
-              </div>
-              <Button
-                onClick={() => {
-                  setIsLoading(true)
-                  adminApi.getPendingDrivers().then(setPendingDrivers).catch(console.error)
-                  adminApi.getVerifiedDrivers().then(setVerifiedDrivers).catch(console.error).finally(() => setIsLoading(false))
-                }}
-                variant="outline"
-                disabled={isLoading}
-              >
-                🔄 Refresh
-              </Button>
-            </div>
+          <div className="mb-8 flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-white">Drivers</h1>
+            <Button
+              onClick={() => {
+                setIsLoading(true)
+                adminApi.getPendingDrivers().then(setPendingDrivers).catch(console.error)
+                adminApi.getVerifiedDrivers().then(setVerifiedDrivers).catch(console.error).finally(() => setIsLoading(false))
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Refreshing...' : 'Refresh'}
+            </Button>
           </div>
 
           {/* Error Message */}
@@ -217,27 +208,27 @@ export default function AdminDriversPage() {
           )}
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
               <Card 
-                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-75 ${
+                className={`p-6 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 text-white overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg ${
                   filter === 'all' 
-                    ? 'ring-4 ring-blue-400' 
+                    ? 'ring-2 ring-offset-2 ring-blue-300' 
                     : ''
-                }`}
+                } border-0`}
                 onClick={() => setFilter('all')}
               >
                 <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-emerald-100/90">Total Drivers</p>
+                      <p className="text-sm font-medium text-white/80">Total Drivers</p>
                       <p className="text-3xl font-bold text-white">{stats.total}</p>
                     </div>
-                    <div className="text-4xl">👥</div>
+                    <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-xl"><UserGroupIcon /></div>
                   </div>
                 </CardContent>
               </Card>
@@ -249,20 +240,20 @@ export default function AdminDriversPage() {
               transition={{ delay: 0.2 }}
             >
               <Card 
-                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-75 ${
+                className={`p-6 rounded-xl bg-gradient-to-br from-amber-600 to-amber-700 text-white overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg ${
                   filter === 'pending' 
-                    ? 'ring-4 ring-yellow-400' 
+                    ? 'ring-2 ring-offset-2 ring-amber-300' 
                     : ''
-                }`}
+                } border-0`}
                 onClick={() => setFilter('pending')}
               >
                 <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-emerald-100/90">Pending Review</p>
+                      <p className="text-sm font-medium text-white/80">Pending Review</p>
                       <p className="text-3xl font-bold text-white">{stats.pending}</p>
                     </div>
-                    <div className="text-4xl">⏳</div>
+                    <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-blue-200"><ClockIcon /></div>
                   </div>
                 </CardContent>
               </Card>
@@ -274,20 +265,20 @@ export default function AdminDriversPage() {
               transition={{ delay: 0.3 }}
             >
               <Card 
-                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-75 ${
+                className={`p-6 rounded-xl bg-gradient-to-br from-green-600 to-green-700 text-white overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg ${
                   filter === 'verified' 
-                    ? 'ring-4 ring-green-400' 
+                    ? 'ring-2 ring-offset-2 ring-green-300' 
                     : ''
-                }`}
+                } border-0`}
                 onClick={() => setFilter('verified')}
               >
                 <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-emerald-100/90">Verified</p>
+                      <p className="text-sm font-medium text-white/80">Verified</p>
                       <p className="text-3xl font-bold text-white">{stats.verified}</p>
                     </div>
-                    <div className="text-4xl">✅</div>
+                    <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-emerald-100"><CheckCircleIcon /></div>
                   </div>
                 </CardContent>
               </Card>
@@ -299,20 +290,20 @@ export default function AdminDriversPage() {
               transition={{ delay: 0.4 }}
             >
               <Card 
-                className={`relative p-6 rounded-2xl shadow-2xl bg-gradient-to-r from-blue-700 via-cyan-800 to-teal-700 text-white overflow-hidden cursor-pointer transition-all duration-75 ${
+                className={`p-6 rounded-xl bg-gradient-to-br from-red-600 to-red-700 text-white overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg ${
                   filter === 'rejected' 
-                    ? 'ring-4 ring-red-400' 
+                    ? 'ring-2 ring-offset-2 ring-red-300' 
                     : ''
-                }`}
+                } border-0`}
                 onClick={() => setFilter('rejected')}
               >
                 <CardContent className="p-0">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-emerald-100/90">Rejected</p>
+                      <p className="text-sm font-medium text-white/80">Rejected</p>
                       <p className="text-3xl font-bold text-white">{stats.rejected}</p>
                     </div>
-                    <div className="text-4xl">❌</div>
+                    <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-pink-100"><XCircleIcon /></div>
                   </div>
                 </CardContent>
               </Card>
@@ -320,17 +311,16 @@ export default function AdminDriversPage() {
           </div>
 
           {/* Drivers List */}
-          <div className="rounded-2xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg">
-            <Card className="shadow-lg bg-white rounded-2xl">
+          <Card className="border-2 border-white/20 shadow-md rounded-xl bg-white/5">
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <CardTitle className="text-gray-900">
+                  <CardTitle className="text-white">
                     {filter === 'all' && 'All Drivers'}
                     {filter === 'pending' && 'Pending Verifications'}
                     {filter === 'verified' && 'Verified Drivers'}
                     {filter === 'rejected' && 'Rejected Applications'}
                   </CardTitle>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-300">
                     {filteredDrivers.length} driver{filteredDrivers.length !== 1 ? 's' : ''}
                   </span>
                 </div>
@@ -338,8 +328,8 @@ export default function AdminDriversPage() {
               <CardContent>
               {isLoading ? (
                 <div className="text-center py-12">
-                  <div className="text-6xl mb-4 animate-spin">⏳</div>
-                  <p className="text-gray-600">Loading drivers...</p>
+                <div className="w-12 h-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading drivers...</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -350,25 +340,24 @@ export default function AdminDriversPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
                   >
-                    <div className="rounded-xl p-[1px] bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500">
-                      <div className="p-6 bg-white rounded-xl hover:bg-gray-50 transition-colors">
+                  <div className="p-6 bg-white/5 border-2 border-white/10 rounded-lg hover:border-white/20 transition-colors text-white">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-start space-x-4">
                           <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
                             {driver.full_name.charAt(0)}
                           </div>
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-900">{driver.full_name}</h3>
-                            <div className="text-sm text-gray-600 space-y-1">
-                              <p>📧 {driver.email}</p>
-                              <p>📍 {driver.user?.city?.name || 'N/A'}, {driver.user?.city?.region || ''}</p>
-                              <p>📅 Joined {new Date(driver.joinedDate).toLocaleDateString()}</p>
+                            <h3 className="text-lg font-semibold text-white">{driver.full_name}</h3>
+                            <div className="text-sm text-gray-300 space-y-1">
+                            <p className="text-gray-300">{driver.email}</p>
+                            <p className="text-gray-300">{driver.user?.city?.name || 'N/A'}, {driver.user?.city?.region || ''}</p>
+                            <p className="text-gray-300">Joined {new Date(driver.joinedDate).toLocaleDateString()}</p>
                             </div>
                           </div>
                         </div>
                         <div className="flex flex-col items-end space-y-2">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(driver.verificationStatus)}`}>
-                            {getStatusIcon(driver.verificationStatus)} {driver.verificationStatus}
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(driver.verificationStatus)}`}>
+                          <span className="w-4 h-4">{getStatusIcon(driver.verificationStatus)}</span> {driver.verificationStatus}
                           </span>
                           {getSuspensionBadge(driver)}
                           <span className="text-xs text-gray-600">
@@ -379,24 +368,24 @@ export default function AdminDriversPage() {
 
                       {/* Stats */}
                       <div className="grid grid-cols-4 gap-4 mb-4">
-                        <div className="text-center p-3 bg-gray-50 rounded-lg">
-                          <p className="text-sm text-gray-600">Cars</p>
-                          <p className="text-lg font-bold text-gray-900">{driver.totalCars}</p>
+                        <div className="text-center p-3 bg-white/5 rounded-lg">
+                          <p className="text-sm text-gray-300">Cars</p>
+                          <p className="text-lg font-bold text-white">{driver.totalCars}</p>
                         </div>
-                        <div className="text-center p-3 bg-gray-50 rounded-lg">
-                          <p className="text-sm text-gray-600">Trips</p>
-                          <p className="text-lg font-bold text-gray-900">{driver.totalTrips}</p>
+                        <div className="text-center p-3 bg-white/5 rounded-lg">
+                          <p className="text-sm text-gray-300">Trips</p>
+                          <p className="text-lg font-bold text-white">{driver.totalTrips}</p>
                         </div>
-                        <div className="text-center p-3 bg-gray-50 rounded-lg">
-                          <p className="text-sm text-gray-600">Earnings</p>
-                          <p className="text-lg font-bold text-gray-900">
+                        <div className="text-center p-3 bg-white/5 rounded-lg">
+                          <p className="text-sm text-gray-300">Earnings</p>
+                          <p className="text-lg font-bold text-white">
                             {driver.totalEarnings > 0 ? `${(driver.totalEarnings / 1000).toFixed(0)}k` : '0'}
                           </p>
                         </div>
-                        <div className="text-center p-3 bg-gray-50 rounded-lg">
-                          <p className="text-sm text-gray-600">Rating</p>
-                          <p className="text-lg font-bold text-gray-900">
-                            {driver.rating > 0 ? `⭐ ${driver.rating}` : 'New'}
+                        <div className="text-center p-3 bg-white/5 rounded-lg">
+                          <p className="text-sm text-gray-300">Rating</p>
+                          <p className="text-lg font-bold text-white">
+                          {driver.rating > 0 ? `${driver.rating}` : 'New'}
                           </p>
                         </div>
                       </div>
@@ -404,25 +393,26 @@ export default function AdminDriversPage() {
                       {/* Actions */}
                       <div className="flex space-x-2">
                         <Link href={`/admin/drivers/${driver.id}`} className="flex-1">
-                          <Button className="w-full bg-gradient-to-r from-[#1e3a8a] to-[#0d9488] hover:from-[#1e3a8a]/90 hover:to-[#0d9488]/90 text-white">
+                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                             {driver.verificationStatus === 'PENDING' || driver.verificationStatus === 'INCOMPLETE' 
-                              ? '📄 Review Documents'
-                              : '👁️ View Profile'
+                            ? 'Review Documents'
+                            : 'View Profile'
                             }
                           </Button>
                         </Link>
                         <Button variant="outline" className="px-6">
-                          💬 Contact
+                        Contact
                         </Button>
                       </div>
-                      </div>
-                    </div>
+                  </div>
                   </motion.div>
                 ))}
 
                   {filteredDrivers.length === 0 && (
                     <div className="text-center py-12">
-                      <div className="text-6xl mb-4">🚗</div>
+                    <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 4c0-1.657 1.343-3 3-3h2v6h-2c-1.657 0-3-1.343-3-3zm-8 0c0-1.657 1.343-3 3-3h2v6H11c-1.657 0-3-1.343-3-3zm-4 6v10h16V10H4zm3 6h2v-2H7v2zm8 0h2v-2h-2v2z" />
+                    </svg>
                       <h3 className="text-xl font-semibold text-gray-900 mb-2">
                         No drivers found
                       </h3>
@@ -434,8 +424,7 @@ export default function AdminDriversPage() {
                 </div>
               )}
               </CardContent>
-            </Card>
-          </div>
+          </Card>
         </motion.div>
       </div>
     </div>
