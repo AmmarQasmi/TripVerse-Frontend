@@ -230,6 +230,23 @@ export default function WeatherPage() {
           </motion.div>
         )}
 
+        {/* Excessive Heat Alert */}
+        {currentWeather && 'temperature' in currentWeather && currentWeather.temperature > 35 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 backdrop-blur-lg bg-orange-500/80 rounded-xl p-4 border-2 border-orange-300"
+          >
+            <div className="flex items-center gap-3 text-white">
+              <span className="text-3xl">🌡️</span>
+              <div>
+                <p className="font-bold text-lg">Excessive Heat</p>
+                <p className="text-sm text-white/90">Severe heat is expected in this area. Stay hydrated and avoid prolonged sun exposure.</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {currentWeather && 'cityName' in currentWeather && (
           <div className="space-y-6">
             {/* Hero Weather Card */}
@@ -262,10 +279,10 @@ export default function WeatherPage() {
                   <div className="text-2xl text-gray-800 capitalize font-semibold mb-2">
                     {currentWeather.condition}
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-700">
                     Weather Code: {currentWeather.weatherCode}
                   </div>
-                  <div className="text-sm text-gray-600 mt-2">
+                  <div className="text-sm text-gray-700 mt-2">
                     Last updated: {new Date(currentWeather.time).toLocaleTimeString()}
                   </div>
                 </div>

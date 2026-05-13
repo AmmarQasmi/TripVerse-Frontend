@@ -227,8 +227,24 @@ export function NotificationBell() {
         return '/admin/disputes'
       
       case 'payment_received':
-      case 'hotel_booking_payment_received':
-        return '/admin/payments'
+      case 'hotel_booking_payment_received': {
+        // Prefer wallet/payouts/earnings pages for payment notifications
+        if (role === 'admin') return '/admin/payments'
+
+        if (role === 'driver') {
+          if (payload.transaction_id) return `/driver/payouts/${payload.transaction_id}`
+          return '/driver/payouts'
+        }
+
+        if (role === 'hotel_manager') {
+          if (payload.transaction_id) return `/hotel-manager/earnings/${payload.transaction_id}`
+          return '/hotel-manager/earnings'
+        }
+
+        // Default to client wallet
+        if (payload.transaction_id) return `/client/wallet/transactions/${payload.transaction_id}`
+        return '/client/wallet'
+      }
 
       default:
         return null
